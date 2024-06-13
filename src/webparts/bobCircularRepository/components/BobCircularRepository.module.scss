@@ -1,0 +1,752 @@
+@import '~@fluentui/react/dist/sass/References.scss';
+@import '../Fonts/Exo.module.scss';
+@import '../Fonts/Roboto.module.scss';
+
+.circularBoard {
+  overflow: hidden;
+  padding: 1em;
+  color: "[theme:bodyText, default: #323130]";
+  color: var(--bodyText);
+
+  &.teams {
+    font-family: $ms-font-family-fallbacks;
+  }
+}
+
+textarea * {
+  font-family: 'Roboto';
+}
+
+label * {
+  font-family: 'Roboto';
+}
+
+span * {
+  font-family: 'Roboto';
+}
+
+input * {
+  font-family: 'Roboto';
+}
+
+.gradient {
+  background: radial-gradient(circle, hsla(0, 0%, 100%, 1) 65%, hsla(228, 100%, 97%, 1) 100%);
+}
+
+.userImage {
+  border-radius: 50%;
+  object-fit: contain;
+  margin-top: 8px;
+  max-width: 40px;
+  width: 35px;
+  float: right;
+  // margin-left: 50%;
+}
+
+.user {
+  text-align: left;
+  padding: 15px !important;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.mainContainer {
+  display: flex;
+  height: 100%;
+  min-height: 100vh;
+  //margin-left: 20px;
+  // box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 25px 50px 0 rgba(0, 0, 0, 0.1);
+  font-family: "Roboto" !important;
+  //background: #F7F9FB;
+  //padding: 0 8px;
+}
+
+.borderUpload {
+  border: 2px dotted #ccc
+}
+
+.labelUpload {
+  justify-content: center;
+}
+
+.borderTop {
+  border-top: 1px solid #ccc;
+}
+
+.borderLeft {
+  border-left: 1px solid #ccc;
+}
+
+.border {
+  border: 1px solid #ccc;
+}
+
+.mainContainerTeams {
+  display: flex;
+  height: 100%;
+  min-height: 100vh;
+  // padding: 0 8px;
+}
+
+.container {
+  @include ms-Grid;
+  width: 100%;
+}
+
+.displayBlock {
+  display: block;
+}
+
+.mobileFont {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.mobileHeaderFont {
+  font-size: larger;
+  font-weight: 800;
+}
+
+@media screen and (min-width: 2000px) {
+  .container {
+    margin-left: 20%;
+    margin-right: 20%;
+  }
+}
+
+.row {
+  @include ms-Grid-row;
+  // padding: 20px;
+}
+
+.column1 {
+  @include ms-Grid-col;
+  @include ms-sm1;
+  @include ms-md1;
+  @include ms-lg1;
+  height: "inherit";
+}
+
+.column2 {
+  @include ms-Grid-col;
+  @include ms-sm2;
+  @include ms-md2;
+  @include ms-lg2;
+  height: "inherit";
+}
+
+.column3 {
+  @include ms-Grid-col;
+  @include ms-sm3;
+  @include ms-md3;
+  @include ms-lg3;
+  height: "inherit";
+}
+
+.column4 {
+  @include ms-Grid-col;
+  @include ms-sm4;
+  @include ms-md4;
+  @include ms-lg4;
+  height: "inherit";
+}
+
+.column5 {
+  @include ms-Grid-col;
+  @include ms-sm5;
+  @include ms-md5;
+  @include ms-lg5;
+  height: "inherit";
+}
+
+.column6 {
+  @include ms-Grid-col;
+  @include ms-sm6;
+  @include ms-md6;
+  @include ms-lg6;
+  height: "inherit";
+}
+
+.column7 {
+  @include ms-Grid-col;
+  @include ms-sm7;
+  @include ms-md7;
+  @include ms-lg7;
+  height: "inherit";
+}
+
+.column8 {
+  @include ms-Grid-col;
+  @include ms-sm8;
+  @include ms-md8;
+  @include ms-lg8;
+  height: "inherit";
+}
+
+.column9 {
+  @include ms-Grid-col;
+  @include ms-sm9;
+  @include ms-md9;
+  @include ms-lg9;
+  height: "inherit";
+}
+
+.column10 {
+  @include ms-Grid-col;
+  @include ms-md10;
+  @include ms-lg10;
+  @include ms-sm10;
+  height: "inherit";
+}
+
+.column11 {
+  @include ms-Grid-col;
+  @include ms-md11;
+  @include ms-lg11;
+  @include ms-sm11;
+  height: "inherit";
+}
+
+.column12 {
+  @include ms-Grid-col;
+  @include ms-md12;
+  @include ms-lg12;
+  @include ms-sm12;
+  height: "inherit";
+}
+
+.welcome {
+  text-align: center;
+}
+
+.welcomeImage {
+  width: 100%;
+  max-width: 420px;
+}
+
+.headerTextAlign {
+  text-align: right;
+}
+
+.textAlignLeft {
+  text-align: left;
+}
+
+.textAlignEnd {
+  text-align: end;
+}
+
+.fontSizeFileName {
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.mobileFontFileName {
+  word-wrap: break-word;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.marginTop {
+  margin-top: 15px;
+}
+
+.alignMiddle {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  min-height: 65px;
+  max-height: 80px;
+}
+
+.rowDetails {
+  background: #f2652233; // #efefee; //rgba(0, 49, 113, 0.09);
+  border-radius: 4px;
+}
+
+.attachmentRow {
+  background: #5d676f17;
+  /* border-left: 0.5px solid #ccc; */
+}
+
+.attachments {
+  color: #03787c;
+  text-decoration: none;
+  cursor: pointer;
+  background-color: #f2652233;
+  min-width: 0;
+  border-radius: 14px;
+  outline: 0;
+  border: none;
+  padding: 4px;
+  font-weight: 600;
+  margin-bottom: 5px;
+  word-break: break-all;
+}
+
+.cursor {
+  margin-bottom: 5px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.headerBackgroundColor {
+  background-color: #162B75;
+}
+
+.fontRoboto {
+  font-family: Roboto !important;
+}
+
+.formLabel {
+  font-family: Roboto !important;
+  font-weight: 400;
+  color: #162B75;
+  white-space: nowrap;
+}
+
+.formBtn {
+  margin: 5px;
+}
+
+.paddingLeft {
+  padding-left: 20px;
+}
+
+.borderRadius {
+  border-radius: 5px;
+}
+
+.colorLabel {
+  color: var(--colorBrandBackground);
+}
+
+.master {
+  background: var(--colorBrandBackground);
+  color: var(--colorNeutralForegroundOnBrand);
+  box-shadow: var(--shadow2);
+}
+
+.circular {
+  background: #2367CC;
+  color: var(--colorNeutralForegroundOnBrand);
+  box-shadow: var(--shadow2);
+}
+
+
+.formInput {
+  font-family: Roboto !important;
+  font-weight: 400;
+}
+
+.fieldTitle {
+  font-weight: 600;
+}
+
+.formHeader {
+  font-family: Roboto !important;
+  color: white;
+  font-weight: 600;
+  justify-content: center;
+  display: flex;
+  font-size: 20px;
+  height: 40px;
+  /* top: 10px; */
+  position: relative;
+  align-items: center;
+}
+
+.formRequestInfo {
+  font-family: Roboto !important;
+  color: black;
+  font-weight: 400;
+  background-color: #FFE6DE;
+}
+
+.formFieldMarginTop {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.choiceGroup {
+  top: 5px
+}
+
+.headerBgColor {
+  //background-color: #337AB7; //rgb(0, 176, 230); // #3F51B5;
+  background-color: var(--colorBrandBackground); // #FF5C23; // #122B45;
+}
+
+.textColor {
+  color: white;
+}
+
+.mobileHeaderTextAlign {
+  font-size: medium;
+  text-align: center;
+  //padding-left: 10px;
+}
+
+.headerTextAlignLeft {
+  text-align: left;
+  font-size: 24px;
+}
+
+.mobileHeaderTextFont {
+  font-size: large;
+}
+
+.headerTextAlignCenter {
+  text-align: center;
+  // font-size: 24px;
+  // padding-top: 10px;
+}
+
+.mobileHeaderMargin {
+  margin-top: 7px
+}
+
+.lineHeightTableRow {
+  line-height: 25px;
+}
+
+.marginBottom {
+  margin-bottom: 10px;
+}
+
+.marginBottomCard {
+  margin-bottom: 5px !important;
+}
+
+.fontSizeTablet {
+  font-size: 32px;
+}
+
+.padding {
+  padding: 15px;
+}
+
+.paddingMobile {
+  padding: 5px
+}
+
+.paddingMobileCard {
+  padding-left: 15px
+}
+
+.minHeight {
+  min-height: 45px;
+  justify-content: flex-start;
+  display: flex;
+  align-items: center;
+}
+
+.verticalAlignMiddle {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  height: 50px;
+}
+
+.minimumHeight {
+  min-height: 100vh;
+}
+
+.borderRight {
+  border-right: 0.5px solid #ccc;
+}
+
+.borderBottom {
+  border-bottom: 1px solid #ccc;
+  color: #003171;
+}
+
+.backgroundWhite {
+  background-color: white;
+}
+
+.detailsListBorderRadius {
+  border-radius: 5px;
+}
+
+.detailListShadow {
+  box-shadow: 0 1.6px 3.6px 0 rgba(0, 0, 0, .132), 0 0.3px 0.9px 0 rgba(0, 0, 0, .108)
+}
+
+.labelFloatLeft {
+  float: left;
+}
+
+.paddingBottom {
+  padding-bottom: 8px;
+}
+
+textarea::placeholder {
+  font-family: 'Roboto' !important;
+}
+
+textarea::-ms-input-placeholder {
+  font-family: 'Roboto' !important;
+}
+
+input::-ms-input-placeholder {
+  font-family: 'Roboto' !important;
+  color: black;
+}
+
+input::placeholder {
+  font-family: 'Roboto' !important;
+  color: black;
+}
+
+.search {
+  // box-shadow: 4px 6px 7px 9px #f0f3ff;
+  // box-shadow: 3px 3px 5px 2px rgb(0 49 113 / 33%);
+  padding-bottom: 10px;
+  //padding-top: 10px;
+  border-radius: 5px;
+  //background: rgba( 255, 255, 255, 0.25);
+  //background: rgb(250, 250, 250);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  // backdrop-filter: blur( 4px);
+  // -webkit-backdrop-filter: blur( 4px);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.searchResultsBox {
+
+  border: 1px solid hsla(0, 0%, 100%, .18);
+  border-radius: 5px;
+  border-radius: 10px;
+  box-shadow: 0 0px 4px 0 rgba(31, 38, 135, .37);
+  padding: 10px;
+  margin-bottom: 0px;
+  margin-top: 10px;
+  margin-left: 0px;
+  margin-right: 2px;
+}
+
+.mobileCard {
+  background: hsla(0, 0%, 100%, .25);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, .37) !important;
+}
+
+.OneUpError {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.odError {
+  text-align: center;
+}
+
+.odErrorImage {
+  padding-top: 52px;
+  height: 208px;
+  width: auto;
+  margin: 0 auto;
+}
+
+.odErrorImage .odErrorImageTag {
+  height: 208px;
+  width: auto;
+}
+
+.odErrorTitle {
+  padding: 16px 16px 0 16px;
+  font-size: 17px;
+  font-weight: 600;
+  // max-width: 400px;
+  color: #605e5c;
+  margin: 0 auto;
+}
+
+table {
+  caption-side: bottom;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.table.gs-5 td:first-child,
+.table.gs-5 th:first-child {
+  padding-left: 1.25rem
+}
+
+.table.gs-5 td:last-child,
+.table.gs-5 th:last-child {
+  padding-right: 1.25rem
+}
+
+.table.gs-0 td:first-child,
+.table.gs-0 th:first-child {
+  padding-left: 0
+}
+
+.table.gs-0 td:last-child,
+.table.gs-0 th:last-child {
+  padding-right: 0
+}
+
+.text-gray-700 {
+  color: #5e6278 !important
+}
+
+.border-top-dotted {
+  border-top-style: dotted !important
+}
+
+.border-bottom {
+  border-bottom: 1px solid #eff2f5 !important
+}
+
+.fs-7 {
+  font-size: .95rem !important
+}
+
+.fw-bolder {
+  font-weight: 600 !important
+}
+
+.text-uppercase {
+  text-transform: uppercase !important
+}
+
+.min-w-200px {
+  min-width: 200px !important
+}
+
+.w-200px {
+  width: 200px !important
+}
+
+.fs-xl-4 {
+  font-size: 1rem !important
+}
+
+.text-muted {
+  color: #a1a5b7 !important
+}
+
+.text-center {
+  text-align: center !important
+}
+
+.ps-0 {
+  padding-left: 0 !important
+}
+
+.text-start {
+  text-align: left !important
+}
+
+.py-10 {
+  padding-top: 2.5rem !important;
+  padding-bottom: 2.5rem !important
+}
+
+.text-danger {
+  color: rgb(164, 38, 44);
+}
+
+.ps-4 {
+  padding-left: 1rem !important
+}
+
+.fs-7 {
+  font-size: 13px !important
+}
+
+.input {
+  font-size: 14px;
+  font-weight: 400;
+  box-shadow: none;
+  margin: 0px;
+  padding: 6px 8px;
+  box-sizing: border-box;
+  border-radius: 0px;
+  color: rgb(50, 49, 48);
+  width: 100%;
+  min-width: 0px;
+  text-overflow: ellipsis;
+  outline: 0px;
+  line-height: 17px;
+  overflow: auto;
+}
+
+.ListItemAttachments {
+  margin-bottom: 15px;
+
+  .documentCard {
+    -webkit-font-smoothing: antialiased;
+    background-color: #ffffff;
+    border: 1px solid #eaeaea;
+    box-sizing: border-box;
+    max-width: 320px;
+    min-width: 165px;
+    user-select: none;
+    position: relative;
+  }
+
+  .documentCardWrapper {
+    // margin: 15px 10px 10px 0px;
+    // min-Width: 180px;
+    // width: 170px;
+    // min-width: 175px;
+    // width: 70px;
+    color: #03787c;
+    /* text-decoration: none; */
+    background-color: #c5e9ea73;
+    width: 100%;
+    margin: 5px 5px 0 5px;
+    font-weight: 600;
+    border-radius: 10px;
+    // min-Width: 178px;
+    // width: 130px;
+    float: left;
+    display: block;
+  }
+
+  .documentCardFilePreview {
+    margin: 8px;
+    min-Width: 230px;
+    width: 230px;
+    display: inline-block;
+  }
+
+  .fileLabel {
+    margin-left: 12px;
+    margin-right: 12px;
+    overflow: 'hidden';
+    white-space: 'nowrap';
+    text-overflow: 'ellipsis';
+  }
+
+  .uploadfile {
+    background-color: transparent !important;
+    font-size: 15px;
+  }
+}
+
+.uploadBar {
+  margin-top: 15px;
+  text-align: left;
+}
+
+.links {
+  a {
+    text-decoration: none;
+    color: "[theme:link, default:#03787c]";
+    color: var(--link); // note: CSS Custom Properties support is limited to modern browsers only
+
+    &:hover {
+      text-decoration: underline;
+      color: "[theme:linkHovered, default: #014446]";
+      color: var(--linkHovered); // note: CSS Custom Properties support is limited to modern browsers only
+    }
+  }
+}

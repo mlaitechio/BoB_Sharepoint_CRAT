@@ -1,0 +1,128 @@
+
+      {/* <div className={`${styles.row} ${styles1.search}`} style={{ marginTop: 10 }}>
+
+
+        <div className={`${styles1.column12} `}>
+          <div className={`${styles.row}`}>
+            <Label className={`${styles1.column10}`} styles={{ root: { color: "#f26522", fontFamily: 'Roboto' } }}>
+              {Constants.hindiSearchCircular} : {Constants.engSearchCircular}
+            </Label>
+          
+          </div>
+
+          <Label styles={{ root: { textDecoration: "underline", padding: 0, fontFamily: 'Roboto' } }} className={`${styles1['text-center']}`}>
+            {Constants.hindiSearchHeader}
+          </Label>
+        </div>
+        <div className={`${styles1.column12}`}>
+          <Label styles={{ root: { textDecoration: "underline", padding: 0, fontFamily: 'Roboto' } }} className={`${styles1['text-center']}`}>
+            {Constants.engSearchHeader}
+          </Label>
+        </div>
+        <div className={`${searchBoxColumn} ${styles1.marginTop}`}>
+          {this.searchBox()}
+        </div>
+        <div className={`${searchClearColumn} ${styles1.marginTop} `} >
+          <Switch
+            label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{switchSearchText}</FluentLabel>}
+            onChange={this.onSwitchChange}
+          />
+        </div>
+
+
+        {!isNormalSearch && <>
+          <div className={`${styles1.column4}  ${styles1.marginTop}`}>
+            {this.pickerControl()}
+
+          </div>
+          <div className={`${styles1.column3} ${styles1.marginTop}`}>
+            <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`Circular Number`}</FluentLabel>} ></Field>
+            <div className={`${styles1.row}`}>
+              <div className={`${styles1.column4}`}>
+                {this.checkBoxControl(`Contains`)}
+              </div>
+              <div className={`${styles1.column8}`} style={{ padding: 0 }}>
+
+                <Input placeholder="Input at least 2 characters"
+                  input={{ className: `${styles.input}` }}
+                  className={`${styles.input}`}
+                  value={circularNumber}
+                  onChange={this.onInputChange} />
+              </div>
+              <div className={`${styles1.column12}`}>
+                {this.checkBoxControl(`Starts With`)}
+              </div>
+
+              <div className={`${styles1.column12}`}>
+                {this.checkBoxControl(`Ends With`)}
+              </div>
+            </div>
+          </div>
+         
+
+          <div className={`${styles1.column3} ${styles1.marginTop}`}>
+            <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`Published From Date`}</FluentLabel>} >
+              <DatePicker mountNode={{}}
+                formatDate={this.onFormatDate}
+                value={publishedStartDate}
+                contentAfter={
+                  <>
+                    <FluentUIBtn icon={<ArrowCounterclockwiseRegular />}
+                      appearance="transparent"
+                      title="Reset"
+                      onClick={this.onResetClick.bind(this, `FromDate`)}>
+                    </FluentUIBtn>
+                    <FluentUIBtn icon={<CalendarRegular />} appearance="transparent"></FluentUIBtn>
+                  </>}
+                onSelectDate={this.onSelectDate.bind(this, `FromDate`)}
+                input={{ style: { fontFamily: "Roboto" } }} />
+
+
+            </Field>
+            <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`Published To Date`}</FluentLabel>}>
+              <DatePicker mountNode={{}}
+                formatDate={this.onFormatDate}
+                value={publishedEndDate}
+                contentAfter={
+                  <>
+                    <FluentUIBtn
+                      icon={<ArrowCounterclockwiseRegular />}
+                      appearance="transparent" title="Reset"
+                      onClick={this.onResetClick.bind(this, `ToDate`)}>
+                    </FluentUIBtn>
+                    <FluentUIBtn icon={<CalendarRegular />} appearance="transparent"></FluentUIBtn>
+
+                  </>}
+                onSelectDate={this.onSelectDate.bind(this, `ToDate`)}
+                input={{ style: { fontFamily: "Roboto" } }} />
+            </Field>
+          </div>
+        </>}
+
+        <div className={`${styles1.column12} ${styles1.marginTop} ${styles1['text-center']}`}>
+          {this.searchClearButtons()}
+        </div>
+      </div > */}
+      {/* <div className={`${styles.row}`}>
+        <div className={`${detailListClass}`} style={{ padding: 15 }}>
+          {this.circularSearchResultsTable()}
+        </div>
+      </div> */}
+
+      {/* {
+        <div className={`${styles1.row}`}>
+          <div className={`${styles1.column12}`}>
+            {!isLoading && filteredItems.length == 0 && this.noItemFound()}
+          </div>
+        </div>
+      } */}
+
+      {/* {
+        previewItems &&
+        <div className={`${styles1.row}`}>
+          <FileViewer listItem={previewItems}
+            stateKey={new Date().toISOString()}
+            context={context} onClose={this.onPanelClose}
+            onUpdate={this.updateItem}></FileViewer>
+        </div>
+      } */}

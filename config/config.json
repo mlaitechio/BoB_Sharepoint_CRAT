@@ -1,0 +1,20 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "bob-circular-repository-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/bobCircularRepository/BobCircularRepositoryWebPart.js",
+          "manifest": "./src/webparts/bobCircularRepository/BobCircularRepositoryWebPart.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {
+    "BobCircularRepositoryWebPartStrings": "lib/webparts/bobCircularRepository/loc/{locale}.js",
+    "ControlStrings": "node_modules/@pnp/spfx-controls-react/lib/loc/{locale}.js",
+    "PropertyControlStrings": "node_modules/@pnp/spfx-property-controls/lib/loc/{locale}.js"
+  }
+}

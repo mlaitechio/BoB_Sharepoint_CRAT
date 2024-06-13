@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "bob-circular-repository-client-side-solution",
+    "id": "f5c83ced-f26d-4b11-ad22-a209937ed6f9",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.18.2"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "bob-circular-repository description"
+      },
+      "longDescription": {
+        "default": "bob-circular-repository description"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "bob-circular-repository Feature",
+        "description": "The feature that activates elements of the bob-circular-repository solution.",
+        "id": "2d4415a3-a083-44e4-92ca-ef03675e8d0d",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/bob-circular-repository.sppkg"
+  }
+}

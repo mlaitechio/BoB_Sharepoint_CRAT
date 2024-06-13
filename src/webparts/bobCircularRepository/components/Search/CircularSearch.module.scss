@@ -1,0 +1,98 @@
+@import '~@fluentui/react/dist/sass/References.scss';
+
+
+$backgroundColor: "[theme: themePrimary, default: #d5dfe2]";
+$primaryColor: "[theme: themePrimary, default: #c0392b]";
+
+.paginationContainer {
+    text-align: right;
+    width: 100%;
+    float: left;
+
+    .searchWp__paginationContainer__pagination {
+        display: inline-block;
+        text-align: right;
+
+        ul {
+            display: inline-block;
+            padding-left: 0;
+            border-radius: 4px;
+            margin-right: 20px;
+
+            li {
+                display: inline;
+
+                a {
+                    float: left;
+                    padding: 5px 5px;
+                    text-decoration: none;
+                    border-radius: 15px;
+                    color: black;
+
+                    i {
+                        font-size: 10px;
+                        color: var(--link)
+                    }
+                }
+
+                a:visited {
+                    color: "[theme: themePrimary, default: #c0392b]";
+                    color: $primaryColor;
+                }
+
+                a.active {
+                    color: white;
+                    background-color: rgb(0, 49, 113);
+                    // color: var(--color-brand-iconColor) !important;
+                }
+            }
+        }
+    }
+}
+
+.viewList {
+    a {
+        color: inherit;
+        text-decoration: none;
+        cursor: pointer;
+        font-weight: 600;
+        color: rgb(0, 49, 113)
+    }
+
+    a:hover {
+        text-decoration: underline;
+        cursor: pointer;
+        font-weight: 600;
+    }
+}
+
+.header {
+    font-size: 14px;
+    //width: 300px !important;
+}
+
+.input {
+    font-family: Roboto !important;
+    width: 100%;
+
+    &::placeholder {
+        color: #777272
+    }
+}
+
+.column4 {
+    @include ms-Grid-col;
+    @include ms-sm4;
+    height: "inherit";
+}
+
+.column5 {
+    @include ms-Grid-col;
+    @include ms-sm5;
+    height: "inherit";
+}
+
+.row {
+    @include ms-Grid-row;
+    // padding: 20px;
+}
