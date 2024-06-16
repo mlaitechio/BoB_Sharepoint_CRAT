@@ -1,12 +1,16 @@
 {searchTerms} (siteId: {4db5bdf0-f4d9-4524-8c7a-62f986546e63} OR siteId: 4db5bdf0-f4d9-4524-8c7a-62f986546e63) (webId: {153bba80-4381-485d-b08d-3233d8cb24d3} OR webId: 153bba80-4381-485d-b08d-3233d8cb24d3) (NormListID: 67280d85-09b4-4f37-8c2b-0e42ea7a5fa1) (path: "https://mlaitechio.sharepoint.com/sites/BOB_New/Lists/CircularRepository" OR ParentLink: "https://mlaitechio.sharepoint.com/sites/BOB_New/Lists/CircularRepository*") ContentTypeId: 0x0*
 
+Classification Search Query string
+Issued For Search Query string
+Regulatory Search Query string
+Category Search Query string
+
 -------------------------------------Number of hours------------------------------------
 1. Search Dashboard  --> 85 hours
 2. Migration Script -> 60 hours
 3. Initial Consultation & Analysis -> 8 hours
 4. Download PDF with waterMark -> 25 hours
-5. View PDF with watermark -> 15 hours
-6.  
+5. View PDF with watermark -> 25 hours  
 
 Search Dashboard
 1. Logic to get only published status circular items
@@ -1447,4 +1451,19 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                                                 } */}
 
                                                 {/* <ActionButton iconProps={{ iconName: "Print" }}></ActionButton> */}
+
+                                                  {/* <PDF
+                    file={`${this.props.pdfFilePath}`}
+                    page={this.state.page}
+                    watermark={this.props.watermarkText}
+                    watermarkOptions={{
+                        transparency: 0.5,
+                        fontSize: 55,
+                        fontStyle: 'Bold',
+                        fontFamily: 'Arial'
+                    }}
+                    onDocumentComplete={() => {  }}
+                    onPageRenderComplete={(pages, page) => this.setState({ page, pages })}
+                /> */}
+                {/* {pagination} */}
 

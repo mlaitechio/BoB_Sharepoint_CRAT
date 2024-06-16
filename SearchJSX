@@ -126,3 +126,63 @@
             onUpdate={this.updateItem}></FileViewer>
         </div>
       } */}
+
+      // {
+      //   filteredPageItems && filteredPageItems.length > 0 && filteredPageItems.map((val: ICircularListItem, index) => {
+      //     let masterCircularClass = val.Classification == "Master" ? `${styles1.master}` : `${styles1.circular}`;
+
+      //     return <>
+      //       <div className={`${styles1.row} ${styles1.searchResultsBox}`}>
+      //         <div className={`${styles1.column1} ${styles1['text-center']} ${masterCircularClass} ${styles1.borderRadius}`}>
+      //           {val.Classification}
+      //         </div>
+      //         <div className={`${styles1.column10} ${styles1['text-center']} ${styles1.colorLabel}`}>
+      //           {val.CircularNumber}
+      //         </div>
+      //         <div className={`${styles1.column1} ${styles1['text-center']} ${styles1.master} ${styles1.borderRadius}`} style={{ whiteSpace: "nowrap" }} >
+      //           {this.formatDate(val.PublishedDate)}
+      //         </div>
+      //         <div className={`${styles1.column10}`}>
+      //           <Accordion collapsible={isAccordionSelected}
+      //             onToggle={this.handleToggle.bind(this, val)}>
+      //             <AccordionItem value={val.Id}>
+      //               <AccordionHeader button={{ style: { fontWeight: 600 } }}>
+      //                 {val.Subject}
+      //               </AccordionHeader>
+      //               <AccordionPanel className={AnimationClassNames.slideDownIn20}>
+      //                 {previewItems && <>
+      //                   <div className={`${styles1.row} ${styles1.marginTop}`} >
+      //                     <div className={`${styles1.column1}`} >Summary:</div>
+      //                     <div className={`${styles1.column5} ${styles1.paddingLeft}`} style={{ fontWeight: 600 }}>{previewItems.Subject}</div>
+      //                     <div className={`${styles1.column1}`} >Department:</div>
+      //                     <div className={`${styles1.column5} ${styles1.paddingLeft}`} style={{ fontWeight: 600 }}>{previewItems.Department}</div>
+
+      //                   </div>
+      //                   <div className={`${styles1.row} ${styles1.marginTop}`} >
+      //                     <div className={`${styles1.column1}`} style={{ whiteSpace: "nowrap" }}>Issued for:</div>
+      //                     <div className={`${styles1.column5} ${styles1.paddingLeft}`} style={{ fontWeight: 600 }}>{previewItems.IssuedFor}</div>
+      //                     <div className={`${styles1.column1}`} >Type:</div>
+      //                     <div className={`${styles1.column5} ${styles1.paddingLeft}`} style={{ fontWeight: 600 }}>{previewItems.CircularType}</div>
+      //                   </div>
+      //                   <div className={`${styles1.row} ${styles1.marginTop}`}>
+      //                   </div>
+      //                 </>
+      //                 }
+      //               </AccordionPanel>
+      //             </AccordionItem>
+      //           </Accordion>
+      //         </div>
+      //         <div className={`${styles1.column2}`} style={{ textAlign: "end" }}>
+      //           <Button title="View Content" appearance="transparent"
+      //             onClick={() => {
+      //               this.readItemsAsStream(val);
+      //             }}
+      //             icon={<EyeRegular />} ></Button>
+      //           <Button title="Download" appearance="transparent" icon={<ArrowDownloadRegular />}
+      //             onClick={() => { this.downloadCircularContent(val) }}></Button>
+      //           <Button title="Share" appearance="transparent" icon={<ShareAndroidRegular />}></Button>
+      //         </div>
+      //       </div>
+      //     </>
+      //   })
+      // }

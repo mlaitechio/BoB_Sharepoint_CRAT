@@ -4,8 +4,9 @@ import { ICircularListItem } from "../../Models/IModel";
 export interface IFileViewerProps {
     listItem: ICircularListItem;
     stateKey?: string;
-    context?: WebPartContext
+    context?: WebPartContext;
     onClose?: () => void;
+    documentLoaded?: () => void;
     onUpdate?: (itemID: any) => void;
 
 }

@@ -2,8 +2,11 @@ import {
     ChoiceGroup,
     DirectionalHint, DocumentCard, DocumentCardActions,
     DocumentCardPreview, Icon, IDocumentCardPreviewImage,
-    ImageFit, Label, Panel, PanelType, TooltipHost, ActionButton, IconButton, Image, Link, DefaultButton, Dialog, DialogType, Spinner, SpinnerSize, mergeStyleSets, FontSizes, FontWeights, getTheme, IImageProps, IChoiceGroup
+    ImageFit, Label, Panel, PanelType, TooltipHost, ActionButton, IconButton, Image, Link, DefaultButton, DialogType, SpinnerSize, mergeStyleSets, FontSizes, FontWeights, getTheme, IImageProps, IChoiceGroup,
+    DialogContent
 } from '@fluentui/react';
+
+import { Dialog, DialogBody, DialogSurface, Spinner } from "@fluentui/react-components";
 import { Attach16Filled } from '@fluentui/react-icons'
 import * as React from 'react'
 import { Constants } from '../../Constants/Constants'
@@ -19,6 +22,7 @@ import { IBobCircularRepositoryProps } from '../IBobCircularRepositoryProps';
 import JSZip from "jszip";
 import { saveAs } from 'file-saver';
 import MyPdfViewer from '../PDFViewer/PDFViewer';
+
 
 
 
@@ -96,18 +100,19 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
             choiceGroup: [],
             selectedFile: ``,
             isAllowedToUpdate: false,
-            showLoading: false
+            showLoading: true,
+            fileContent: null
         }
 
         this._utilities = new utilities();
     }
 
-    public componentDidMount(): void {
+    public async componentDidMount() {
 
         const { listItem } = this.props;
 
         let providerValue = this.context;
-        const { userDisplayName, publishingDays, isUserAdmin, context } = providerValue as IBobCircularRepositoryProps;
+        const { services, publishingDays, isUserAdmin, context, serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
         let publisherID = context?.pageContext?.user?.email?.split('@')[0] ?? ``;
 
         let currentPublisher = "";
@@ -124,53 +129,74 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
             let file = listItem.Attachments.Attachments[0];
             let fileArray = listItem.Attachments.Attachments;
             let choiceGroup: any[] = [];
-            let allFiles = fileArray.map((value, index) => {
 
-                let fileObject = {
-                    name: value.FileName,
-                    FileName: value.FileName,
-                    ServerRelativeUrl: ``,
-                    FileType: value.FileName.substring(value.FileName.lastIndexOf(".") + 1, value.FileName.length),
-                    UniqueID: value.AttachmentId,
-                    ID: value.AttachmentId,
-                    FileURL: `${listItem.Attachments.UrlPrefix}${value.FileName}`
-                }
+            await services.getAllListItemAttachments(serverRelativeUrl, Constants.circularList, parseInt(listItem.ID)).then((fileMetadata) => {
+                let attachment: any[] = [];
 
-                choiceGroup.push({
-                    key: value.FileName,
-                    text: value.FileName,
-                    //text: value.FileName.length > 45 ? `${value.FileName.substring(0, 40)}` : value.FileName,
-                    imageSrc: `${this.loadPreviewAttachment(fileObject).previewImageSrc}`,
-                    styles: {
-                        labelWrapper: {
-                            height: 50,
-                            font: 11.5,
-                            fontWeight: 600,
-                            maxWidth: 120
+                if (fileMetadata.size > 0) {
+                    fileMetadata.forEach(async (value, key) => {
+                        attachment.push({
+                            "name": key,
+                            "content": value
+                        });
+                    });
+
+                    let allFiles = fileArray.map((value, index) => {
+
+                        let fileObject = {
+                            name: value.FileName,
+                            FileName: value.FileName,
+                            ServerRelativeUrl: ``,
+                            FileType: value.FileName.substring(value.FileName.lastIndexOf(".") + 1, value.FileName.length),
+                            UniqueID: value.AttachmentId,
+                            ID: value.AttachmentId,
+                            FileURL: `${listItem.Attachments.UrlPrefix}${value.FileName}`
                         }
-                    },
-                    selectedImageSrc: `${this.loadPreviewAttachment(fileObject).previewImageSrc}`,
-                    previewURL: `${this.props.listItem.Attachments.UrlPrefix}${value.FileName}`,
-                    index: index
+
+                        choiceGroup.push({
+                            key: value.FileName,
+                            text: value.FileName,
+                            //text: value.FileName.length > 45 ? `${value.FileName.substring(0, 40)}` : value.FileName,
+                            imageSrc: `${this.loadPreviewAttachment(fileObject).previewImageSrc}`,
+                            styles: {
+                                labelWrapper: {
+                                    height: 50,
+                                    font: 11.5,
+                                    fontWeight: 600,
+                                    maxWidth: 120
+                                }
+                            },
+                            selectedImageSrc: `${this.loadPreviewAttachment(fileObject).previewImageSrc}`,
+                            previewURL: `${this.props.listItem.Attachments.UrlPrefix}${value.FileName}`,
+                            index: index
+                        }
+                        )
+
+                        return fileObject
+                    });
+
+                    this.setState({ fileContent: attachment[0].content }, () => {
+                        this.setState({
+                            isPanelOpen: true,
+                            initialPreviewFileUrl: this.previewURL(allFiles[0]),
+                            allFiles: allFiles,
+                            choiceGroup: choiceGroup,
+                            selectedFile: choiceGroup[0].key,
+                            isAllowedToUpdate: isUpdateAllowed
+                        })
+                    })
+
                 }
-                )
-
-                return fileObject
-            });
-
-            this.setState({
-                isPanelOpen: true,
-                initialPreviewFileUrl: this.previewURL(allFiles[0]),
-                allFiles: allFiles,
-                choiceGroup: choiceGroup,
-                selectedFile: choiceGroup[0].key,
-                isAllowedToUpdate: isUpdateAllowed
+            }).catch((error) => {
+                console.log(error)
             })
+
         }
         else {
             this.setState({
-                isPanelOpen: true,
-                isAllowedToUpdate: isUpdateAllowed
+                isPanelOpen: true
+            }, () => {
+                this.props.documentLoaded()
             })
         }
 
@@ -178,8 +204,11 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
 
     public render() {
         const { listItem } = this.props;
+        const { initialPreviewFileUrl, fileContent } = this.state;
+        const isLoading = initialPreviewFileUrl == null && fileContent == null;
         return (
             <div>
+                {/* {isLoading && this.workingOnIt()} */}
                 {listItem != undefined && this.openInfoPanel()}
             </div>
         )
@@ -188,39 +217,23 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
 
     private openInfoPanel = (): JSX.Element => {
 
-        const { isPanelOpen, initialPreviewFileUrl, allFiles, choiceGroup, selectedFile, isAllowedToUpdate, showLoading } = this.state;
+        const { isPanelOpen, initialPreviewFileUrl, allFiles, fileContent, choiceGroup, selectedFile, isAllowedToUpdate, showLoading } = this.state;
         const { listItem } = this.props;
         let providerValue = this.context;
-        const { responsiveMode } = providerValue as IBobCircularRepositoryProps;
+        const { responsiveMode, context } = providerValue as IBobCircularRepositoryProps;
+        const waterMarkText = context.pageContext.user.displayName;
         let isMobileMode = responsiveMode == 0 || responsiveMode == 1 || responsiveMode == 2;
         let informationColumn = isMobileMode ? `${styles.column12}` : `${styles.column12}`;
         let filePreviewColumn = isMobileMode ? `${styles.column12}` : `${styles.column12}`
         let references = [];
         let hidePreviewColor = initialPreviewFileUrl.includes('.ppt') ? `#444444` : initialPreviewFileUrl.includes('.xls') ? `#217346` : `white`;
-        // try {
-
-        //     const ref = JSON.parse(listItem.References)
-
-        //     if (Array.isArray(ref)) {
-        //         references = Array.isArray(JSON.parse(listItem.References)) ? JSON.parse(listItem.References) : [];
-        //     }
-        // }
-
-
-        // catch {
-        //     console.log(`Reference is not valid array`)
-        // }
-
 
         console.log(listItem)
-
-        //const infoContent = informationContent.get(infoPanelName)
-
 
         let infoPanelJSX = <>
             {
                 <Panel
-                    isOpen={true}
+                    isOpen={isPanelOpen}
                     isLightDismiss={true}
                     onDismiss={this.onDismissPanel}
                     type={PanelType.extraLarge}
@@ -249,9 +262,7 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
                             <div className={`${styles.row}`}>
                                 <div className={`${informationColumn}`}>
 
-                                    {this.workingOnIt(showLoading, true,)}
-
-
+                                    {/* {showLoading && this.workingOnIt()} */}
 
                                 </div>
                                 <div className={`${filePreviewColumn} `} style={{ minHeight: "100vh" }}>
@@ -263,19 +274,26 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
                                             </div>
                                             <div className={`${!isMobileMode ? styles.column5 : styles.column6} ${styles.textAlignEnd}`}>
 
-                                                <IconButton iconProps={{
+                                                {/* <IconButton iconProps={{
                                                     iconName: "Copy",
                                                     styles: { root: { fontSize: 24 } }
                                                 }}
                                                     alt='Copy'
                                                     title='Copy File Path'
                                                     onClick={() => { this.copyToClipboard(selectedFile) }}
-                                                ></IconButton>
+                                                ></IconButton> */}
 
                                             </div>
                                         </div>
                                         {
-                                            initialPreviewFileUrl != "" && <MyPdfViewer pdfFilePath={allFiles[0].FileURL} watermarkText={`Draft`} />
+                                            initialPreviewFileUrl != "" && fileContent != null &&
+                                            <MyPdfViewer
+                                                context={context}
+                                                pdfFilePath={allFiles[0].FileURL}
+                                                currentSelectedFileContent={fileContent}
+                                                watermarkText={`${waterMarkText}`}
+                                                documentLoaded={() => { this.props.documentLoaded() }}
+                                            />
                                         }
                                         {/* {initialPreviewFileUrl != "" &&
                                             <iframe
@@ -288,7 +306,7 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
                                                 }} role="presentation" tabIndex={-1}></iframe>
                                         } */}
 
-                                        {initialPreviewFileUrl != "" &&
+                                        {/* {initialPreviewFileUrl != "" &&
                                             <div className={`${styles.row}`}>
                                                 <div className={`${!isMobileMode ? styles.column10 : styles.column9}`}></div>
 
@@ -297,7 +315,7 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
 
                                                 </div>
                                             </div>
-                                        }
+                                        } */}
                                     </>
                                     }
                                     {choiceGroup.length == 0 &&
@@ -341,77 +359,22 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
         this.setState({ selectedFile: file, initialPreviewFileUrl: this.previewURL(fileObject) })
     }
 
-    public workingOnIt = (showModalDialog: boolean, showLoadingIcon: boolean, showSuccess?: boolean, successRejectImgUrl?: string, workingOnItText?: string, approveRejectMessage?: string, modalColor?: string, spinnerColor?: string, labelColor?: string): JSX.Element => {
-        let workingOnItDialog: JSX.Element = <>
-            {showModalDialog && <>
-                <Dialog dialogContentProps={{
-                    type: DialogType.normal,
-                    title: '',
-                    styles: { topButton: { display: "none" } }
-                }}
-                    hidden={false}
-                    modalProps={{
-                        isBlocking: true,
-                        styles: {
-                            main: {
-                                maxWidth: 450, minHeight: "135px!important",
-                                minWidth: "220px!important",
-                                background: modalColor != undefined ? modalColor : 'white'
-                            }
-                        }
-                    }}
-                >
-                    <div id={`Working on It`} className={this.contentStyles.body}>
-                        {
-                            showLoadingIcon &&
-                            <div>
-                                <Spinner label={workingOnItText != undefined && workingOnItText != "" ? workingOnItText : `Working on it...`} size={SpinnerSize.large}
-                                    styles={{
-                                        circle: { borderColor: spinnerColor != undefined ? spinnerColor : 'inherit' },
-                                        label: { color: labelColor != undefined ? labelColor : `inherit` }
-                                    }} />
-                                {/* <Image src={require('../../webparts/avePoint/assets/office365Loader.gif')} styles={{
-                                    root: { padding: 5 },
-                                    image: {
-                                        objectFit: "contain",
-                                        verticalAlign: "-webkit-baseline-middle",
-                                        // minHeight: 40,
-                                        height: 35,
-                                        //width: responsiveMode == 5 ? 250 : `100%`
-                                    }
-                                }}></Image> */}
-                            </div>
-                        }
-                        {
-                            showSuccess && <>
-                                <p style={{ textAlign: 'center', color: labelColor != undefined ? labelColor : `inherit` }}>
-                                    {`${approveRejectMessage ? approveRejectMessage : `Item Added Successfully`}`}
-                                </p>
-                                <Image
-                                    {...(this.imageProps as any)}
-                                    src={`${successRejectImgUrl ? successRejectImgUrl : `#`}`}
-                                    alt=""
-                                    width="100%"
-                                    styles={{
-                                        root: [
-                                            {
-                                                selectors: {
-                                                    ".ms-Image-image": {
-                                                        width: '100px'
-                                                    }
-                                                }
-                                            }
-                                        ]
-                                    }}
-                                />
-                            </>
-                        }
-                    </div>
-                </Dialog>
-            </>
-            }
-        </>
-        return workingOnItDialog
+    private workingOnIt = (): JSX.Element => {
+
+        let submitDialogJSX = <>
+
+            <Dialog modalType="alert" defaultOpen={true}>
+                <DialogSurface style={{ maxWidth: 250 }}>
+                    <DialogBody style={{ display: "block" }}>
+                        <DialogContent>
+                            {<Spinner labelPosition="below" label={"Working on It..."}></Spinner>}
+                        </DialogContent>
+                    </DialogBody>
+                </DialogSurface>
+            </Dialog>
+
+        </>;
+        return submitDialogJSX;
     }
 
     private convertDate = (dateText) => {
@@ -711,5 +674,7 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
 
         </>
     }
+
+
 
 }

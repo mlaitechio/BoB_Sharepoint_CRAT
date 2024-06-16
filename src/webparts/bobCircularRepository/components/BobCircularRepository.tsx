@@ -3,11 +3,21 @@ import styles from './BobCircularRepository.module.scss';
 import type { IBobCircularRepositoryProps } from './IBobCircularRepositoryProps';
 import { escape } from '@microsoft/sp-lodash-subset';
 import CircularSearch from './Search/CircularSearch';
-import { FluentProvider, IdPrefixProvider, webDarkTheme, webLightTheme } from "@fluentui/react-components";
+import { FluentProvider, IdPrefixProvider, webDarkTheme, webLightTheme, Theme } from "@fluentui/react-components";
 import { ContextProvider } from "../DataContext/DataContext";
 import Header from "./Header/Header";
 import CircularForm from './CircularForm/CircularForm';
 
+export const customLightTheme: Theme = {
+  ...webLightTheme,
+  colorBrandBackground: "#f26522",
+  colorBrandBackgroundHover:"#f26522",
+  colorBrandBackgroundSelected:"#f26522",
+  colorBrandForegroundOnLightPressed:"#f26522",
+  colorNeutralForeground2BrandHover:"#f26522",
+  colorSubtleBackgroundHover:"#ffff",
+  colorSubtleBackgroundPressed:"#ffff"
+}
 
 export interface IBobCircularRepositoryState {
   isCreateCircular?: boolean;
@@ -144,43 +154,43 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
 
     return (
       <>
-        {/* <IdPrefixProvider value={"CRAT-"} > */}
-        <FluentProvider theme={webLightTheme}>
-          <div className={`${styles.mainContainer} `}>
-            <div className={`${styles.container}`}>
-              <div className={`${styles.row}`}>
-                {/* <div className={`${styles.column2}`} ref={ref => this.navRef = ref} style={{ padding: 0 }}>
+        <IdPrefixProvider value={"APP_89-232323"} >
+          <FluentProvider theme={customLightTheme}>
+            <div className={`${styles.mainContainer} `}>
+              <div className={`${styles.container}`}>
+                <div className={`${styles.row}`}>
+                  {/* <div className={`${styles.column2}`} ref={ref => this.navRef = ref} style={{ padding: 0 }}>
                   <ContextProvider value={this.props}>
                     <LeftNav >
                     </LeftNav>
                   </ContextProvider>
                 </div> */}
-                <div className={`${styles.column12}`} ref={ref => this.formRef = ref} style={{ padding: 0 }}>
-                  <ContextProvider value={this.props}>
-                    <Header
-                      onGoBackHome={() => { this.setState({ isHome: true, isCreateCircular: false }) }}
-                      addCircular={this.onAddNewCircular}
-                      editCircular={() => { }}
-                      deleteCircular={() => { }}
-                      pendingRequest={() => { }}></Header>
-                  </ContextProvider>
-                  {isHome && <ContextProvider value={this.props}>
-                    <CircularSearch />
-                  </ContextProvider>
-                  }
-                  {isCreateCircular && <>
+                  <div className={`${styles.column12}`} ref={ref => this.formRef = ref} style={{ padding: 0 }}>
                     <ContextProvider value={this.props}>
-                      <CircularForm onGoBack={() => { this.setState({ isHome: true, isCreateCircular: false }) }} />
+                      <Header
+                        onGoBackHome={() => { this.setState({ isHome: true, isCreateCircular: false }) }}
+                        addCircular={this.onAddNewCircular}
+                        editCircular={() => { }}
+                        deleteCircular={() => { }}
+                        pendingRequest={() => { }}></Header>
                     </ContextProvider>
-                  </>
-                  }
+                    {isHome && <ContextProvider value={this.props}>
+                      <CircularSearch />
+                    </ContextProvider>
+                    }
+                    {isCreateCircular && <>
+                      <ContextProvider value={this.props}>
+                        <CircularForm onGoBack={() => { this.setState({ isHome: true, isCreateCircular: false }) }} />
+                      </ContextProvider>
+                    </>
+                    }
+                  </div>
                 </div>
-              </div>
 
+              </div>
             </div>
-          </div>
-        </FluentProvider>
-        {/* </IdPrefixProvider> */}
+          </FluentProvider>
+        </IdPrefixProvider>
 
       </>
     );

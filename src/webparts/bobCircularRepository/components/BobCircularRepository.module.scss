@@ -323,17 +323,34 @@ input * {
   color: var(--colorBrandBackground);
 }
 
+.tableRow {
+  border-bottom-style: none !important;
+  margin-top: 5px;
+}
+
+.verticalSpacing {
+  margin-top: var(--spacingVerticalXS);
+}
+
 .master {
   background: var(--colorBrandBackground);
   color: var(--colorNeutralForegroundOnBrand);
   box-shadow: var(--shadow2);
+  width: 80%;
+  border-radius: 5px;
+  text-align: center;
 }
 
 .circular {
   background: #2367CC;
   color: var(--colorNeutralForegroundOnBrand);
   box-shadow: var(--shadow2);
+  width: 80%;
+  border-radius: 5px;
+  text-align: center;
 }
+
+
 
 
 .formInput {
@@ -343,6 +360,10 @@ input * {
 
 .fieldTitle {
   font-weight: 600;
+}
+
+.fontWeightBold {
+  font-weight: var(--fontWeightBold);
 }
 
 .formHeader {

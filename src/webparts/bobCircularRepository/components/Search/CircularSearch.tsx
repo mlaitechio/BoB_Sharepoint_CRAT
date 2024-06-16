@@ -30,6 +30,14 @@ import {
   AccordionItem,
   AccordionPanel,
   AccordionHeader,
+  FluentProvider,
+  Table,
+  TableHeader,
+  TableRow,
+  TableHeaderCell,
+  TableBody,
+  TableCell,
+  TableCellLayout,
 } from "@fluentui/react-components";
 import { DatePicker } from "@fluentui/react-datepicker-compat";
 import { ICircularSearchProps } from './ICircularSearchProps';
@@ -49,7 +57,7 @@ import { IBobCircularRepositoryProps } from '../IBobCircularRepositoryProps';
 import Pagination from 'react-js-pagination';
 import { DataContext } from '../../DataContext/DataContext';
 import FileViewer from '../FileViewer/FileViewer';
-import { AddCircleRegular, ArrowClockwise24Regular, ArrowClockwiseRegular, ArrowCounterclockwiseRegular, ArrowDownloadRegular, ArrowDownRegular, ArrowUpRegular, Attach12Filled, CalendarRegular, Dismiss24Regular, DismissRegular, EyeRegular, FilterRegular, Search24Regular, ShareAndroidRegular, TextAlignJustifyRegular } from '@fluentui/react-icons';
+import { AddCircleRegular, ArrowClockwise24Regular, ArrowClockwiseRegular, ArrowCounterclockwiseRegular, ArrowDownloadRegular, ArrowDownRegular, ArrowUpRegular, Attach12Filled, CalendarRegular, ChevronDownRegular, ChevronUpRegular, Dismiss24Regular, DismissRegular, EyeRegular, FilterRegular, OpenRegular, Search24Regular, ShareAndroidRegular, TextAlignJustifyRegular } from '@fluentui/react-icons';
 import { ICircularListItem } from '../../Models/IModel';
 import { PDFDocument, StandardFonts, degrees, rgb } from 'pdf-lib';
 import download from 'downloadjs'
@@ -163,7 +171,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       filteredItems: [],
       columns,
       currentPage: 1,
-      itemsPerPage: 10,
+      itemsPerPage: 8,
       isLoading: false,
       departments: [],
       selectedDepartment: [],
@@ -182,7 +190,12 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       currentSelectedItemId: -1,
       sortingOptions: ["Date", "Subject"],
       currentSelectedFile: undefined,
-      isAccordionSelected: false
+      isAccordionSelected: false,
+      accordionFields: {
+        isSummarySelected: false,
+        isTypeSelected: false,
+        isCategorySelected: false
+      }
     }
 
 
@@ -190,7 +203,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
   public componentDidMount() {
     let providerValue = this.context;
-    const { context, services, serverRelativeUrl, userDisplayName } = providerValue as IBobCircularRepositoryProps;
+    const { services, serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
 
     this.setState({ isLoading: true }, async () => {
       await services.getPagedListItems(serverRelativeUrl,
@@ -223,7 +236,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     let providerValue = this.context;
     const { context, services, serverRelativeUrl, circularListID } = providerValue as IBobCircularRepositoryProps;
     const { onAddNewItem } = this.props;
-    const { filteredItems,
+    const { openFileViewer,
       isLoading, isSearchNavOpen, filePreviewItem } = this.state;
     const responsiveMode = getResponsiveMode(window);
     let mobileMode = responsiveMode == 0 || responsiveMode == 1 || responsiveMode == 2;
@@ -252,33 +265,40 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
               onClick={() => { this.setState({ isSearchNavOpen: true }) }}></Button>
           </Drawer>
         }
-        {isSearchNavOpen && <Drawer type="inline" separator open={isSearchNavOpen} className={`${styles1.column3}`}>
-          <DrawerHeader>
-            <DrawerHeaderTitle
-              heading={{ className: `${styles1.fontRoboto}` }}
-              className={`${styles1.formLabel}`}
-              action={
-                <Button
-                  appearance="subtle"
-                  aria-label="Close"
-                  icon={<Dismiss24Regular />}
-                  onClick={() => { this.setState({ isSearchNavOpen: false }) }}
-                />
-              }>
-              Filters
-            </DrawerHeaderTitle>
-          </DrawerHeader>
-          <DrawerBody>
-            {this.searchFilters()}
-          </DrawerBody>
-        </Drawer>
+        {isSearchNavOpen &&
+          <Drawer type="inline" style={{ maxHeight: "200vh" }} separator open={isSearchNavOpen} className={`${styles1.column3}`}>
+            <DrawerHeader>
+              <DrawerHeaderTitle
+                heading={{ className: `${styles1.fontRoboto}` }}
+                className={`${styles1.formLabel}`}
+                action={
+                  <>
+                    {/* <Button
+                    appearance="subtle"
+                    aria-label="Close"
+                    icon={<Dismiss24Regular />}
+                    onClick={() => { this.setState({ isSearchNavOpen: false }) }}
+                  /> */}
+                  </>
+                }>
+                <FilterRegular />Refine Search
+              </DrawerHeaderTitle>
+            </DrawerHeader>
+            <DrawerBody>
+              {this.searchFilters()}
+            </DrawerBody>
+          </Drawer>
         }
         <div className={`${searchResultsColumn}`}>
           {this.searchFilterResults()}
 
         </div>
         {
-          filePreviewItem && <FileViewer listItem={filePreviewItem} context={context} onClose={this.onPanelClose} />
+          filePreviewItem && openFileViewer && <FileViewer
+            listItem={filePreviewItem}
+            context={context}
+            documentLoaded={() => { this.setState({ isLoading: false }) }}
+            onClose={this.onPanelClose} />
         }
       </div>
 
@@ -319,6 +339,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
               {this.checkBoxControl(`Ends With`)}
             </div>
           </div>
+
           <div className={`${styles1.row} ${styles1.marginTop}`}>
             <div className={`${styles1.column12}`}>
               <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`Published From Date`}</FluentLabel>} >
@@ -358,6 +379,54 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                   onSelectDate={this.onSelectDate.bind(this, `ToDate`)}
                   input={{ style: { fontFamily: "Roboto" } }} />
               </Field>
+            </div>
+          </div>
+          <div className={`${styles1.row} ${styles1.marginTop}`}>
+            <div className={`${styles1.column12} ${styles1.marginTop} `}>
+              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`Classification`}</FluentLabel>} ></Field>
+            </div>
+            <div className={`${styles1.column12}`}>
+              {this.checkBoxControl(`Master`)}
+            </div>
+            <div className={`${styles1.column12}`}>
+              {this.checkBoxControl(`Circular`)}
+            </div>
+          </div>
+
+          <div className={`${styles1.row} ${styles1.marginTop}`}>
+            <div className={`${styles1.column12} ${styles1.marginTop} `}>
+              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`Issued For`}</FluentLabel>} ></Field>
+            </div>
+            <div className={`${styles1.column12}`}>
+              {this.checkBoxControl(`India`)}
+            </div>
+            <div className={`${styles1.column12}`}>
+              {this.checkBoxControl(`Global`)}
+            </div>
+          </div>
+          <div className={`${styles1.row} ${styles1.marginTop}`}>
+            <div className={`${styles1.column12} ${styles1.marginTop} `}>
+              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`Regulatory`}</FluentLabel>} ></Field>
+            </div>
+            <div className={`${styles1.column12}`}>
+              {this.checkBoxControl(`Yes`)}
+            </div>
+            <div className={`${styles1.column12}`}>
+              {this.checkBoxControl(`No`)}
+            </div>
+          </div>
+          <div className={`${styles1.row} ${styles1.marginTop}`}>
+            <div className={`${styles1.column12} ${styles1.marginTop} `}>
+              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`Category`}</FluentLabel>} ></Field>
+            </div>
+            <div className={`${styles1.column12}`}>
+              {this.checkBoxControl(`Intimation`)}
+            </div>
+            <div className={`${styles1.column12}`}>
+              {this.checkBoxControl(`Information`)}
+            </div>
+            <div className={`${styles1.column12}`}>
+              {this.checkBoxControl(`Action`)}
             </div>
           </div>
           <div className={`${styles1.row}`}>
@@ -402,70 +471,11 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         </div>
 
       </div>
-      {
-        filteredPageItems && filteredPageItems.length > 0 && filteredPageItems.map((val: ICircularListItem, index) => {
-          let masterCircularClass = val.Classification == "Master" ? `${styles1.master}` : `${styles1.circular}`;
+      <div className={`${styles1.row} ${styles1.marginTop}`}>
 
-          return <>
-            <div className={`${styles1.row} ${styles1.searchResultsBox}`}>
-              <div className={`${styles1.column1} ${styles1['text-center']} ${masterCircularClass} ${styles1.borderRadius}`}>
-                {val.Classification}
-              </div>
-              <div className={`${styles1.column10} ${styles1['text-center']} ${styles1.colorLabel}`}>
-                {val.CircularNumber}
-              </div>
-              <div className={`${styles1.column1} ${styles1['text-center']} ${styles1.master} ${styles1.borderRadius}`} style={{ whiteSpace: "nowrap" }} >
-                {this.formatDate(val.PublishedDate)}
-              </div>
-              <div className={`${styles1.column10}`}>
-                <Accordion collapsible={isAccordionSelected}
-                  onToggle={this.handleToggle.bind(this, val)}>
-                  <AccordionItem value={val.Id}>
-                    <AccordionHeader button={{ style: { fontWeight: 600 } }}>
-                      {val.Subject}
-                    </AccordionHeader>
-                    <AccordionPanel className={AnimationClassNames.slideDownIn20}>
-                      {previewItems && <>
-                        <div className={`${styles1.row} ${styles1.marginTop}`} >
-                          <div className={`${styles1.column1}`} >Summary:</div>
-                          <div className={`${styles1.column5} ${styles1.paddingLeft}`} style={{ fontWeight: 600 }}>{previewItems.Subject}</div>
-                          <div className={`${styles1.column1}`} >Department:</div>
-                          <div className={`${styles1.column5} ${styles1.paddingLeft}`} style={{ fontWeight: 600 }}>{previewItems.Department}</div>
+        {this.createSearchResultsTable()}
+      </div>
 
-                        </div>
-                        <div className={`${styles1.row} ${styles1.marginTop}`} >
-                          <div className={`${styles1.column1}`} style={{ whiteSpace: "nowrap" }}>Issued for:</div>
-                          <div className={`${styles1.column5} ${styles1.paddingLeft}`} style={{ fontWeight: 600 }}>{previewItems.IssuedFor}</div>
-                          <div className={`${styles1.column1}`} >Type:</div>
-                          <div className={`${styles1.column5} ${styles1.paddingLeft}`} style={{ fontWeight: 600 }}>{previewItems.CircularType}</div>
-                        </div>
-                        <div className={`${styles1.row} ${styles1.marginTop}`}>
-
-                          {/* <div className={`${styles1.column1}`} style={{ whiteSpace: "nowrap" }}>Category :</div>
-                    <div className={`${styles1.column11}`} style={{ fontWeight: 600 }}>{previewItems.Category}</div>
-                    <div className={`${styles1.column1}`} style={{ whiteSpace: "nowrap" }}>Sub File Code :</div>
-                    <div className={`${styles1.column11}`} style={{ fontWeight: 600 }}>{previewItems.SubFileCode}</div> */}
-                        </div>
-                      </>
-                      }
-                    </AccordionPanel>
-                  </AccordionItem>
-                </Accordion>
-              </div>
-              <div className={`${styles1.column2}`} style={{ textAlign: "end" }}>
-                <Button title="View Content" appearance="transparent"
-                  onClick={() => {
-                    this.readItemsAsStream(val, true);
-                  }}
-                  icon={<EyeRegular />} ></Button>
-                <Button title="Download" appearance="transparent" icon={<ArrowDownloadRegular />}
-                  onClick={() => { this.downloadCircularContent(val) }}></Button>
-                <Button title="Share" appearance="transparent" icon={<ShareAndroidRegular />}></Button>
-              </div>
-            </div>
-          </>
-        })
-      }
 
       <div className={`${styles1.row} `}>
         {!isLoading && filteredItems.length == 0 && this.noItemFound()}
@@ -476,6 +486,193 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     </>;
 
     return searchFilterResultsJSX;
+  }
+
+  private createSearchResultsTable = (): JSX.Element => {
+    const { filteredItems, previewItems, currentSelectedItemId, accordionFields } = this.state
+    let filteredPageItems = this.paginateFn(filteredItems);
+    const columns = [
+      { columnKey: "Title", label: "Document Title" },
+      { columnKey: "Date", label: "Date" },
+      { columnKey: "Classification", label: "Classification" },
+      { columnKey: "Department", label: "Department" },
+      { columnKey: "IssuedFor", label: "Issued For" }
+    ];
+
+    let tableJSX = <>
+      <Table arial-label="Default table">
+        <TableHeader>
+          <TableRow >
+            {columns.map((column, index) => (
+              <TableHeaderCell key={column.columnKey} colSpan={index == 0 ? 5 : 1} className={`${styles1.fontWeightBold}`}>
+                {column.label}
+              </TableHeaderCell>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {filteredPageItems && filteredPageItems.length > 0 && filteredPageItems.map((val: ICircularListItem, index) => {
+
+            let isFieldSelected = (accordionFields.isSummarySelected || accordionFields.isTypeSelected || accordionFields.isCategorySelected);
+            let isCurrentItem = currentSelectedItemId == val.ID;
+            let tableRowClass = isFieldSelected && isCurrentItem ? `${styles1.tableRow}` : ``;
+
+            return <>
+              <TableRow className={`${styles1.tableRow}`}>
+                <TableCell colSpan={5} >
+                  <TableCellLayout className={`${styles1.verticalSpacing}`}>
+                    <div className={`${styles1.colorLabel}`} style={{ padding: 0 }}>{val.CircularNumber}</div>
+                    <div className={`${styles1.fontWeightBold} ${styles1.verticalSpacing}`}>
+                      <Button
+                        style={{ padding: 0 }}
+                        appearance="transparent"
+                        onClick={this.onDetailItemClick.bind(this, val, Constants.colSubject)}>
+                        <div style={{ textAlign: "left", marginTop: 5 }}>{val.Subject} <OpenRegular /></div>
+                      </Button>
+                    </div>
+                  </TableCellLayout>
+                </TableCell>
+                <TableCell>
+                  <TableCellLayout>
+                    {this.formatDate(val.PublishedDate)}
+                  </TableCellLayout>
+                </TableCell>
+                <TableCell>
+                  <TableCellLayout content={{ style: { width: "100%" } }}
+                    className={val.Classification == "Master" ? `${styles1.master}` : `${styles1.circular}`}>
+                    {val.Classification}
+                  </TableCellLayout>
+                </TableCell>
+                <TableCell>
+                  <TableCellLayout className={`${styles1.verticalSpacing}`}>
+                    {val.Department}
+                  </TableCellLayout>
+                </TableCell>
+                <TableCell>
+                  <TableCellLayout>
+                    {val.IssuedFor}
+                  </TableCellLayout>
+                </TableCell>
+              </TableRow>
+              <TableRow className={`${tableRowClass}`}>
+                <TableCell colSpan={5}>
+                  <div className={`${styles1.row}`}>
+                    <div className={`${styles1.column2}`} style={{ paddingLeft: "0px" }}>
+                      <Button icon={accordionFields.isSummarySelected && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
+                        iconPosition="after"
+                        className={accordionFields.isSummarySelected && isCurrentItem ? styles1.colorLabel : ``}
+                        appearance={accordionFields.isSummarySelected && isCurrentItem ? "outline" : "transparent"}
+                        onClick={this.onDetailItemClick.bind(this, val, Constants.colSummary)}>Summary</Button>
+                    </div>
+                    <div className={`${styles1.column2}`}>
+                      <Button icon={accordionFields.isTypeSelected && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
+                        iconPosition="after"
+                        className={accordionFields.isTypeSelected && isCurrentItem ? styles1.colorLabel : ``}
+                        appearance={accordionFields.isTypeSelected && isCurrentItem ? "outline" : "transparent"}
+                        onClick={this.onDetailItemClick.bind(this, val, Constants.colType)}>Type</Button>
+                    </div>
+                    <div className={`${styles1.column2}`}>
+                      <Button icon={accordionFields.isCategorySelected && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
+                        iconPosition="after"
+                        className={accordionFields.isCategorySelected && isCurrentItem ? styles1.colorLabel : ``}
+                        appearance={accordionFields.isCategorySelected && isCurrentItem ? "outline" : "transparent"}
+                        onClick={this.onDetailItemClick.bind(this, val, Constants.colCategory)}>Category</Button>
+                    </div>
+                    <div className={`${styles1.column4}`}>
+                      <Button
+                        icon={<OpenRegular />}
+                        iconPosition="after"
+                        appearance="transparent"
+                        onClick={this.onDetailItemClick.bind(this, val, Constants.colSupportingDoc)}>Supporting Documents</Button>
+                    </div>
+
+                  </div>
+                </TableCell>
+              </TableRow>
+              {isFieldSelected && currentSelectedItemId == val.ID &&
+                <TableRow >
+                  <TableCell colSpan={7}>
+                    <div className={`${styles1.row}`}>
+                      <div className={`${styles1.column12}`}>
+                        {accordionFields.isSummarySelected &&
+                          <>{`${Constants.loreumIPSUM}`}</>
+                        }
+                        {accordionFields.isTypeSelected &&
+                          <>{previewItems?.CircularType ?? ``}</>}
+                        {accordionFields.isCategorySelected &&
+                          <>{previewItems?.Category ?? ``}</>}
+                      </div>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              }
+
+            </>
+          })}
+        </TableBody>
+      </Table>
+    </>;
+
+    return tableJSX;
+  }
+
+  private onDetailItemClick = (item: ICircularListItem, fieldName: string) => {
+    const { currentSelectedItemId } = this.state;
+    const { accordionFields } = this.state;
+    let isCurrentItem = currentSelectedItemId == item.ID;
+
+    switch (fieldName) {
+      case Constants.colSummary:
+
+        this.setState({
+          accordionFields: {
+            "isSummarySelected": isCurrentItem ? !accordionFields.isSummarySelected : true,
+            "isTypeSelected": false,
+            isCategorySelected: false
+          },
+          currentSelectedItem: item,
+          currentSelectedItemId: item.ID
+        }, () => {
+          this.readItemsAsStream(item)
+        })
+
+        break;
+
+      case Constants.colType:
+        this.setState({
+          accordionFields: {
+            "isSummarySelected": false,
+            "isTypeSelected": isCurrentItem ? !accordionFields.isTypeSelected : true,
+            isCategorySelected: false
+          },
+          currentSelectedItem: item,
+          currentSelectedItemId: item.ID
+        }, () => {
+          this.readItemsAsStream(item)
+        })
+        break;
+      case Constants.colCategory:
+        this.setState({
+          accordionFields: {
+            "isSummarySelected": false,
+            "isTypeSelected": false,
+            isCategorySelected: isCurrentItem ? !accordionFields.isCategorySelected : true
+          },
+          currentSelectedItem: item,
+          currentSelectedItemId: item.ID
+        }, () => {
+          this.readItemsAsStream(item)
+        })
+        break;
+
+      case Constants.colSubject: this.setState({
+        currentSelectedItem: item,
+        currentSelectedItemId: item.ID
+      }, () => {
+        this.readItemsAsStream(item, true)
+      })
+        break;
+    }
   }
 
 
@@ -520,7 +717,8 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   }
 
   private handleToggle = (item, event, data) => {
-    this.readItemsAsStream(item)
+    this.readItemsAsStream(item);
+
   }
 
   private checkBoxControl = (labelName): JSX.Element => {
@@ -685,9 +883,8 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   }
 
   private onPanelClose = () => {
-    this.setState({ filePreviewItem: null })
+    this.setState({ filePreviewItem: null, openFileViewer: false })
   }
-
 
 
   private searchClearButtons = (): JSX.Element => {
@@ -796,7 +993,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
               IsMigrated: val.RefinableString05,
               Classification: val.RefinableString06,
               PublishedDate: val.RefinableDate00,
-
+              IssuedFor: val.RefinableString08
             })
 
           })
@@ -834,7 +1031,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                 IsMigrated: val.RefinableString05,
                 Classification: val.RefinableString06,
                 PublishedDate: val.RefinableDate00,
-
+                IssuedFor: val.RefinableString08
               })
 
             })
@@ -844,10 +1041,6 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
             this.setState({ isLoading: false })
           });
       }
-
-
-
-
 
 
       let uniqueResults = advancedSearchTextAndFilterQuery != "" ? [...new Map(listItemData.map(item =>
@@ -1118,7 +1311,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       const isDesc = property && sortingFields === property && sortDirection === 'desc';
       let updateColumns = this.state.columns.map(c => {
         //isSortedDescending: (isAsc ? false : true)
-        //return c.key === property ? { ...c, isSorted: true, isSortedDescending: (isDesc ? false : true) } : { ...c };
+        //return c.key === property ? {...c, isSorted: true, isSortedDescending: (isDesc ? false : true) } : {...c};
         if (c.key == Constants.colPublishedDate) {
           return c.key === property ? { ...c, isSorted: true, isSortedDescending: !isDesc } : { ...c, isSorted: false, isSortedDescending: !c.isSortedDescending };
         }
@@ -1372,34 +1565,13 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
   private createHyper(item: any): JSX.Element {
     const name = item?.Subject;
-    // const dateCreatedToCheck = new Date(item.Created).toLocaleDateString("en-US", { year: "numeric", month: "2-digit", day: "2-digit" });
-    // const modifiedDateCheck = new Date(item.ModifiedDate).toLocaleDateString("en-US", { year: "numeric", month: "2-digit", day: "2-digit" });
 
-    // const isTwoDaysBackCreated = this.checkThreeDaysBack(dateCreatedToCheck);
-    // const isTwoDaysBackModified = this.checkThreeDaysBack(modifiedDateCheck);
     return (
       <>
-
         <div className={styles.viewList}>
-          {/* {isTwoDaysBack && <Icon iconName='FavoriteStarFill' styles={{ root: { color: "gold", paddingRight: 5 } }}></Icon>} */}
-          {/* <Image src={require(`../../ assets / newBell.gif`)}>
-            
-          </Image> */}
-
           <a onClick={this.readItemsAsStream.bind(this, item)}>{name}
             <Icon iconName="OpenInNewTab"></Icon>
           </a>
-
-          {/* {isTwoDaysBackCreated && isTwoDaysBackModified &&
-            <Badge appearance="filled" color="warning">
-              New
-            </Badge>}
-
-          {isTwoDaysBackModified && !isTwoDaysBackCreated &&
-            <Badge appearance="filled" color="success">
-              Updated
-            </Badge>} */}
-
         </div>
       </>
     )
@@ -1407,7 +1579,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
   private renderTextField(item: any): JSX.Element {
     const category = item?.DocumentCategory?.Title;
-    // const { documentCategoryDD } = this.state
+    // const {documentCategoryDD} = this.state
     // const itemColor = documentCategoryDD.filter((val) => {
     //   return val.name == category
     // })
@@ -1435,29 +1607,32 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     )
   }
 
-  private readItemsAsStream(item, onViewClick: boolean = false) {
+  private readItemsAsStream(item: ICircularListItem, openFileViewer: boolean = false) {
     let providerContext = this.context;
+    const { currentSelectedItem } = this.state
     const { services, serverRelativeUrl } = providerContext as IBobCircularRepositoryProps;
 
     this.setState({ isLoading: true }, async () => {
-      await services.getListDataAsStream(serverRelativeUrl, Constants.circularList, item.Id).then((result) => {
-        console.log(result.ListData);
-        result.ListData.ID = item.Id;
+      if (currentSelectedItem.ID == item.ID) {
+        await services.getListDataAsStream(serverRelativeUrl, Constants.circularList, item.Id).then((result) => {
+          console.log(result.ListData);
+          result.ListData.ID = item.Id;
 
-        this.setState({
-          isLoading: false,
-          previewItems: result.ListData,
-          currentSelectedItemId: item.Id,
-          filePreviewItem: onViewClick ? result.ListData : null
-        }, () => {
-          const { currentSelectedItemId, isAccordionSelected } = this.state;
-          this.setState({ isAccordionSelected: currentSelectedItemId == item.Id && !isAccordionSelected })
+          this.setState({
+            previewItems: result.ListData,
+            currentSelectedItemId: item.Id,
+            filePreviewItem: result.ListData ?? null,
+            isLoading: openFileViewer,
+            openFileViewer: openFileViewer
+
+          })
+
+        }).catch((error) => {
+          console.log(error);
+          this.setState({ isLoading: false })
         })
+      }
 
-      }).catch((error) => {
-        console.log(error);
-        this.setState({ isLoading: false })
-      })
     })
   }
 
@@ -1475,6 +1650,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   private workingOnIt = (): JSX.Element => {
 
     let submitDialogJSX = <>
+
       <Dialog modalType="alert" defaultOpen={true}>
         <DialogSurface style={{ maxWidth: 250 }}>
           <DialogBody style={{ display: "block" }}>
@@ -1484,6 +1660,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
           </DialogBody>
         </DialogSurface>
       </Dialog>
+
     </>;
     return submitDialogJSX;
   }
@@ -1529,11 +1706,29 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       });
     }
 
-    const pdfBytes = await pdfDoc.save();
+    let pdfBytes = await pdfDoc.save();
+
+    let base64File = this.bufferToBase64(pdfBytes).then((val) => {
+      console.log(val)
+    }).catch((error) => {
+      console.log(error)
+    });
 
     download(pdfBytes, file.name, "application/pdf");
 
     return pdfDoc;
+  }
+
+  private bufferToBase64 = async (buffer): Promise<any> => {
+    // use a FileReader to generate a base64 data URI:
+    const base64url = await new Promise(r => {
+      const reader = new FileReader()
+      reader.onload = () => r(reader.result)
+      reader.readAsDataURL(new Blob([buffer]))
+    });
+
+    // remove the `data:...;base64,` part from the start
+    return Promise.resolve(base64url);
   }
 
   private pdfArray = async (file) => {

@@ -1,14 +1,22 @@
 import React from 'react';
 import PDF from 'react-pdf-watermark';
+import { PDFDocument, StandardFonts, degrees, rgb } from 'pdf-lib';
+import { WebPartContext } from '@microsoft/sp-webpart-base';
+import { Dialog, DialogBody, DialogContent, DialogSurface, Spinner } from '@fluentui/react-components';
 
 export interface IMyPDFViewerProps {
     pdfFilePath: any;
-    watermarkText: any
+    watermarkText: any;
+    currentSelectedFileContent?: any;
+    context?: WebPartContext;
+    documentLoaded: () => void;
 }
 
 export interface IMyPDFViewerState {
     pages: any;
     page: any;
+    blobFile: any;
+
 }
 
 export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyPDFViewerState> {
@@ -16,11 +24,24 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
         super(props)
 
         this.state = {
-            pages: 0,
-            page: 0
+            pages: 1,
+            page: 1,
+            blobFile: ``
         }
     }
 
+    public async componentDidMount() {
+        const { currentSelectedFileContent, context } = this.props;
+
+        await this.waterMark_ConvertToBase64PDF(currentSelectedFileContent, `${this.props.watermarkText}`).then((val) => {
+            this.setState({ blobFile: val }, () => {
+                this.props.documentLoaded();
+            })
+        }).catch((error) => {
+            console.log(error);
+            this.props.documentLoaded();
+        })
+    }
 
     handlePrevious = () => {
         this.setState({ page: this.state.page - 1 });
@@ -50,28 +71,95 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
     }
 
     render() {
+        const { blobFile } = this.state
         let pagination = null;
         if (this.state.pages) {
             pagination = this.renderPagination(this.state.page, this.state.pages);
         }
         return (
             <div>
-                <PDF
-                    file={`https://pdf-lib.js.org/assets/with_update_sections.pdf`}
-                    page={this.state.page}
-                    watermark={this.props.watermarkText}
-                    watermarkOptions={{
-                        transparency: 0.5,
-                        fontSize: 55,
-                        fontStyle: 'Bold',
-                        fontFamily: 'Arial'
-                    }}
-                    onDocumentComplete={() => { /* Do anything on document loaded like remove loading, etc */ }}
-                    onPageRenderComplete={(pages, page) => this.setState({ page, pages })}
-                />
-                {pagination}
+                {/* {blobFile != null && <iframe src={blobFile} width={"100%"} height={"700px"} />} */}
+                {/* {blobFile == null && this.workingOnIt()} */}
+                {blobFile != null && <object data={blobFile} width={"100%"} height={"700px"}></object>}
+
             </div>
         )
+    }
+
+    private workingOnIt = (): JSX.Element => {
+
+        let submitDialogJSX = <>
+
+            <Dialog modalType="alert" defaultOpen={true}>
+                <DialogSurface style={{ maxWidth: 250 }}>
+                    <DialogBody style={{ display: "block" }}>
+                        <DialogContent>
+                            {<Spinner labelPosition="below" label={"Working on It..."}></Spinner>}
+                        </DialogContent>
+                    </DialogBody>
+                </DialogSurface>
+            </Dialog>
+
+        </>;
+        return submitDialogJSX;
+    }
+
+    private waterMark_ConvertToBase64PDF = async (fileContent, watermarkText) => {
+
+        const pdfDoc = await PDFDocument.load(fileContent);
+        const totalPages = pdfDoc.getPageCount();
+
+        for (let pageNum = 0; pageNum < totalPages; pageNum++) {
+            const page = pdfDoc.getPage(pageNum);
+            const { width, height } = page.getSize();
+            const textFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+            const fontSize = 50;
+
+            page.drawText(watermarkText, {
+                x: width / 6,
+                y: (1.6 * height) / 6,
+                size: fontSize,
+                font: textFont,
+                opacity: 0.4,
+                color: rgb(0.8392156862745098, 0.807843137254902, 0.792156862745098),
+                rotate: degrees(30)
+            });
+        }
+
+        let pdfBytes = await pdfDoc.save();
+
+        let base64File = this.bufferToBase64(pdfBytes).then((val) => {
+            const base64WithoutPrefix = val.substring('data:application/octet-stream;base64,'.length);
+
+            const bytes = atob(base64WithoutPrefix);
+            let length = pdfBytes.length;
+            let out = new Uint8Array(length);
+
+            while (length--) {
+                out[length] = bytes.charCodeAt(length);
+            }
+            let blobFile = new Blob([out], { type: "application/pdf" });
+
+            return Promise.resolve(URL.createObjectURL(blobFile))
+        }).catch((error) => {
+            return Promise.reject(error)
+        });
+
+        return base64File
+
+    }
+
+
+    private bufferToBase64 = async (buffer): Promise<any> => {
+        // use a FileReader to generate a base64 data URI:
+        const base64url = await new Promise(r => {
+            const reader = new FileReader()
+            reader.onload = () => r(reader.result)
+            reader.readAsDataURL(new Blob([buffer]))
+        });
+
+        // remove the `data:...;base64,` part from the start
+        return Promise.resolve(base64url);
     }
 }
 

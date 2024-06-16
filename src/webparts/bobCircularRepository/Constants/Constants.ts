@@ -53,7 +53,7 @@ export class Constants {
   public static readonly delete = `Delete`;
 
 
-  public static readonly colCircularRepository = "Id,Subject,PublishedDate,MigratedDepartment,Department,IsMigrated,CircularNumber,Classification,MigratedOriginator,Author/Title,Author/Id,Author/EMail"
+  public static readonly colCircularRepository = "Id,Subject,PublishedDate,Category,IssuedFor,MigratedDepartment,Department,IsMigrated,CircularNumber,Classification,MigratedOriginator,Author/Title,Author/Id,Author/EMail"
   public static readonly expandColCircularRepository = "Author";
 
   public static readonly hindiBarodaPedia = "बड़ौदापीडिया";
@@ -75,10 +75,12 @@ export class Constants {
     RefinableString06 -> Classification
     RefinableDate00 -> PublishedDate  
     RefinableString07 -> CircularStatus
+    RefinableString08 -> IssuedFor
+    RefinableString09 -> Compliance
   |--------------------------------------------------
   */
-  public static readonly selectedSearchProperties = ["ListItemID", "Modified", "LastModifiedTime", "RefinableString00", "RefinableString01", "RefinableString02", "RefinableString03", "RefinableString04", "RefinableString05", "RefinableString06", "RefinableDate00", "Created", "RefinableString07"]
-  public static readonly filterSearchProperties = ["RefinableString00", "RefinableString01", "RefinableString02", "RefinableString03", "RefinableDate00", "RefinableString07"];
+  public static readonly selectedSearchProperties = ["ListItemID", "Modified", "LastModifiedTime", "RefinableString00", "RefinableString01", "RefinableString02", "RefinableString03", "RefinableString04", "RefinableString05", "RefinableString06", "RefinableDate00", "Created", "RefinableString07", "RefinableString08","RefinableString09"]
+  public static readonly filterSearchProperties = ["RefinableString00", "RefinableString01", "RefinableString02", "RefinableString03", "RefinableDate00", "RefinableString07", "RefinableString08","RefinableString09"];
 
   /**
    * Managed Metadata Properties
@@ -92,6 +94,8 @@ export class Constants {
    RefinableString06 -> Classification
    RefinableDate00 -> PublishedDate  
    RefinableString07 -> CircularStatus
+   RefinableString08 -> IssuedFor
+   RefinableString09 -> Compliance
  |--------------------------------------------------
  */
 
@@ -104,6 +108,8 @@ export class Constants {
   public static readonly managePropIsMigrated = "RefinableString05";
   public static readonly managePropClassification = "RefinableString06";
   public static readonly managePropCircularStatus = "RefinableString07";
+  public static readonly managePropIssuedFor = "RefinableString08";
+  public static readonly managePropCompliance = "RefinableString09";
   public static readonly managePropPublishedDate = "RefinableDate00"
 
   /**
@@ -119,6 +125,9 @@ export class Constants {
   public static readonly colClassification = "Classification";
   public static readonly colIssuedFor = "IssuedFor";
   public static readonly colCategory = "Category";
+  public static readonly colSummary = "Summary";
+  public static readonly colType = "Type";
+  public static readonly colSupportingDoc = "Supporting Documents";
 
   /**
   |--------------------------------------------------
@@ -155,6 +164,7 @@ export class Constants {
   public static readonly archived = "Archived";
   public static readonly deleted = "Deleted";
 
+  public static readonly loreumIPSUM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam eget libero nec tellus facilisis blandit at at magna. Donec sed dui finibus, tincidunt ante a, malesuada ligula. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nunc non iaculis erat, a semper dui. Integer porta in nunc sed molestie. Suspendisse aliquet hendrerit justo. Nullam sit amet tortor non nisl viverra venenatis."
 
 
   /**

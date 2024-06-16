@@ -34,6 +34,9 @@ export interface ICircularSearchState {
     currentSelectedFile?: any[];
     filePreviewItem?: any;
     isAccordionSelected?: any;
+    accordionFields?: any;
+    openFileViewer?: boolean;
+
     // selectedFinancialYear: string;
     // selectedVertical: string;
     // selectedFinanicalPicker: ITag[];
