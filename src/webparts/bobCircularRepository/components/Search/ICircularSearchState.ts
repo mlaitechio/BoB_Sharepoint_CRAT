@@ -1,5 +1,5 @@
 import { INavLinkGroup, ITag } from "@fluentui/react";
-import { ICircularListItem, IListItem } from "../../Models/IModel";
+import { ICheckBoxCollection, ICircularListItem, IListItem } from "../../Models/IModel";
 
 export interface ICircularSearchState {
     navLinkGroups?: INavLinkGroup[];
@@ -36,7 +36,8 @@ export interface ICircularSearchState {
     isAccordionSelected?: any;
     accordionFields?: any;
     openFileViewer?: boolean;
-
+    checkBoxCollection?: Map<string, ICheckBoxCollection[]>;
+    isDepartmentPanel?: boolean;
     // selectedFinancialYear: string;
     // selectedVertical: string;
     // selectedFinanicalPicker: ITag[];

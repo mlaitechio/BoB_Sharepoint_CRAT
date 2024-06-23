@@ -66,6 +66,25 @@ export class Constants {
 
   /**
   |--------------------------------------------------
+  | Check box Label
+  |--------------------------------------------------
+  */
+
+  public static readonly lblContains = "Contains";
+  public static readonly lblStartsWith = "Starts With";
+  public static readonly lblEndsWith = "Ends With";
+  public static readonly lblMaster = "Master";
+  public static readonly lblCircular = "Circular";
+  public static readonly lblIndia = "India";
+  public static readonly lblGlobal = "Global";
+  public static readonly lblComplianceYes = "Yes";
+  public static readonly lblComplianceNo = "No";
+  public static readonly lblIntimation = "Intimation";
+  public static readonly lblInformation = "Information";
+  public static readonly lblAction = "Action";
+
+  /**
+  |--------------------------------------------------
   | RefinableString00 -> CircularNumber
     RefinableString01 -> Subject
     RefinableString02 -> Migrated Department
@@ -79,8 +98,8 @@ export class Constants {
     RefinableString09 -> Compliance
   |--------------------------------------------------
   */
-  public static readonly selectedSearchProperties = ["ListItemID", "Modified", "LastModifiedTime", "RefinableString00", "RefinableString01", "RefinableString02", "RefinableString03", "RefinableString04", "RefinableString05", "RefinableString06", "RefinableDate00", "Created", "RefinableString07", "RefinableString08","RefinableString09"]
-  public static readonly filterSearchProperties = ["RefinableString00", "RefinableString01", "RefinableString02", "RefinableString03", "RefinableDate00", "RefinableString07", "RefinableString08","RefinableString09"];
+  public static readonly selectedSearchProperties = ["ListItemID", "Modified", "LastModifiedTime", "RefinableString00", "RefinableString01", "RefinableString02", "RefinableString03", "RefinableString04", "RefinableString05", "RefinableString06", "RefinableDate00", "Created", "RefinableString07", "RefinableString08", "RefinableString09"]
+  public static readonly filterSearchProperties = ["RefinableString00", "RefinableString01", "RefinableString02", "RefinableString03", "RefinableDate00", "RefinableString07", "RefinableString08", "RefinableString09"];
 
   /**
    * Managed Metadata Properties

@@ -236,7 +236,8 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
                     isOpen={isPanelOpen}
                     isLightDismiss={true}
                     onDismiss={this.onDismissPanel}
-                    type={PanelType.extraLarge}
+                    type={PanelType.custom}
+                    
                     closeButtonAriaLabel="Close"
                     headerText={`${this.props.listItem.Subject}`}
                     styles={{
@@ -331,8 +332,13 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
                                             <div className={`${styles.column2}`}>
 
                                             </div>
-                                            <div className={`${styles.column8}`}>
-                                                <Image src={require(`../../assets/emptyFile.gif`)}></Image>
+                                            <div className={`${styles.column12}`}>
+                                                <Image src={require(`../../assets/emptyFile.gif`)} styles={{
+                                                    root: {
+                                                        display: "flex",
+                                                        justifyContent: "center"
+                                                    }
+                                                }}></Image>
                                             </div>
                                             <div className={`${styles.column2}`}>
 

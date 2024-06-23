@@ -1,5 +1,23 @@
 {searchTerms} (siteId: {4db5bdf0-f4d9-4524-8c7a-62f986546e63} OR siteId: 4db5bdf0-f4d9-4524-8c7a-62f986546e63) (webId: {153bba80-4381-485d-b08d-3233d8cb24d3} OR webId: 153bba80-4381-485d-b08d-3233d8cb24d3) (NormListID: 67280d85-09b4-4f37-8c2b-0e42ea7a5fa1) (path: "https://mlaitechio.sharepoint.com/sites/BOB_New/Lists/CircularRepository" OR ParentLink: "https://mlaitechio.sharepoint.com/sites/BOB_New/Lists/CircularRepository*") ContentTypeId: 0x0*
 
+kumar.v@mlaitech.io
+T!151676077353ul
+
+
+Selected Tags & there value on top of search
+On Click of Apply Add Department to selected Tags
+Published by Year check box with see more 
+Search Query ChangeEvent
+Keywords ,Circular Number text search to be added
+Classification,Issued For,Category,Compliance, Accordion
+Count of Circular by number
+
+
+Mapping to be created
+RefinableString08 -> IssuedFor
+RefinableString09 -> Compliance
+
+
 Classification Search Query string
 Issued For Search Query string
 Regulatory Search Query string
@@ -1467,3 +1485,101 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                 /> */}
                 {/* {pagination} */}
 
+case `${Constants.lblContains}`:
+        this.setState({ checkCircularRefiner: labelName, circularRefinerOperator: `` });
+        break;
+      case `${Constants.lblStartsWith}`: checkBoxCollection.set(`${Constants.circularNumber}`, {
+        isContainsChecked: false,
+        isStartsWithChecked: true,
+        isEndsWithChecked: false
+      });
+        this.setState({ checkCircularRefiner: labelName, circularRefinerOperator: `starts-with` });
+        break;
+      case `${Constants.lblEndsWith}`:
+        checkBoxCollection.set(`${Constants.circularNumber}`, {
+          isContainsChecked: false,
+          isStartsWithChecked: false,
+          isEndsWithChecked: true
+        });
+        this.setState({ checkCircularRefiner: labelName, circularRefinerOperator: `ends-with` });
+        break;
+      case `${Constants.lblMaster}`:
+        checkBoxCollection.set(`${Constants.classification}`, [
+          {
+            checked: false,
+            value: "Master",
+            refinableString: "RefinableString06"
+          },
+          {
+            checked: false,
+            value: "Circular",
+            refinableString: "RefinableString06"
+          }
+        ]);
+        checkBoxCollection.set(`${Constants.classification}`, {
+          isMasterChecked: !classificationBox.isMasterChecked,
+          isCircularChecked: classificationBox.isCircularChecked
+        });
+        this.setState({ checkCircularRefiner: labelName, checkBoxCollection });
+        break;
+      case `${Constants.lblCircular}`:
+        checkBoxCollection.set(`${Constants.classification}`, {
+          isMasterChecked: classificationBox.isMasterChecked,
+          isCircularChecked: !classificationBox.isCircularChecked
+        });
+        this.setState({ checkCircularRefiner: labelName, checkBoxCollection });
+        break;
+      case `${Constants.lblComplianceYes}`:
+        checkBoxCollection.set(`${Constants.compliance}`, {
+          isYesChecked: !regulatoryBox.isYesChecked,
+          isNoChecked: regulatoryBox.isNoChecked
+        });
+        this.setState({ checkCircularRefiner: labelName, checkBoxCollection });
+        break;
+      case `${Constants.lblComplianceNo}`:
+        checkBoxCollection.set(`${Constants.compliance}`, {
+          isYesChecked: regulatoryBox.isYesChecked,
+          isNoChecked: !regulatoryBox.isNoChecked
+        });
+        this.setState({ checkCircularRefiner: labelName, checkBoxCollection });
+        break;
+      case `${Constants.lblIndia}`:
+        checkBoxCollection.set(`${Constants.issuedFor}`, {
+          isIndiaChecked: !issuedForBox.isIndiaChecked,
+          isGlobalChecked: issuedForBox.isGlobalChecked
+        })
+        this.setState({ checkCircularRefiner: labelName, checkBoxCollection });
+        break;
+      case `${Constants.lblGlobal}`:
+        checkBoxCollection.set(`${Constants.issuedFor}`, {
+          isIndiaChecked: issuedForBox.isIndiaChecked,
+          isGlobalChecked: !issuedForBox.isGlobalChecked
+        })
+        this.setState({ checkCircularRefiner: labelName, checkBoxCollection });
+        break;
+      case `${Constants.lblIntimation}`:
+        checkBoxCollection.set(`${Constants.category}`, {
+          isIntimationChecked: !categoryBox.isIntimationChecked,
+          isInformationChecked: categoryBox.isInformationChecked,
+          isActionChecked: categoryBox.isActionChecked
+        })
+
+        this.setState({ checkCircularRefiner: labelName, checkBoxCollection });
+        break;
+      case `${Constants.lblInformation}`:
+        checkBoxCollection.set(`${Constants.category}`, {
+          isIntimationChecked: categoryBox.isIntimationChecked,
+          isInformationChecked: !categoryBox.isInformationChecked,
+          isActionChecked: categoryBox.isActionChecked
+        })
+        this.setState({ checkCircularRefiner: labelName, checkBoxCollection });
+        break;
+      case `${Constants.lblAction}`:
+        checkBoxCollection.set(`${Constants.category}`, {
+          isIntimationChecked: categoryBox.isIntimationChecked,
+          isInformationChecked: categoryBox.isInformationChecked,
+          isActionChecked: !categoryBox.isActionChecked
+        })
+
+        this.setState({ checkCircularRefiner: labelName, checkBoxCollection });
+        break;

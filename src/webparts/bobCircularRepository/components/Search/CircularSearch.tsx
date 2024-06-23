@@ -4,8 +4,12 @@ import styles1 from '../BobCircularRepository.module.scss';
 import {
   AnimationClassNames,
   DefaultButton, DetailsList, DetailsListLayoutMode, DetailsRow, DialogContent, getResponsiveMode,
+  IBasePickerSuggestionsProps,
   IColumn, Icon, IDetailsListProps, IDetailsRowStyles,
-  Image, Label, PrimaryButton, SearchBox, SelectionMode, Stack
+  IInputProps, TagPicker as Picker,
+  Image, Label, Panel, PanelType, PrimaryButton, SelectionMode, Stack,
+  ValidationState,
+  ITag
 } from '@fluentui/react';
 import {
   Checkbox,
@@ -38,6 +42,10 @@ import {
   TableBody,
   TableCell,
   TableCellLayout,
+  Divider,
+  SearchBox,
+  SearchBoxChangeEvent,
+  webLightTheme
 } from "@fluentui/react-components";
 import { DatePicker } from "@fluentui/react-datepicker-compat";
 import { ICircularSearchProps } from './ICircularSearchProps';
@@ -58,7 +66,7 @@ import Pagination from 'react-js-pagination';
 import { DataContext } from '../../DataContext/DataContext';
 import FileViewer from '../FileViewer/FileViewer';
 import { AddCircleRegular, ArrowClockwise24Regular, ArrowClockwiseRegular, ArrowCounterclockwiseRegular, ArrowDownloadRegular, ArrowDownRegular, ArrowUpRegular, Attach12Filled, CalendarRegular, ChevronDownRegular, ChevronUpRegular, Dismiss24Regular, DismissRegular, EyeRegular, FilterRegular, OpenRegular, Search24Regular, ShareAndroidRegular, TextAlignJustifyRegular } from '@fluentui/react-icons';
-import { ICircularListItem } from '../../Models/IModel';
+import { ICheckBoxCollection, ICircularListItem } from '../../Models/IModel';
 import { PDFDocument, StandardFonts, degrees, rgb } from 'pdf-lib';
 import download from 'downloadjs'
 
@@ -66,6 +74,8 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
   static contextType = DataContext;
   context!: React.ContextType<typeof DataContext>;
+
+  private tagPickerRef: any = React.createRef();
 
   constructor(props) {
     super(props)
@@ -191,11 +201,14 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       sortingOptions: ["Date", "Subject"],
       currentSelectedFile: undefined,
       isAccordionSelected: false,
+      checkBoxCollection: new Map<string, ICheckBoxCollection[]>(),
       accordionFields: {
         isSummarySelected: false,
         isTypeSelected: false,
-        isCategorySelected: false
-      }
+        isCategorySelected: false,
+        isSupportingDocuments: false
+      },
+      isDepartmentPanel: false
     }
 
 
@@ -208,18 +221,22 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     this.setState({ isLoading: true }, async () => {
       await services.getPagedListItems(serverRelativeUrl,
         Constants.circularList, Constants.colCircularRepository, `${Constants.filterString}`,
-        Constants.expandColCircularRepository, 'PublishedDate', false).then((value) => {
+        Constants.expandColCircularRepository, 'PublishedDate', false).then(async (value) => {
 
           const uniqueDepartment: any[] = [...new Set(value.map((item) => {
             return item.Department;
-          }))];
+          }))].sort((a, b) => a < b ? -1 : 1);
+
 
           this.setState({
-            items: value, filteredItems: value, departments: uniqueDepartment.filter((option) => {
+            items: value,
+            filteredItems: value,
+            departments: uniqueDepartment.filter((option) => {
               return option != undefined
             })
           }, () => {
-            this.setState({ isLoading: false });
+            let checkBoxCollection = this.initializeCheckBoxFilter();
+            this.setState({ checkBoxCollection: checkBoxCollection, isLoading: false });
           })
         }).catch((error) => {
           console.log(error);
@@ -229,6 +246,98 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
 
     })
+  }
+
+
+  private initializeCheckBoxFilter = (): Map<string, any[]> => {
+
+    const { departments } = this.state;
+
+    let checkBoxCollection = new Map<string, ICheckBoxCollection[]>();
+
+    checkBoxCollection.set(`${Constants.department}`, departments.map((val) => {
+      return {
+        checked: false,
+        value: val,
+        refinableString: "RefinableString03"
+      } as ICheckBoxCollection
+    }))
+
+    checkBoxCollection.set(`${Constants.circularNumber}`,
+      [{
+        checked: true,
+        value: `${Constants.lblContains}`,
+        refinableString: "RefinableString00"
+      },
+      {
+        checked: false,
+        value: `${Constants.lblStartsWith}`,
+        refinableString: "RefinableString00"
+      },
+      {
+        checked: false,
+        value: `${Constants.lblEndsWith}`,
+        refinableString: "RefinableString00"
+      }
+      ]);
+    checkBoxCollection.set(`${Constants.classification}`, [
+      {
+        checked: false,
+        value: `${Constants.lblMaster}`,
+        refinableString: "RefinableString06"
+      },
+      {
+        checked: false,
+        value: `${Constants.lblCircular}`,
+        refinableString: "RefinableString06"
+      }
+    ]);
+
+    checkBoxCollection.set(`${Constants.issuedFor}`, [
+      {
+        checked: false,
+        refinableString: "RefinableString08",
+        value: "India"
+      },
+      {
+        checked: false,
+        value: "Global",
+        refinableString: "RefinableString08"
+      }
+    ]);
+    checkBoxCollection.set(`${Constants.compliance}`, [
+      {
+        checked: false,
+        value: "Yes",
+        refinableString: "RefinableString09"
+      },
+      {
+        checked: false,
+        value: "No",
+        refinableString: "RefinableString09"
+      }
+    ]);
+
+    checkBoxCollection.set(`${Constants.category}`, [
+      {
+        checked: false,
+        value: "Intimation",
+        refinableString: "RefinableString04"
+      },
+      {
+        checked: false,
+        value: "Information",
+        refinableString: "RefinableString04"
+      },
+      {
+        checked: false,
+        value: "Action",
+        refinableString: "RefinableString04"
+      }
+    ]);
+
+    return checkBoxCollection;
+
   }
 
   public render() {
@@ -242,7 +351,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     let mobileMode = responsiveMode == 0 || responsiveMode == 1 || responsiveMode == 2;
     let searchBoxColumn = mobileMode ? `${styles1.column12}` : `${styles1.column10}`;
     let searchClearColumn = mobileMode ? `${styles1.column12} ${styles1.textAlignEnd}` : `${styles1.column2}`;
-    let searchResultsColumn = isSearchNavOpen ? `${styles1.column9}` : `${styles1.column11}`
+    let searchResultsColumn = isSearchNavOpen ? `${styles1.column10}` : `${styles1.column11}`
 
 
     let detailListClass = mobileMode ? `${styles1.column12}` : `${styles1.column12}`;
@@ -253,7 +362,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         isLoading && this.workingOnIt()
       }
 
-      <div className={`${styles1.row}`}>
+      <div className={`${styles1.row} ${styles1.marginFilterTop}`}>
         {
 
           !isSearchNavOpen &&
@@ -266,7 +375,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
           </Drawer>
         }
         {isSearchNavOpen &&
-          <Drawer type="inline" style={{ maxHeight: "200vh" }} separator open={isSearchNavOpen} className={`${styles1.column3}`}>
+          <Drawer type="inline" style={{ maxHeight: "200vh" }} separator open={isSearchNavOpen} className={`${styles1.column2}`}>
             <DrawerHeader>
               <DrawerHeaderTitle
                 heading={{ className: `${styles1.fontRoboto}` }}
@@ -308,23 +417,46 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   }
 
   private searchFilters = (): JSX.Element => {
-    const { circularNumber, publishedEndDate, publishedStartDate } = this.state
+    const { circularNumber, publishedEndDate, publishedStartDate, checkBoxCollection } = this.state;
+    let circularBox = checkBoxCollection.get(`${Constants.circularNumber}`);
+    let departmentBox = checkBoxCollection.get(`${Constants.department}`)
+    let categoryBox = checkBoxCollection.get(`${Constants.category}`);
+    let regulatoryBox = checkBoxCollection.get(`${Constants.compliance}`);
+    let issuedForBox = checkBoxCollection.get(`${Constants.issuedFor}`);
+    let classificationBox = checkBoxCollection.get(`${Constants.classification}`);
     let searchFiltersJSX = <>
+      {this.createDepartmentPanel()}
       <div className={`${styles1.row}`}>
-        <div className={`${styles1.column12}`}>
+        <div className={`${styles1.column12}`} style={{ paddingLeft: 0 }}>
+
           <div className={`${styles1.row}`}>
 
-            <div className={`${styles1.column12} ${styles1.marginTop} `}>
-              {this.pickerControl()}
+            <div className={`${styles1.column12} ${styles1.marginFilterTop} `}>
+              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`${Constants.department}`}</FluentLabel>} ></Field>
             </div>
-            <div className={`${styles1.column12} ${styles1.marginTop} `}>
-              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`Circular Number`}</FluentLabel>} ></Field>
-            </div>
-            <div className={`${styles1.column4}`}>
-              {this.checkBoxControl(`Contains`)}
-            </div>
-            <div className={`${styles1.column8}`} style={{ padding: 0 }}>
 
+            <Divider appearance="subtle"></Divider>
+
+            <div className={`${styles1.column12} ${styles1.marginFilterTop} `}>
+              {/* {this.pickerControl()} */}
+              {checkBoxCollection.size > 0 && departmentBox.length > 0 && departmentBox.slice(0, 5).map((val, index) => {
+                return <div className={`${styles1.row}`}>
+                  <div className={`${styles1.column12}`} >
+                    {this.checkBoxControl(`${Constants.department}`, `${val.value}`, val.checked, index)}
+                  </div>
+                </div>
+              })}
+            </div>
+            <div className={`${styles1.column12} ${styles1.marginFilterTop} `}>
+              <Button icon={<OpenRegular />} iconPosition="after" appearance="transparent" onClick={() => {
+                this.setState({ isDepartmentPanel: true })
+              }}>See All Department</Button>
+            </div>
+            <Divider appearance="subtle"></Divider>
+            <div className={`${styles1.column12} ${styles1.marginFilterTop} `}>
+              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`${Constants.circularNumber}`}</FluentLabel>} ></Field>
+            </div>
+            <div className={`${styles1.column12} ${styles1.marginFilterTop}`} style={{ padding: 0 }}>
               <Input placeholder="Input at least 2 characters"
                 input={{ className: `${styles.input}` }}
                 className={`${styles.input}`}
@@ -332,20 +464,29 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                 onChange={this.onInputChange} />
             </div>
             <div className={`${styles1.column12}`}>
-              {this.checkBoxControl(`Starts With`)}
+              {checkBoxCollection.size > 0 &&
+                this.checkBoxControl(`${Constants.circularNumber}`, `${Constants.lblContains}`, circularBox[0].checked, 0)}
+            </div>
+            <div className={`${styles1.column12}`}>
+              {checkBoxCollection.size > 0 &&
+                this.checkBoxControl(`${Constants.circularNumber}`, `${Constants.lblStartsWith}`, circularBox[1].checked, 1)
+              }
             </div>
 
             <div className={`${styles1.column12}`}>
-              {this.checkBoxControl(`Ends With`)}
+              {checkBoxCollection.size > 0 &&
+                this.checkBoxControl(`${Constants.circularNumber}`, `${Constants.lblEndsWith}`, circularBox[2].checked, 2)
+              }
+
             </div>
           </div>
 
-          <div className={`${styles1.row} ${styles1.marginTop}`}>
+          <div className={`${styles1.row} ${styles1.marginFilterTop}`}>
             <div className={`${styles1.column12}`}>
-              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`Published From Date`}</FluentLabel>} >
+              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`Published Year`}</FluentLabel>} >
                 {/* <Input input={{ readOnly: true, type: "date" }} root={{ style: { fontFamily: "Roboto" } }}></Input> */}
 
-                <DatePicker mountNode={{}}
+                {/* <DatePicker mountNode={{}}
                   formatDate={this.onFormatDate}
                   value={publishedStartDate}
                   contentAfter={
@@ -358,11 +499,11 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                       <FluentUIBtn icon={<CalendarRegular />} appearance="transparent"></FluentUIBtn>
                     </>}
                   onSelectDate={this.onSelectDate.bind(this, `FromDate`)}
-                  input={{ style: { fontFamily: "Roboto" } }} />
+                  input={{ style: { fontFamily: "Roboto" } }} /> */}
 
 
               </Field>
-              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`Published To Date`}</FluentLabel>}>
+              {/* <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`Published To Date`}</FluentLabel>}>
                 <DatePicker mountNode={{}}
                   formatDate={this.onFormatDate}
                   value={publishedEndDate}
@@ -378,59 +519,73 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                     </>}
                   onSelectDate={this.onSelectDate.bind(this, `ToDate`)}
                   input={{ style: { fontFamily: "Roboto" } }} />
-              </Field>
-            </div>
-          </div>
-          <div className={`${styles1.row} ${styles1.marginTop}`}>
-            <div className={`${styles1.column12} ${styles1.marginTop} `}>
-              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`Classification`}</FluentLabel>} ></Field>
-            </div>
-            <div className={`${styles1.column12}`}>
-              {this.checkBoxControl(`Master`)}
-            </div>
-            <div className={`${styles1.column12}`}>
-              {this.checkBoxControl(`Circular`)}
+              </Field> */}
             </div>
           </div>
 
-          <div className={`${styles1.row} ${styles1.marginTop}`}>
-            <div className={`${styles1.column12} ${styles1.marginTop} `}>
-              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`Issued For`}</FluentLabel>} ></Field>
+          <div className={`${styles1.row} ${styles1.marginFilterTop}`}>
+            <div className={`${styles1.column12} ${styles1.marginFilterTop} `}>
+              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`${Constants.classification}`}</FluentLabel>} ></Field>
             </div>
-            <div className={`${styles1.column12}`}>
-              {this.checkBoxControl(`India`)}
-            </div>
-            <div className={`${styles1.column12}`}>
-              {this.checkBoxControl(`Global`)}
-            </div>
+            <Divider appearance="subtle"></Divider>
+            {
+              checkBoxCollection.size > 0 && classificationBox.length > 0 && classificationBox.map((val, index) => {
+                return <div className={`${styles1.column12}`} >
+                  {this.checkBoxControl(`${Constants.classification}`, `${val.value}`, val.checked, index)}
+                </div>
+              })
+            }
           </div>
-          <div className={`${styles1.row} ${styles1.marginTop}`}>
-            <div className={`${styles1.column12} ${styles1.marginTop} `}>
-              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`Regulatory`}</FluentLabel>} ></Field>
+
+          <div className={`${styles1.row} ${styles1.marginFilterTop}`}>
+            <div className={`${styles1.column12} ${styles1.marginFilterTop} `}>
+              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`${Constants.issuedFor}`}</FluentLabel>} ></Field>
             </div>
-            <div className={`${styles1.column12}`}>
-              {this.checkBoxControl(`Yes`)}
-            </div>
-            <div className={`${styles1.column12}`}>
-              {this.checkBoxControl(`No`)}
-            </div>
+            <Divider appearance="subtle"></Divider>
+            {
+              checkBoxCollection.size > 0 && issuedForBox.length > 0 && issuedForBox.map((val, index) => {
+                return <div className={`${styles1.column12}`} >
+                  {this.checkBoxControl(`${Constants.issuedFor}`, `${val.value}`, val.checked, index)}
+                </div>
+              })
+            }
+
           </div>
-          <div className={`${styles1.row} ${styles1.marginTop}`}>
-            <div className={`${styles1.column12} ${styles1.marginTop} `}>
-              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`Category`}</FluentLabel>} ></Field>
+
+          <div className={`${styles1.row} ${styles1.marginFilterTop}`}>
+            <div className={`${styles1.column12} ${styles1.marginFilterTop} `}>
+              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`${Constants.compliance}`}</FluentLabel>} ></Field>
             </div>
-            <div className={`${styles1.column12}`}>
-              {this.checkBoxControl(`Intimation`)}
-            </div>
-            <div className={`${styles1.column12}`}>
-              {this.checkBoxControl(`Information`)}
-            </div>
-            <div className={`${styles1.column12}`}>
-              {this.checkBoxControl(`Action`)}
-            </div>
+            <Divider appearance="subtle"></Divider>
+            {
+              checkBoxCollection.size > 0 && regulatoryBox.length > 0 && regulatoryBox.map((val, index) => {
+                return <div className={`${styles1.column12}`} >
+                  {this.checkBoxControl(`${Constants.compliance}`, `${val.value}`, val.checked, index)}
+                </div>
+              })
+            }
+
           </div>
+
+          <div className={`${styles1.row} ${styles1.marginFilterTop}`}>
+            <div className={`${styles1.column12} ${styles1.marginFilterTop} `}>
+              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`${Constants.category}`}</FluentLabel>} ></Field>
+            </div>
+            <Divider appearance="subtle"></Divider>
+            {
+              checkBoxCollection.size > 0 && categoryBox.length > 0 && categoryBox.map((val, index) => {
+                return <div className={`${styles1.column12}`}>
+                  {this.checkBoxControl(`${Constants.category}`, `${val.value}`, val.checked, index)}
+                </div>
+              })
+            }
+
+          </div>
+
+
+
           <div className={`${styles1.row}`}>
-            <div className={`${styles1.column12} ${styles1.marginTop} `}>
+            <div className={`${styles1.column12} ${styles1.marginFilterTop} `}>
               {this.searchClearButtons()}
             </div>
           </div>
@@ -494,7 +649,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     const columns = [
       { columnKey: "Title", label: "Document Title" },
       { columnKey: "Date", label: "Date" },
-      { columnKey: "Classification", label: "Classification" },
+      // { columnKey: "Classification", label: "Classification" },
       { columnKey: "Department", label: "Department" },
       { columnKey: "IssuedFor", label: "Issued For" }
     ];
@@ -504,7 +659,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         <TableHeader>
           <TableRow >
             {columns.map((column, index) => (
-              <TableHeaderCell key={column.columnKey} colSpan={index == 0 ? 5 : 1} className={`${styles1.fontWeightBold}`}>
+              <TableHeaderCell key={column.columnKey} colSpan={index == 0 ? 6 : index == 2 ? 2 : 1} className={`${styles1.fontWeightBold}`}>
                 {column.label}
               </TableHeaderCell>
             ))}
@@ -513,21 +668,30 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         <TableBody>
           {filteredPageItems && filteredPageItems.length > 0 && filteredPageItems.map((val: ICircularListItem, index) => {
 
-            let isFieldSelected = (accordionFields.isSummarySelected || accordionFields.isTypeSelected || accordionFields.isCategorySelected);
+            let isFieldSelected = (accordionFields.isSummarySelected || accordionFields.isTypeSelected || accordionFields.isCategorySelected || accordionFields.isSupportingDocuments);
             let isCurrentItem = currentSelectedItemId == val.ID;
             let tableRowClass = isFieldSelected && isCurrentItem ? `${styles1.tableRow}` : ``;
 
             return <>
               <TableRow className={`${styles1.tableRow}`}>
-                <TableCell colSpan={5} >
+                <TableCell colSpan={6} >
                   <TableCellLayout className={`${styles1.verticalSpacing}`}>
-                    <div className={`${styles1.colorLabel}`} style={{ padding: 0 }}>{val.CircularNumber}</div>
-                    <div className={`${styles1.fontWeightBold} ${styles1.verticalSpacing}`}>
+                    <div
+                      className={`${styles1.colorLabel}`}
+                      style={{
+                        padding: 0,
+                        color: val.Classification == "Master" ? "#f26522" : "#162B75"
+                      }}>{val.CircularNumber}</div>
+                    <div className={`${styles1.verticalSpacing}`}>
                       <Button
-                        style={{ padding: 0 }}
+                        style={{ padding: 0, fontWeight: 400 }}
                         appearance="transparent"
                         onClick={this.onDetailItemClick.bind(this, val, Constants.colSubject)}>
-                        <div style={{ textAlign: "left", marginTop: 5 }}>{val.Subject} <OpenRegular /></div>
+                        <div style={{
+                          textAlign: "left",
+                          marginTop: 5,
+                          color: val.Classification == "Master" ? "#f26522" : "#162B75"
+                        }}>{val.Subject} <OpenRegular /></div>
                       </Button>
                     </div>
                   </TableCellLayout>
@@ -537,13 +701,13 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                     {this.formatDate(val.PublishedDate)}
                   </TableCellLayout>
                 </TableCell>
-                <TableCell>
+                {/* <TableCell>
                   <TableCellLayout content={{ style: { width: "100%" } }}
                     className={val.Classification == "Master" ? `${styles1.master}` : `${styles1.circular}`}>
                     {val.Classification}
                   </TableCellLayout>
-                </TableCell>
-                <TableCell>
+                </TableCell> */}
+                <TableCell colSpan={2}>
                   <TableCellLayout className={`${styles1.verticalSpacing}`}>
                     {val.Department}
                   </TableCellLayout>
@@ -555,7 +719,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                 </TableCell>
               </TableRow>
               <TableRow className={`${tableRowClass}`}>
-                <TableCell colSpan={5}>
+                <TableCell colSpan={6}>
                   <div className={`${styles1.row}`}>
                     <div className={`${styles1.column2}`} style={{ paddingLeft: "0px" }}>
                       <Button icon={accordionFields.isSummarySelected && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
@@ -572,7 +736,8 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                         onClick={this.onDetailItemClick.bind(this, val, Constants.colType)}>Type</Button>
                     </div>
                     <div className={`${styles1.column2}`}>
-                      <Button icon={accordionFields.isCategorySelected && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
+                      <Button
+                        icon={accordionFields.isCategorySelected && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
                         iconPosition="after"
                         className={accordionFields.isCategorySelected && isCurrentItem ? styles1.colorLabel : ``}
                         appearance={accordionFields.isCategorySelected && isCurrentItem ? "outline" : "transparent"}
@@ -580,9 +745,10 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                     </div>
                     <div className={`${styles1.column4}`}>
                       <Button
-                        icon={<OpenRegular />}
+                        icon={accordionFields.isSupportingDocuments && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
                         iconPosition="after"
-                        appearance="transparent"
+                        className={accordionFields.isSupportingDocuments && isCurrentItem ? styles1.colorLabel : ``}
+                        appearance={accordionFields.isSupportingDocuments && isCurrentItem ? "outline" : "transparent"}
                         onClick={this.onDetailItemClick.bind(this, val, Constants.colSupportingDoc)}>Supporting Documents</Button>
                     </div>
 
@@ -591,11 +757,11 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
               </TableRow>
               {isFieldSelected && currentSelectedItemId == val.ID &&
                 <TableRow >
-                  <TableCell colSpan={7}>
+                  <TableCell colSpan={6}>
                     <div className={`${styles1.row}`}>
                       <div className={`${styles1.column12}`}>
                         {accordionFields.isSummarySelected &&
-                          <>{`${Constants.loreumIPSUM}`}</>
+                          <>{`${previewItems?.Gist ?? ``}`}</>
                         }
                         {accordionFields.isTypeSelected &&
                           <>{previewItems?.CircularType ?? ``}</>}
@@ -626,9 +792,10 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
         this.setState({
           accordionFields: {
-            "isSummarySelected": isCurrentItem ? !accordionFields.isSummarySelected : true,
-            "isTypeSelected": false,
-            isCategorySelected: false
+            isSummarySelected: isCurrentItem ? !accordionFields.isSummarySelected : true,
+            isTypeSelected: false,
+            isCategorySelected: false,
+            isSupportingDocuments: false
           },
           currentSelectedItem: item,
           currentSelectedItemId: item.ID
@@ -641,9 +808,10 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       case Constants.colType:
         this.setState({
           accordionFields: {
-            "isSummarySelected": false,
-            "isTypeSelected": isCurrentItem ? !accordionFields.isTypeSelected : true,
-            isCategorySelected: false
+            isSummarySelected: false,
+            isTypeSelected: isCurrentItem ? !accordionFields.isTypeSelected : true,
+            isCategorySelected: false,
+            isSupportingDocuments: false
           },
           currentSelectedItem: item,
           currentSelectedItemId: item.ID
@@ -654,9 +822,10 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       case Constants.colCategory:
         this.setState({
           accordionFields: {
-            "isSummarySelected": false,
-            "isTypeSelected": false,
-            isCategorySelected: isCurrentItem ? !accordionFields.isCategorySelected : true
+            isSummarySelected: false,
+            isTypeSelected: false,
+            isCategorySelected: isCurrentItem ? !accordionFields.isCategorySelected : true,
+            isSupportingDocuments: false
           },
           currentSelectedItem: item,
           currentSelectedItemId: item.ID
@@ -665,12 +834,39 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         })
         break;
 
-      case Constants.colSubject: this.setState({
+      case Constants.colSupportingDoc: this.setState({
+        accordionFields: {
+          isSummarySelected: false,
+          isTypeSelected: false,
+          isCategorySelected: false,
+          isSupportingDocuments: isCurrentItem ? !accordionFields.isSupportingDocuments : true
+        },
         currentSelectedItem: item,
         currentSelectedItemId: item.ID
       }, () => {
-        this.readItemsAsStream(item, true)
+        this.readItemsAsStream(item)
       })
+        break;
+
+      case Constants.colSubject:
+
+        this.setState({
+          currentSelectedItem: item,
+          currentSelectedItemId: item.ID
+        }, () => {
+          this.readItemsAsStream(item, true);
+          if (currentSelectedItemId != item.ID) {
+            this.setState({
+              accordionFields: {
+                isSummarySelected: false,
+                isTypeSelected: false,
+                isCategorySelected: false,
+                isSupportingDocuments: false
+              }
+            })
+          }
+
+        })
         break;
     }
   }
@@ -721,40 +917,132 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
   }
 
-  private checkBoxControl = (labelName): JSX.Element => {
-    const { checkCircularRefiner } = this.state
+
+
+  private checkBoxControl = (labelName, checkBoxVal, isChecked, index): JSX.Element => {
+    const { checkCircularRefiner, checkBoxCollection } = this.state
     let checkBoxJSX = <>
       <Checkbox
-        checked={checkCircularRefiner == labelName}
-        label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{labelName}</FluentLabel>}
-        shape="circular" size="medium" onChange={this.onCheckBoxChange.bind(this, labelName)} />
+        checked={isChecked}
+        label={<FluentLabel weight="regular" style={{ fontFamily: "Roboto" }}>{checkBoxVal}</FluentLabel>}
+        shape="square" size="medium" onChange={this.onCheckBoxChange.bind(this, labelName, index)} />
     </>
 
     return checkBoxJSX;
   }
 
+  private onCheckBoxChange = (labelName: string, index, ev: React.ChangeEvent<HTMLInputElement>, data: CheckboxOnChangeData) => {
+    const { checkBoxCollection } = this.state;
+    let circularBox = checkBoxCollection.get(`${Constants.circularNumber}`);
 
-  private onResetClick = (labelName: string) => {
     switch (labelName) {
-      case `FromDate`: this.setState({ publishedStartDate: null });
+      case `${Constants.circularNumber}`: checkBoxCollection.set(`${Constants.circularNumber}`,
+        [{
+          checked: index == 0 ? !circularBox[0].checked : false,
+          value: `${Constants.lblContains}`,
+          refinableString: "RefinableString00"
+        },
+        {
+          checked: index == 1 ? !circularBox[1].checked : false,
+          value: `${Constants.lblStartsWith}`,
+          refinableString: "RefinableString00"
+        },
+        {
+          checked: index == 2 ? !circularBox[2].checked : false,
+          value: `${Constants.lblEndsWith}`,
+          refinableString: "RefinableString00"
+        }
+        ]);
+        this.setState({
+          checkCircularRefiner: labelName,
+          circularRefinerOperator: index == 0 ? `` : index == 1 ? `starts-with` : `ends-with`
+        });
         break;
-      case `ToDate`: this.setState({ publishedEndDate: null });
+
+      case `${Constants.department}`: checkBoxCollection.get(`${labelName}`)[index].checked = data.checked;
+        this.setState({ checkBoxCollection })
+        break;
+
+      case `${Constants.classification}`: checkBoxCollection.get(`${labelName}`)[index].checked = data.checked;
+        this.setState({ checkBoxCollection })
+        break;
+      case `${Constants.issuedFor}`: checkBoxCollection.get(`${labelName}`)[index].checked = data.checked;
+        this.setState({ checkBoxCollection })
+        break;
+      case `${Constants.compliance}`: checkBoxCollection.get(`${labelName}`)[index].checked = data.checked;
+        this.setState({ checkBoxCollection })
+        break;
+      case `${Constants.category}`: checkBoxCollection.get(`${labelName}`)[index].checked = data.checked;
+        this.setState({ checkBoxCollection })
         break;
 
     }
   }
 
-
-
-  private onCheckBoxChange = (labelName: string, ev: React.ChangeEvent<HTMLInputElement>, data: CheckboxOnChangeData) => {
-    switch (labelName) {
-      case `Contains`: this.setState({ checkCircularRefiner: labelName, circularRefinerOperator: `` });
-        break;
-      case `Starts With`: this.setState({ checkCircularRefiner: labelName, circularRefinerOperator: `starts-with` });
-        break;
-      case `Ends With`: this.setState({ checkCircularRefiner: labelName, circularRefinerOperator: `ends-with` });
-        break;
+  private createDepartmentPanel = (): JSX.Element => {
+    const { isDepartmentPanel, checkBoxCollection } = this.state;
+    let departmentBox = checkBoxCollection.get(`${Constants.department}`);
+    let checkedDepartment = [];
+    if (departmentBox) {
+      checkedDepartment = departmentBox.filter((val) => {
+        return val.checked == true;
+      });
     }
+
+    let departmentPanelJSX = <>
+      <Panel isOpen={isDepartmentPanel}
+        isLightDismiss={true}
+        onDismiss={() => { this.setState({ isDepartmentPanel: false }) }}
+        type={PanelType.smallFixedFar}
+        onRenderFooterContent={() => <>
+          <FluentProvider theme={webLightTheme}>
+            <Button appearance="primary" style={{ marginRight: 5 }} disabled={checkedDepartment.length > 0 ? false : true}>Apply</Button>
+            <Button >Clear all</Button>
+          </FluentProvider>
+        </>}
+        closeButtonAriaLabel="Close"
+        headerText={`Filter Department (${checkedDepartment.length})`}
+        styles={{
+          commands: { background: "white" },
+          headerText: {
+            fontSize: "1.3em", fontWeight: "600",
+            marginBlockStart: "0.83em", marginBlockEnd: "0.83em",
+            color: "black", fontFamily: 'Roboto'
+          },
+          main: { background: "white" },
+          content: { paddingBottom: 0 },
+          navigation: {
+            borderBottom: "1px solid #ccc",
+            selectors: {
+              ".ms-Button": { color: "black" },
+              ".ms-Button:hover": { color: "black" }
+            }
+          }
+        }} >
+        <div className={`${styles1.row} ${styles1.marginFilterTop}`}>
+          <div className={`${styles1.column12}`} style={{ paddingLeft: 0 }}>
+            {this.tagPicker({ placeholder: `Search Department` }, this.tagPickerRef, [])}
+            {/* <FluentProvider theme={webLightTheme}>
+              <SearchBox appearance="outline" placeholder="Search Department"
+                input={{ className: `${styles1.fontRoboto}` }}
+                style={{ width: "100%", maxWidth: "100%" }} />
+            </FluentProvider> */}
+          </div>
+        </div>
+        {checkBoxCollection.size > 0 && departmentBox.length > 0 && departmentBox.map((val, index) => {
+          return <div className={`${styles1.row}`}>
+
+            <div className={`${styles1.column12}`} style={{ paddingLeft: 0, paddingRight: 0 }}>
+              <FluentProvider theme={webLightTheme}>
+                {this.checkBoxControl(`${Constants.department}`, val.value, val.checked, index)}
+              </FluentProvider>
+            </div>
+          </div>
+
+        })}
+      </Panel>
+    </>
+    return departmentPanelJSX;
   }
 
   private onSwitchChange = (ev: React.ChangeEvent<HTMLInputElement>, data: SwitchOnChangeData) => {
@@ -764,6 +1052,93 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     else {
       this.setState({ isNormalSearch: true, switchSearchText: `Normal Search` })
     }
+  }
+
+  private tagPicker = (inputProps: IInputProps, tagPickerRef: any, selectedItem?: any[]): JSX.Element => {
+
+    const pickerSuggestionsProps: IBasePickerSuggestionsProps = {
+      suggestionsHeaderText: `${inputProps.placeholder}`,
+      noResultsFoundText: 'No results found!',
+    };
+
+    let tagPickerJSX = <>
+
+      <Picker
+        componentRef={tagPickerRef}
+        onResolveSuggestions={this.onResolveSuggestions.bind(this, inputProps.placeholder)}
+        itemLimit={1}
+        getTextFromItem={this.getTextFromItem}
+        pickerSuggestionsProps={pickerSuggestionsProps}
+        inputProps={inputProps}
+        onEmptyResolveSuggestions={(tagList) => this._onEmptyInputFocus(inputProps.placeholder, '', tagList)}
+        onChange={this.onPickerChange.bind(this, inputProps.placeholder)}
+        styles={{ text: { fontSize: 13.5, fontWeight: 600 } }}
+        selectedItems={[]}
+        onValidateInput={this.onValidateInput}
+        //onInputChange={this.onInputChange}
+        onBlur={this.onTagPickerBlur.bind(this, inputProps.placeholder)}
+        //onItemSelected={this.onFilterItemSelection.bind(this, isFinancial)}
+        defaultSelectedItems={[]} //isFinancial ? [{name:"FY 2023 - 2024",key:"FY 2023 - 2024|0"}] : []
+      />
+    </>;
+
+    return tagPickerJSX;
+  }
+
+  private onTagPickerBlur = (selectedInput: string) => {
+    if (this.tagPickerRef)
+      this.tagPickerRef?.current?.input?.current?._updateValue("")
+  }
+
+  private _onEmptyInputFocus = (selectedInput, filterText, tagList) => {
+    const { departments } = this.state
+
+    return departments
+      .map((department: any, index): any => {
+        return {
+          name: department,
+          key: department
+        };
+      });
+  }
+
+  private onValidateInput = (input: string): ValidationState => {
+    return input ? ValidationState.valid : ValidationState.invalid;
+  }
+
+  private onResolveSuggestions = async (selectedInput: string, filter: string,
+    selectedItems: any[] | undefined): Promise<ITag[]> => {
+
+    const { departments } = this.state
+    if (filter) {
+      return departments
+        .filter((department: any) => department.toLowerCase().indexOf(filter.toLowerCase()) > -1)
+        .map((department: any, index): any => {
+          // console.log(category.id)
+          return {
+            name: department,
+            key: department
+          };
+        });
+    }
+
+    return []
+  }
+
+  private getTextFromItem = (item: ITag) => {
+    return item.name;
+  }
+
+  private onPickerChange = (selectedInput, items?: ITag[] | undefined) => {
+
+    const { checkBoxCollection, departments } = this.state;
+    let departmentBoxIndex = departments.indexOf(items[0].name);
+
+    if (checkBoxCollection && checkBoxCollection.size > 0 && items.length > 0) {
+      checkBoxCollection.get(`${Constants.department}`)[departmentBoxIndex].checked = true;
+      this.setState({ checkBoxCollection })
+    }
+
   }
 
   private pickerControl = (): JSX.Element => {
@@ -878,6 +1253,16 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       (date.getFullYear());
   };
 
+  private onResetClick = (labelName: string) => {
+    switch (labelName) {
+      case `FromDate`: this.setState({ publishedStartDate: null });
+        break;
+      case `ToDate`: this.setState({ publishedEndDate: null });
+        break;
+
+    }
+  }
+
   private updateItem = (itemID: any) => {
     this.props.onUpdateItem(itemID)
   }
@@ -904,36 +1289,57 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   private searchBox = (): JSX.Element => {
     const { searchText } = this.state;
     let searchBoxJSX =
-      <Stack tokens={{ childrenGap: 20 }}>
-        <SearchBox
-          placeholder={`${Constants.searchText} `}
-          onChange={this.onSearchBoxChange}
-          onSearch={this.handleSearch}
-          //onClear={(ev?: any) => { this.onClear() }}
-          onClear={(ev?: any) => { this.onSearchClear() }}
-          defaultValue={searchText}
-          value={searchText}
-          styles={{
-            root: {
-              border: "1px solid #bac6f7",
-              fontFamily: "Roboto",
-              borderRadius: 5,
-              ":hover": {
-                borderColor: "1px solid #bac6f7"
-              },
-              ".is-active": {
-                border: "1px solid #bac6f7"
-              }
-            }
-          }}
-        />
-      </Stack>;
+      <>
+        <SearchBox appearance="underline"
+          onChange={this.onSearchTextChange}
+          placeholder="Type here to search"
+          onKeyUp={this.handleSearchEvent}
+          input={{ className: `${styles1.fontRoboto}` }}
+          style={{ width: "100%", maxWidth: "100%" }} />
+      </>
+    // <Stack tokens={{ childrenGap: 20 }}>
+    //   <SearchBox
+    //     placeholder={`${Constants.searchText} `}
+    //     onChange={this.onSearchBoxChange}
+    //     onSearch={this.handleSearch}
+    //     //onClear={(ev?: any) => { this.onClear() }}
+    //     onClear={(ev?: any) => { this.onSearchClear() }}
+    //     defaultValue={searchText}
+    //     value={searchText}
+    //     styles={{
+    //       root: {
+    //         border: "1px solid #bac6f7",
+    //         fontFamily: "Roboto",
+    //         borderRadius: 5,
+    //         ":hover": {
+    //           borderColor: "1px solid #bac6f7"
+    //         },
+    //         ".is-active": {
+    //           border: "1px solid #bac6f7"
+    //         }
+    //       }
+    //     }}
+    //   />
+    // </Stack>;
+
+
 
     return searchBoxJSX;
   }
 
   private onSearchBoxChange = (event?: React.ChangeEvent<HTMLInputElement>, newValue?: string) => {
     this.setState({ searchText: newValue })
+  }
+
+  private onSearchTextChange = (event: SearchBoxChangeEvent, data: InputOnChangeData) => {
+    this.setState({ searchText: data.value })
+  }
+
+  private handleSearchEvent = (event?: any) => {
+    if (event.keyCode === 13) {
+      const { searchText } = this.state;
+      this.handleSearch(searchText)
+    }
   }
 
   private handleSearch = (newValue?: string) => {
@@ -1006,7 +1412,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       |--------------------------------------------------
       | Query Text= * , 
       | Will do the search text from search box inside Subject using Refinment Filters & Other Refinable Filters
-      | This for combination of Search Text + Refinment Filters . 
+      | This for combination of Search Text + Refinment Filters. 
       | It searches Subject using search text & then adds Refinment Filters.
       | It will do * Search in Query Text Property & add RefinmentFilters= (Subject:or(SearchText) + Refinment Filters)
       | 
@@ -1103,7 +1509,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   private searchQueryAndFilterQuery = (): string => {
 
     const { selectedDepartment, searchText, isNormalSearch, circularNumber, circularRefinerOperator,
-      publishedStartDate, publishedEndDate } = this.state;
+      publishedStartDate, publishedEndDate, checkBoxCollection } = this.state;
 
     /**
     |--------------------------------------------------
@@ -1116,6 +1522,8 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         RefinableString06 -> Classification
         RefinableDate00 -> PublishedDate 
         RefinableString07 -> CircularStatus
+        RefinableString08 -> IssuedFor
+        RefinableString09 -> Compliance
   
     |--------------------------------------------------
     */
@@ -1126,6 +1534,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
 
     let advanceFilterString = "";
+    let checkBoxFilterString = "";
 
     let filterProperties = Constants.filterSearchProperties;
 
@@ -1142,6 +1551,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   |--------------------------------------------------
   */
     let filterArray = [];
+    let checkBoxFilter = [];
 
     // Default Search will always be Circular Status as Published
     filterArray.push(`${filterProperties[5]}:equals("${Constants.published}")`);
@@ -1152,25 +1562,54 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       if (publishedStartVal != "" && publishedEndVal != "") {
         filterArray.push(`${filterProperties[4]}: range(${publishedStartVal.split('T')[0]}T23:59:59Z, ${publishedEndVal.split('T')[0]}T23:59:59Z)`)
       }
+
+
+      if (checkBoxCollection.size > 0) {
+        checkBoxCollection.forEach((checkMap) => {
+          let checkMapColl = checkMap.filter((val) => {
+            return val.checked == true && val.refinableString != "RefinableString00";
+          })
+          if (checkMapColl.length > 1) {
+            checkMapColl.map((val) => {
+              checkBoxFilter.push(`${val.refinableString}:equals("${val.value}")`);
+            })
+            checkBoxFilterString += `or(${checkBoxFilter.join(',')}),`;
+          }
+          else if (checkMapColl.length == 1) {
+            checkMapColl.map((val) => {
+              checkBoxFilterString += `${val.refinableString}:equals("${val.value}"),`;
+            });
+          }
+          else {
+            checkBoxFilterString += "";
+          }
+        })
+      }
     }
 
-    if (filterArray.length > 1) {
+    if (checkBoxFilterString != "") {
+      checkBoxFilterString = checkBoxFilterString.substring(0, checkBoxFilterString.length - 1)
+    }
+
+
+    if (filterArray.length > 1 || checkBoxFilter.length > 1) {
       if (searchTextRefinment != "") {
         //  advanceFilterString += `and(${filterArray.join(',')})`;// ${searchTextRefinment}//,or(${searchTextRefinment}))
-        advanceFilterString += `and(${filterArray.join(',')},${searchTextRefinment})`;
+
+        advanceFilterString += `and(${filterArray.join(',')},${searchTextRefinment}${checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``})`;
       }
       else {
-        advanceFilterString += `and(${filterArray.join(',')})`
+        advanceFilterString += `and(${filterArray.join(',')}${checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``})`
       }
     }
-    else if (filterArray.length == 1) {
+    else if (filterArray.length == 1 || checkBoxFilterString != "") {
       if (searchTextRefinment != "") {
-        advanceFilterString += `and(${filterArray.join(',')},${searchTextRefinment})`;
+        advanceFilterString += `and(${filterArray.join(',')},${searchTextRefinment}${checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``})`;
         //advanceFilterString += `and(${filterArray.join(',')})`;
         //advanceFilterString += filterArray[0];
       }
       else {
-        advanceFilterString += filterArray[0];
+        advanceFilterString += `and(` + filterArray[0] + `${checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``})`;
       }
 
     }
@@ -1183,6 +1622,8 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       }
 
     }
+
+    console.log("Search Query & Filter")
 
     console.log(advanceFilterString)
 
@@ -1199,11 +1640,11 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
   private refinableQuery = () => {
     const { selectedDepartment, searchText, isNormalSearch, circularNumber, circularRefinerOperator,
-      publishedStartDate, publishedEndDate } = this.state;
+      publishedStartDate, publishedEndDate, checkBoxCollection } = this.state;
 
     /**
     |--------------------------------------------------
-    |  | RefinableString00 -> CircularNumber
+    |  |RefinableString00 -> CircularNumber
         RefinableString01 -> Subject
         RefinableString02 -> Migrated Department
         RefinableString03 -> Department
@@ -1212,6 +1653,8 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         RefinableString06 -> Classification
         RefinableDate00 -> PublishedDate 
         RefinableString07 -> CircularStatus
+        RefinableString08 -> IssuedFor
+        RefinableString09 -> Compliance
     |--------------------------------------------------
     */
     let departmentVal = selectedDepartment[0] ?? ``;//RefinableString03
@@ -1221,16 +1664,18 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
     let filterArray = [];
 
-
     let advanceFilterString = "";
 
     let filterProperties = Constants.filterSearchProperties;
 
     let searchTextRefinment = this.normalSearchQuery(searchText);
 
-    // Default Search will always be Circular Status as Published
-    //filterArray.push(`${filterProperties[5]}:equals("${Constants.published}")`);
+    let checkBoxFilterString = "";
 
+    let checkBoxFilter = [];
+
+    // Default Search will always be Circular Status as Published
+    filterArray.push(`${filterProperties[5]}:equals("${Constants.published}")`);
 
     if (!isNormalSearch) {
       `${departmentVal != "" ? filterArray.push(`${filterProperties[3]}:equals("${departmentVal}")`) : ``} `;
@@ -1238,26 +1683,62 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       if (publishedStartVal != "" && publishedEndVal != "") {
         filterArray.push(`${filterProperties[4]}: range(${publishedStartVal.split('T')[0]}T23:59:59Z, ${publishedEndVal.split('T')[0]}T23:59:59Z)`)
       }
+
+      if (checkBoxCollection.size > 0) {
+        checkBoxCollection.forEach((checkMap) => {
+          let checkMapColl = checkMap.filter((val) => {
+            return val.checked == true && val.refinableString != "RefinableString00";
+          })
+          if (checkMapColl.length > 1) {
+            checkMapColl.map((val) => {
+              checkBoxFilter.push(`${val.refinableString}:equals("${val.value}")`);
+            })
+            checkBoxFilterString += `or(${checkBoxFilter.join(',')}),`;
+          }
+          else if (checkMapColl.length == 1) {
+            checkMapColl.map((val) => {
+              checkBoxFilterString += `${val.refinableString}:equals("${val.value}"),`;
+            });
+          }
+          else {
+            checkBoxFilterString += "";
+          }
+        })
+      }
     }
 
-    if (filterArray.length > 1) {
+    if (checkBoxFilterString != "") {
+      checkBoxFilterString = checkBoxFilterString.substring(0, checkBoxFilterString.length - 1)
+    }
+
+    if (filterArray.length > 1 || checkBoxFilter.length > 1) {
       if (searchTextRefinment != "") {
-        //advanceFilterString += `and(${filterArray.join(',')},${searchTextRefinment})`;
-        advanceFilterString += `and(${filterArray.join(',')})`;//, ${searchTextRefinment}
+
+        advanceFilterString += filterArray.length > 1 ? `and(` : ``;
+        advanceFilterString += filterArray.length > 1 ? `${filterArray.join(',')}` : ``
+        advanceFilterString += checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``;
+        advanceFilterString += filterArray.length > 1 ? `)` : ``;
       }
       else {
-        advanceFilterString += `and(${filterArray.join(',')})`;
+        advanceFilterString += filterArray.length > 1 ? `and(` : ``;
+        advanceFilterString += filterArray.length > 1 ? `${filterArray.join(',')}` : ``
+        advanceFilterString += checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``;
+        advanceFilterString += filterArray.length > 1 ? `)` : ``;
       }
     }
-    else if (filterArray.length == 1) {
+    else if (filterArray.length == 1 || checkBoxFilterString != "") {
       if (searchTextRefinment != "") {
-        //advanceFilterString += `and(${filterArray.join(',')},${searchTextRefinment})`;
-        //advanceFilterString += `and((${filterArray[0]}),or(${searchTextRefinment}))`
-        advanceFilterString += `${filterArray[0]}`;
-        //advanceFilterString += `and(${filterArray.join(',')})`;
+        advanceFilterString += filterArray.length == 1 && checkBoxFilterString != "" ? `and(` : ``;
+        advanceFilterString += filterArray.length == 1 ? `${filterArray[0]}` : ``;
+        advanceFilterString += checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``;
+        advanceFilterString += filterArray.length == 1 && checkBoxFilterString != "" ? `)` : ``;
+
       }
       else {
-        advanceFilterString += filterArray[0];
+        advanceFilterString += filterArray.length == 1 && checkBoxFilterString != "" ? `and(` : ``;
+        advanceFilterString += filterArray.length == 1 ? `${filterArray[0]}` : ``;
+        advanceFilterString += checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``;
+        advanceFilterString += filterArray.length == 1 && checkBoxFilterString != "" ? `)` : ``;
       }
 
     }
@@ -1265,10 +1746,11 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       advanceFilterString += ``
     }
 
-    console.log(advanceFilterString)
+    console.log("Refinable Filter")
+
+    console.log(advanceFilterString);
 
     return advanceFilterString
-
 
   }
 
@@ -1558,7 +2040,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     const dateObject = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
 
     // format the date as a string using the desired format
-    const formattedDate = dateObject.toLocaleDateString("en-UK", { day: "2-digit", month: "short", year: "numeric" });
+    const formattedDate = dateObject.toLocaleDateString("en-UK", { day: "numeric", month: "short", year: "numeric" });
 
     return `${formattedDate} `;
   }
@@ -1678,7 +2160,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       circularNumber: ``,
       publishedStartDate: null,
       publishedEndDate: null,
-
+      checkBoxCollection: this.initializeCheckBoxFilter()
     })
 
   }

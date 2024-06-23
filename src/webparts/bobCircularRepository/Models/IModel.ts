@@ -58,6 +58,12 @@ export interface IListItem {
     ModifiedDate: string;
 }
 
+export interface ICheckBoxCollection {
+    checked: string | boolean,
+    value: string,
+    refinableString: string
+}
+
 export interface ICircularListItem {
     ID?: string;
     Id?: string;
