@@ -154,7 +154,7 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
 
     return (
       <>
-        <IdPrefixProvider value={"APP_89-232323"} >
+        <IdPrefixProvider value={"CRAT_"} >
           <FluentProvider theme={customLightTheme}>
             <div className={`${styles.mainContainer} `}>
               <div className={`${styles.container}`}>

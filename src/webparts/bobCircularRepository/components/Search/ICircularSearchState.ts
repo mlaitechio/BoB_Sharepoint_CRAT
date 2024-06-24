@@ -37,7 +37,10 @@ export interface ICircularSearchState {
     accordionFields?: any;
     openFileViewer?: boolean;
     checkBoxCollection?: Map<string, ICheckBoxCollection[]>;
-    isDepartmentPanel?: boolean;
+    isFilterPanel?: boolean;
+    publishedYear?: any[];
+    filterLabelName?: string;
+    filterAccordion?: any;
     // selectedFinancialYear: string;
     // selectedVertical: string;
     // selectedFinanicalPicker: ITag[];

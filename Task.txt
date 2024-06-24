@@ -6,10 +6,10 @@ T!151676077353ul
 
 Selected Tags & there value on top of search
 On Click of Apply Add Department to selected Tags
-Published by Year check box with see more 
+Published by Year check box with see more (Done)
 Search Query ChangeEvent
 Keywords ,Circular Number text search to be added
-Classification,Issued For,Category,Compliance, Accordion
+Classification,Issued For,Category,Compliance, Accordion (Done)
 Count of Circular by number
 
 
@@ -48,6 +48,42 @@ Form
 12.Permission handling of item
 13. Working on it Logic
 14. Success message logic
+
+
+{/* <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`Published To Date`}</FluentLabel>}>
+                <DatePicker mountNode={{}}
+                  formatDate={this.onFormatDate}
+                  value={publishedEndDate}
+                  contentAfter={
+                    <>
+                      <FluentUIBtn
+                        icon={<ArrowCounterclockwiseRegular />}
+                        appearance="transparent" title="Reset"
+                        onClick={this.onResetClick.bind(this, `ToDate`)}>
+                      </FluentUIBtn>
+                      <FluentUIBtn icon={<CalendarRegular />} appearance="transparent"></FluentUIBtn>
+
+                    </>}
+                  onSelectDate={this.onSelectDate.bind(this, `ToDate`)}
+                  input={{ style: { fontFamily: "Roboto" } }} />
+              </Field> */}
+
+              {/* <Input input={{ readOnly: true, type: "date" }} root={{ style: { fontFamily: "Roboto" } }}></Input> */}
+
+                {/* <DatePicker mountNode={{}}
+                  formatDate={this.onFormatDate}
+                  value={publishedStartDate}
+                  contentAfter={
+                    <>
+                      <FluentUIBtn icon={<ArrowCounterclockwiseRegular />}
+                        appearance="transparent"
+                        title="Reset"
+                        onClick={this.onResetClick.bind(this, `FromDate`)}>
+                      </FluentUIBtn>
+                      <FluentUIBtn icon={<CalendarRegular />} appearance="transparent"></FluentUIBtn>
+                    </>}
+                  onSelectDate={this.onSelectDate.bind(this, `FromDate`)}
+                  input={{ style: { fontFamily: "Roboto" } }} /> */}
 
 {/* <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`Department`}</FluentLabel>}>
               <Dropdown mountNode={{}} placeholder="Select Department" value={selectedDepartment[0]}

@@ -33,7 +33,7 @@ export class Services implements IServices {
 
             items = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items
                 .select(selectColumns)
-                .expand(expandColumns).orderBy(orderByColum, asc)
+                .expand(expandColumns).filter(filterString).orderBy(orderByColum, asc)
                 .top(4999)
                 .getPaged();
             listItems = items.results;
@@ -270,7 +270,7 @@ export class Services implements IServices {
         return fileAttachmentPromise
     }
 
-    
+
 
     public async createItem(serverRelativeUrl: string, listName: string, metadataValues: any): Promise<boolean | any> {
         const isItemCreated = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items.add(metadataValues).

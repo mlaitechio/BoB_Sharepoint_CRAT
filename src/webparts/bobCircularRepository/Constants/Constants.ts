@@ -51,6 +51,7 @@ export class Constants {
   public static readonly commentsCompliance = "Comments Compliance";
   public static readonly goBack = `Go Back`;
   public static readonly delete = `Delete`;
+  public static readonly publishedYear = "Published Year";
 
 
   public static readonly colCircularRepository = "Id,Subject,PublishedDate,Category,IssuedFor,MigratedDepartment,Department,IsMigrated,CircularNumber,Classification,MigratedOriginator,Author/Title,Author/Id,Author/EMail"

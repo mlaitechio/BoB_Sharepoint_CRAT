@@ -76,6 +76,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   context!: React.ContextType<typeof DataContext>;
 
   private tagPickerRef: any = React.createRef();
+  private tagPickerRefYear: any = React.createRef();
 
   constructor(props) {
     super(props)
@@ -181,7 +182,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       filteredItems: [],
       columns,
       currentPage: 1,
-      itemsPerPage: 8,
+      itemsPerPage: 9,
       isLoading: false,
       departments: [],
       selectedDepartment: [],
@@ -208,7 +209,17 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         isCategorySelected: false,
         isSupportingDocuments: false
       },
-      isDepartmentPanel: false
+      isFilterPanel: false,
+      filterLabelName: ``,
+      filterAccordion: {
+        isDepartmentSelected: false,
+        isCircularNumberSelected: false,
+        isPublishedYearSelected: false,
+        isClassificationSelected: false,
+        isIssuedForSelected: false,
+        isComplianceSelected: false,
+        isCategorySelected: false
+      }
     }
 
 
@@ -227,13 +238,17 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
             return item.Department;
           }))].sort((a, b) => a < b ? -1 : 1);
 
+          const uniquePublishedYear: any[] = [...new Set(value.map((item) => {
+            return new Date(item.PublishedDate).getFullYear().toString();
+          }))];
 
           this.setState({
             items: value,
             filteredItems: value,
             departments: uniqueDepartment.filter((option) => {
               return option != undefined
-            })
+            }),
+            publishedYear: uniquePublishedYear
           }, () => {
             let checkBoxCollection = this.initializeCheckBoxFilter();
             this.setState({ checkBoxCollection: checkBoxCollection, isLoading: false });
@@ -251,9 +266,17 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
   private initializeCheckBoxFilter = (): Map<string, any[]> => {
 
-    const { departments } = this.state;
+    const { departments, publishedYear } = this.state;
 
     let checkBoxCollection = new Map<string, ICheckBoxCollection[]>();
+
+    checkBoxCollection.set(`${Constants.colPublishedDate}`, publishedYear.map((val) => {
+      return {
+        checked: false,
+        value: val,
+        refinableString: "RefinableDate00"
+      }
+    }))
 
     checkBoxCollection.set(`${Constants.department}`, departments.map((val) => {
       return {
@@ -280,6 +303,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         refinableString: "RefinableString00"
       }
       ]);
+
     checkBoxCollection.set(`${Constants.classification}`, [
       {
         checked: false,
@@ -305,6 +329,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         refinableString: "RefinableString08"
       }
     ]);
+
     checkBoxCollection.set(`${Constants.compliance}`, [
       {
         checked: false,
@@ -417,134 +442,173 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   }
 
   private searchFilters = (): JSX.Element => {
-    const { circularNumber, publishedEndDate, publishedStartDate, checkBoxCollection } = this.state;
+    const { circularNumber, checkBoxCollection, filterLabelName, filterAccordion } = this.state;
     let circularBox = checkBoxCollection.get(`${Constants.circularNumber}`);
-    let departmentBox = checkBoxCollection.get(`${Constants.department}`)
+    let departmentBox = checkBoxCollection.get(`${Constants.department}`);
+    let publishedYearBox = checkBoxCollection.get(`${Constants.colPublishedDate}`);
     let categoryBox = checkBoxCollection.get(`${Constants.category}`);
     let regulatoryBox = checkBoxCollection.get(`${Constants.compliance}`);
     let issuedForBox = checkBoxCollection.get(`${Constants.issuedFor}`);
     let classificationBox = checkBoxCollection.get(`${Constants.classification}`);
     let searchFiltersJSX = <>
-      {this.createDepartmentPanel()}
+      {this.createFilterPanel(filterLabelName)}
       <div className={`${styles1.row}`}>
         <div className={`${styles1.column12}`} style={{ paddingLeft: 0 }}>
 
           <div className={`${styles1.row}`}>
 
-            <div className={`${styles1.column12} ${styles1.marginFilterTop} `}>
+            {/* {Department} */}
+            <div className={`${styles1.column10} ${styles1.marginFilterTop} `}>
               <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`${Constants.department}`}</FluentLabel>} ></Field>
             </div>
+            <div className={`${styles1.column2} ${styles1.marginFilterTop} `}>
+              <Button appearance="transparent"
+                icon={<ChevronDownRegular />}
+                onClick={() => { this.onFilterAccordionClick(Constants.department) }}></Button>
+            </div>
 
             <Divider appearance="subtle"></Divider>
 
-            <div className={`${styles1.column12} ${styles1.marginFilterTop} `}>
-              {/* {this.pickerControl()} */}
-              {checkBoxCollection.size > 0 && departmentBox.length > 0 && departmentBox.slice(0, 5).map((val, index) => {
-                return <div className={`${styles1.row}`}>
-                  <div className={`${styles1.column12}`} >
-                    {this.checkBoxControl(`${Constants.department}`, `${val.value}`, val.checked, index)}
-                  </div>
+            {
+              filterAccordion.isDepartmentSelected && <>
+                <div className={`${styles1.column12} ${styles1.marginFilterTop} ${AnimationClassNames.slideDownIn20}`}>
+                  {/* {this.pickerControl()} */}
+                  {checkBoxCollection.size > 0 && departmentBox.length > 0 && departmentBox.slice(0, 5).map((val, index) => {
+                    return <div className={`${styles1.row}`}>
+                      <div className={`${styles1.column12}`} >
+                        {this.checkBoxControl(`${Constants.department}`, `${val.value}`, val.checked, index)}
+                      </div>
+                    </div>
+                  })}
                 </div>
-              })}
-            </div>
-            <div className={`${styles1.column12} ${styles1.marginFilterTop} `}>
-              <Button icon={<OpenRegular />} iconPosition="after" appearance="transparent" onClick={() => {
-                this.setState({ isDepartmentPanel: true })
-              }}>See All Department</Button>
-            </div>
+                <div className={`${styles1.column12} ${styles1.marginFilterTop} ${AnimationClassNames.slideDownIn20}`} style={{ paddingLeft: 0 }}>
+                  <Button icon={<OpenRegular />}
+                    style={{ textDecoration: "underline", color: "var(--colorBrandBackground)" }}
+                    iconPosition="after"
+                    appearance="transparent" onClick={() => {
+                      this.setState({ isFilterPanel: true, filterLabelName: `${Constants.department}` })
+                    }}>See All </Button>
+                </div>
+              </>
+            }
+
             <Divider appearance="subtle"></Divider>
-            <div className={`${styles1.column12} ${styles1.marginFilterTop} `}>
+
+            {/* {Circular Number} */}
+            <div className={`${styles1.column10} ${styles1.marginFilterTop} `}>
               <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`${Constants.circularNumber}`}</FluentLabel>} ></Field>
             </div>
-            <div className={`${styles1.column12} ${styles1.marginFilterTop}`} style={{ padding: 0 }}>
-              <Input placeholder="Input at least 2 characters"
-                input={{ className: `${styles.input}` }}
-                className={`${styles.input}`}
-                value={circularNumber}
-                onChange={this.onInputChange} />
-            </div>
-            <div className={`${styles1.column12}`}>
-              {checkBoxCollection.size > 0 &&
-                this.checkBoxControl(`${Constants.circularNumber}`, `${Constants.lblContains}`, circularBox[0].checked, 0)}
-            </div>
-            <div className={`${styles1.column12}`}>
-              {checkBoxCollection.size > 0 &&
-                this.checkBoxControl(`${Constants.circularNumber}`, `${Constants.lblStartsWith}`, circularBox[1].checked, 1)
-              }
+            <div className={`${styles1.column2} ${styles1.marginFilterTop} `}>
+              <Button appearance="transparent"
+                onClick={() => { this.onFilterAccordionClick(Constants.circularNumber) }}
+                icon={<ChevronDownRegular />}></Button>
             </div>
 
-            <div className={`${styles1.column12}`}>
-              {checkBoxCollection.size > 0 &&
-                this.checkBoxControl(`${Constants.circularNumber}`, `${Constants.lblEndsWith}`, circularBox[2].checked, 2)
-              }
+            <Divider appearance="subtle"></Divider>
 
-            </div>
+            {
+              filterAccordion.isCircularNumberSelected && <>
+                <div className={`${styles1.column12} ${styles1.marginFilterTop} ${AnimationClassNames.slideDownIn20}`} style={{ padding: 0 }}>
+                  <Input placeholder="Input at least 2 characters"
+                    input={{ className: `${styles.input}` }}
+                    className={`${styles.input}`}
+                    value={circularNumber}
+                    onChange={this.onInputChange} />
+                </div>
+                <div className={`${styles1.column12} ${AnimationClassNames.slideDownIn20}`}>
+                  {checkBoxCollection.size > 0 &&
+                    this.checkBoxControl(`${Constants.circularNumber}`, `${Constants.lblContains}`, circularBox[0].checked, 0)}
+                </div>
+                <div className={`${styles1.column12} ${AnimationClassNames.slideDownIn20}`}>
+                  {checkBoxCollection.size > 0 &&
+                    this.checkBoxControl(`${Constants.circularNumber}`, `${Constants.lblStartsWith}`, circularBox[1].checked, 1)
+                  }
+                </div>
+
+                <div className={`${styles1.column12} ${AnimationClassNames.slideDownIn20}`}>
+                  {checkBoxCollection.size > 0 &&
+                    this.checkBoxControl(`${Constants.circularNumber}`, `${Constants.lblEndsWith}`, circularBox[2].checked, 2)
+                  }
+
+                </div>
+              </>
+            }
           </div>
 
-          <div className={`${styles1.row} ${styles1.marginFilterTop}`}>
-            <div className={`${styles1.column12}`}>
+          {/* {Published Year} */}
+          <div className={`${styles1.row} `}>
+            <div className={`${styles1.column10} ${styles1.marginFilterTop}`}>
               <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`Published Year`}</FluentLabel>} >
-                {/* <Input input={{ readOnly: true, type: "date" }} root={{ style: { fontFamily: "Roboto" } }}></Input> */}
-
-                {/* <DatePicker mountNode={{}}
-                  formatDate={this.onFormatDate}
-                  value={publishedStartDate}
-                  contentAfter={
-                    <>
-                      <FluentUIBtn icon={<ArrowCounterclockwiseRegular />}
-                        appearance="transparent"
-                        title="Reset"
-                        onClick={this.onResetClick.bind(this, `FromDate`)}>
-                      </FluentUIBtn>
-                      <FluentUIBtn icon={<CalendarRegular />} appearance="transparent"></FluentUIBtn>
-                    </>}
-                  onSelectDate={this.onSelectDate.bind(this, `FromDate`)}
-                  input={{ style: { fontFamily: "Roboto" } }} /> */}
-
-
               </Field>
-              {/* <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`Published To Date`}</FluentLabel>}>
-                <DatePicker mountNode={{}}
-                  formatDate={this.onFormatDate}
-                  value={publishedEndDate}
-                  contentAfter={
-                    <>
-                      <FluentUIBtn
-                        icon={<ArrowCounterclockwiseRegular />}
-                        appearance="transparent" title="Reset"
-                        onClick={this.onResetClick.bind(this, `ToDate`)}>
-                      </FluentUIBtn>
-                      <FluentUIBtn icon={<CalendarRegular />} appearance="transparent"></FluentUIBtn>
-
-                    </>}
-                  onSelectDate={this.onSelectDate.bind(this, `ToDate`)}
-                  input={{ style: { fontFamily: "Roboto" } }} />
-              </Field> */}
             </div>
+            <div className={`${styles1.column2} ${styles1.marginFilterTop} `}>
+              <Button appearance="transparent"
+                onClick={() => { this.onFilterAccordionClick(Constants.publishedYear) }}
+                icon={<ChevronDownRegular />}></Button>
+            </div>
+            <Divider appearance="subtle"></Divider>
+
+            {filterAccordion.isPublishedYearSelected && <>
+              <div className={`${styles1.column12} ${styles1.marginFilterTop} ${AnimationClassNames.slideDownIn20}`}>
+                {/* {this.pickerControl()} */}
+                {checkBoxCollection.size > 0 && publishedYearBox.length > 0 && publishedYearBox.slice(0, 5).map((val, index) => {
+                  return <div className={`${styles1.row}`}>
+                    <div className={`${styles1.column12}`} >
+                      {this.checkBoxControl(`${Constants.colPublishedDate}`, `${val.value}`, val.checked, index)}
+                    </div>
+                  </div>
+                })}
+              </div>
+              <div className={`${styles1.column12} ${styles1.marginFilterTop} ${AnimationClassNames.slideDownIn20}`} style={{ paddingLeft: 0 }}>
+                <Button icon={<OpenRegular />}
+                  style={{ textDecoration: "underline", color: "var(--colorBrandBackground)" }}
+                  iconPosition="after"
+                  appearance="transparent" onClick={() => {
+                    this.setState({ isFilterPanel: true, filterLabelName: `${Constants.colPublishedDate}` })
+                  }}>See All</Button>
+              </div>
+            </>
+            }
           </div>
 
+          {/* {Classification} */}
           <div className={`${styles1.row} ${styles1.marginFilterTop}`}>
-            <div className={`${styles1.column12} ${styles1.marginFilterTop} `}>
+            <div className={`${styles1.column10} ${styles1.marginFilterTop} `}>
               <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`${Constants.classification}`}</FluentLabel>} ></Field>
+            </div>
+            <div className={`${styles1.column2} ${styles1.marginFilterTop} `}>
+              <Button
+                appearance="transparent"
+                onClick={() => { this.onFilterAccordionClick(Constants.classification) }}
+                icon={<ChevronDownRegular />}></Button>
             </div>
             <Divider appearance="subtle"></Divider>
             {
-              checkBoxCollection.size > 0 && classificationBox.length > 0 && classificationBox.map((val, index) => {
-                return <div className={`${styles1.column12}`} >
+              checkBoxCollection.size > 0 && filterAccordion.isClassificationSelected &&
+              classificationBox.length > 0 && classificationBox.map((val, index) => {
+                return <div className={`${styles1.column12} ${AnimationClassNames.slideDownIn20}`} >
                   {this.checkBoxControl(`${Constants.classification}`, `${val.value}`, val.checked, index)}
                 </div>
               })
             }
           </div>
 
+          {/* {Issued For} */}
           <div className={`${styles1.row} ${styles1.marginFilterTop}`}>
-            <div className={`${styles1.column12} ${styles1.marginFilterTop} `}>
-              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`${Constants.issuedFor}`}</FluentLabel>} ></Field>
+            <div className={`${styles1.column10} ${styles1.marginFilterTop} `}>
+              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`${Constants.issuedFor}`}</FluentLabel>} >
+              </Field>
+            </div>
+            <div className={`${styles1.column2} ${styles1.marginFilterTop} `}>
+              <Button
+                onClick={() => { this.onFilterAccordionClick(Constants.issuedFor) }}
+                appearance="transparent"
+                icon={<ChevronDownRegular />}></Button>
             </div>
             <Divider appearance="subtle"></Divider>
             {
-              checkBoxCollection.size > 0 && issuedForBox.length > 0 && issuedForBox.map((val, index) => {
-                return <div className={`${styles1.column12}`} >
+              checkBoxCollection.size > 0 && filterAccordion.isIssuedForSelected && issuedForBox.length > 0 && issuedForBox.map((val, index) => {
+                return <div className={`${styles1.column12} ${AnimationClassNames.slideDownIn20}`} >
                   {this.checkBoxControl(`${Constants.issuedFor}`, `${val.value}`, val.checked, index)}
                 </div>
               })
@@ -552,14 +616,22 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
           </div>
 
+          {/* {Compliance} */}
           <div className={`${styles1.row} ${styles1.marginFilterTop}`}>
-            <div className={`${styles1.column12} ${styles1.marginFilterTop} `}>
+            <div className={`${styles1.column10} ${styles1.marginFilterTop} `}>
               <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`${Constants.compliance}`}</FluentLabel>} ></Field>
+            </div>
+            <div className={`${styles1.column2} ${styles1.marginFilterTop} `}>
+              <Button
+                onClick={() => { this.onFilterAccordionClick(Constants.compliance) }}
+                appearance="transparent"
+                icon={<ChevronDownRegular />}></Button>
             </div>
             <Divider appearance="subtle"></Divider>
             {
-              checkBoxCollection.size > 0 && regulatoryBox.length > 0 && regulatoryBox.map((val, index) => {
-                return <div className={`${styles1.column12}`} >
+              checkBoxCollection.size > 0 && filterAccordion.isComplianceSelected &&
+              regulatoryBox.length > 0 && regulatoryBox.map((val, index) => {
+                return <div className={`${styles1.column12} ${AnimationClassNames.slideDownIn20}`} >
                   {this.checkBoxControl(`${Constants.compliance}`, `${val.value}`, val.checked, index)}
                 </div>
               })
@@ -567,14 +639,21 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
           </div>
 
+          {/* {Category} */}
           <div className={`${styles1.row} ${styles1.marginFilterTop}`}>
-            <div className={`${styles1.column12} ${styles1.marginFilterTop} `}>
+            <div className={`${styles1.column10} ${styles1.marginFilterTop} `}>
               <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`${Constants.category}`}</FluentLabel>} ></Field>
+            </div>
+            <div className={`${styles1.column2} ${styles1.marginFilterTop} `}>
+              <Button
+                onClick={() => { this.onFilterAccordionClick(Constants.category) }}
+                appearance="transparent"
+                icon={<ChevronDownRegular />}></Button>
             </div>
             <Divider appearance="subtle"></Divider>
             {
-              checkBoxCollection.size > 0 && categoryBox.length > 0 && categoryBox.map((val, index) => {
-                return <div className={`${styles1.column12}`}>
+              checkBoxCollection.size > 0 && filterAccordion.isCategorySelected && categoryBox.length > 0 && categoryBox.map((val, index) => {
+                return <div className={`${styles1.column12} ${AnimationClassNames.slideDownIn20}`}>
                   {this.checkBoxControl(`${Constants.category}`, `${val.value}`, val.checked, index)}
                 </div>
               })
@@ -641,6 +720,38 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     </>;
 
     return searchFilterResultsJSX;
+  }
+
+  private onFilterAccordionClick = (labelName) => {
+    const { filterAccordion } = this.state;
+
+    switch (labelName) {
+      case `${Constants.department}`: filterAccordion.isDepartmentSelected = !filterAccordion.isDepartmentSelected;
+        this.setState({ filterAccordion });
+        break;
+
+      case `${Constants.circularNumber}`: filterAccordion.isCircularNumberSelected = !filterAccordion.isCircularNumberSelected;
+        this.setState({ filterAccordion });
+        break;
+
+      case `${Constants.publishedYear}`: filterAccordion.isPublishedYearSelected = !filterAccordion.isPublishedYearSelected;
+        this.setState({ filterAccordion });
+        break;
+      case `${Constants.classification}`: filterAccordion.isClassificationSelected = !filterAccordion.isClassificationSelected;
+        this.setState({ filterAccordion });
+        break;
+      case `${Constants.issuedFor}`: filterAccordion.isIssuedForSelected = !filterAccordion.isIssuedForSelected;
+        this.setState({ filterAccordion });
+        break;
+      case `${Constants.compliance}`: filterAccordion.isComplianceSelected = !filterAccordion.isComplianceSelected;
+        this.setState({ filterAccordion });
+        break;
+      case `${Constants.category}`: filterAccordion.isCategorySelected = !filterAccordion.isCategorySelected;
+        this.setState({ filterAccordion });
+        break;
+
+
+    }
   }
 
   private createSearchResultsTable = (): JSX.Element => {
@@ -920,11 +1031,20 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
 
   private checkBoxControl = (labelName, checkBoxVal, isChecked, index): JSX.Element => {
-    const { checkCircularRefiner, checkBoxCollection } = this.state
+
+    const { checkBoxCollection } = this.state
+    let currentCheck = checkBoxCollection.get(`${labelName}`)[index].checked;
+
     let checkBoxJSX = <>
       <Checkbox
         checked={isChecked}
-        label={<FluentLabel weight="regular" style={{ fontFamily: "Roboto" }}>{checkBoxVal}</FluentLabel>}
+        //label={`${checkBoxVal}`}
+        //style={{ fontFamily: "Roboto" }}
+        label={
+          <FluentLabel weight="regular"
+            onClick={this.onCheckBoxLabelClick.bind(this, labelName, index, !currentCheck)}
+            style={{ fontFamily: "Roboto", cursor: "pointer" }}>{checkBoxVal}</FluentLabel>
+        }
         shape="square" size="medium" onChange={this.onCheckBoxChange.bind(this, labelName, index)} />
     </>
 
@@ -932,6 +1052,12 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   }
 
   private onCheckBoxChange = (labelName: string, index, ev: React.ChangeEvent<HTMLInputElement>, data: CheckboxOnChangeData) => {
+
+    this.onCheckBoxLabelClick(labelName, index, data.checked);
+
+  }
+
+  private onCheckBoxLabelClick = (labelName, index, isChecked) => {
     const { checkBoxCollection } = this.state;
     let circularBox = checkBoxCollection.get(`${Constants.circularNumber}`);
 
@@ -959,49 +1085,55 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         });
         break;
 
-      case `${Constants.department}`: checkBoxCollection.get(`${labelName}`)[index].checked = data.checked;
+      case `${Constants.colPublishedDate}`: checkBoxCollection.get(`${labelName}`)[index].checked = isChecked;
         this.setState({ checkBoxCollection })
         break;
 
-      case `${Constants.classification}`: checkBoxCollection.get(`${labelName}`)[index].checked = data.checked;
+      case `${Constants.department}`: checkBoxCollection.get(`${labelName}`)[index].checked = isChecked;
         this.setState({ checkBoxCollection })
         break;
-      case `${Constants.issuedFor}`: checkBoxCollection.get(`${labelName}`)[index].checked = data.checked;
+
+      case `${Constants.classification}`: checkBoxCollection.get(`${labelName}`)[index].checked = isChecked;
         this.setState({ checkBoxCollection })
         break;
-      case `${Constants.compliance}`: checkBoxCollection.get(`${labelName}`)[index].checked = data.checked;
+      case `${Constants.issuedFor}`: checkBoxCollection.get(`${labelName}`)[index].checked = isChecked;
         this.setState({ checkBoxCollection })
         break;
-      case `${Constants.category}`: checkBoxCollection.get(`${labelName}`)[index].checked = data.checked;
+      case `${Constants.compliance}`: checkBoxCollection.get(`${labelName}`)[index].checked = isChecked;
+        this.setState({ checkBoxCollection })
+        break;
+      case `${Constants.category}`: checkBoxCollection.get(`${labelName}`)[index].checked = isChecked;
         this.setState({ checkBoxCollection })
         break;
 
     }
   }
 
-  private createDepartmentPanel = (): JSX.Element => {
-    const { isDepartmentPanel, checkBoxCollection } = this.state;
-    let departmentBox = checkBoxCollection.get(`${Constants.department}`);
-    let checkedDepartment = [];
-    if (departmentBox) {
-      checkedDepartment = departmentBox.filter((val) => {
+  private createFilterPanel = (labelName): JSX.Element => {
+    const { isFilterPanel, checkBoxCollection, filterLabelName } = this.state;
+    let currentFilterCheckBox = checkBoxCollection.get(`${labelName}`);
+    let checkedBoxes = [];
+    if (currentFilterCheckBox) {
+      checkedBoxes = currentFilterCheckBox.filter((val) => {
         return val.checked == true;
       });
     }
 
-    let departmentPanelJSX = <>
-      <Panel isOpen={isDepartmentPanel}
+    let filterPanelJSX = <>
+      <Panel isOpen={isFilterPanel}
         isLightDismiss={true}
-        onDismiss={() => { this.setState({ isDepartmentPanel: false }) }}
+        onDismiss={() => { this.setState({ isFilterPanel: false }) }}
         type={PanelType.smallFixedFar}
         onRenderFooterContent={() => <>
           <FluentProvider theme={webLightTheme}>
-            <Button appearance="primary" style={{ marginRight: 5 }} disabled={checkedDepartment.length > 0 ? false : true}>Apply</Button>
-            <Button >Clear all</Button>
+            <Button appearance="primary"
+              style={{ marginRight: 5 }}
+              disabled={checkedBoxes.length > 0 ? false : true}>Apply</Button>
+            <Button onClick={() => { this.clearAllDepartment() }} >Clear all</Button>
           </FluentProvider>
         </>}
         closeButtonAriaLabel="Close"
-        headerText={`Filter Department (${checkedDepartment.length})`}
+        headerText={`Filter ${filterLabelName} (${checkedBoxes.length})`}
         styles={{
           commands: { background: "white" },
           headerText: {
@@ -1021,20 +1153,17 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         }} >
         <div className={`${styles1.row} ${styles1.marginFilterTop}`}>
           <div className={`${styles1.column12}`} style={{ paddingLeft: 0 }}>
-            {this.tagPicker({ placeholder: `Search Department` }, this.tagPickerRef, [])}
-            {/* <FluentProvider theme={webLightTheme}>
-              <SearchBox appearance="outline" placeholder="Search Department"
-                input={{ className: `${styles1.fontRoboto}` }}
-                style={{ width: "100%", maxWidth: "100%" }} />
-            </FluentProvider> */}
+            {filterLabelName == Constants.department && this.tagPicker({ placeholder: `Search ${Constants.department}` }, this.tagPickerRef, [])}
+            {filterLabelName == Constants.colPublishedDate && this.tagPicker({ placeholder: `Search ${Constants.publishedYear}` }, this.tagPickerRefYear, [])}
+
           </div>
         </div>
-        {checkBoxCollection.size > 0 && departmentBox.length > 0 && departmentBox.map((val, index) => {
+        {checkBoxCollection.size > 0 && currentFilterCheckBox?.length > 0 && currentFilterCheckBox?.map((val, index) => {
           return <div className={`${styles1.row}`}>
 
             <div className={`${styles1.column12}`} style={{ paddingLeft: 0, paddingRight: 0 }}>
               <FluentProvider theme={webLightTheme}>
-                {this.checkBoxControl(`${Constants.department}`, val.value, val.checked, index)}
+                {this.checkBoxControl(`${labelName}`, val.value, val.checked, index)}
               </FluentProvider>
             </div>
           </div>
@@ -1042,7 +1171,18 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         })}
       </Panel>
     </>
-    return departmentPanelJSX;
+    return filterPanelJSX;
+  }
+
+
+  private clearAllDepartment = () => {
+    const { checkBoxCollection } = this.state;
+    checkBoxCollection.get(`${Constants.department}`).map((val) => {
+      val.checked = false
+    });
+
+    this.setState({ checkBoxCollection })
+
   }
 
   private onSwitchChange = (ev: React.ChangeEvent<HTMLInputElement>, data: SwitchOnChangeData) => {
@@ -1086,20 +1226,34 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   }
 
   private onTagPickerBlur = (selectedInput: string) => {
-    if (this.tagPickerRef)
-      this.tagPickerRef?.current?.input?.current?._updateValue("")
+    switch (selectedInput) {
+      case `Search ${Constants.department}`: this.tagPickerRef?.current?.input?.current?._updateValue("");
+        break;
+      case `Search ${Constants.publishedYear}`: this.tagPickerRefYear?.current?.input?.current?._updateValue("");
+        break
+    }
+
   }
 
   private _onEmptyInputFocus = (selectedInput, filterText, tagList) => {
-    const { departments } = this.state
+    const { departments, publishedYear } = this.state;
+    let filters = [];
+    switch (selectedInput) {
+      case `Search ${Constants.department}`: filters = departments;
+        break;
+      case `Search ${Constants.publishedYear}`: filters = publishedYear;
+        break
+    }
 
-    return departments
-      .map((department: any, index): any => {
-        return {
-          name: department,
-          key: department
-        };
-      });
+    return []
+
+    // return filters
+    //   .map((value: any, index): any => {
+    //     return {
+    //       name: value,
+    //       key: value
+    //     };
+    //   });
   }
 
   private onValidateInput = (input: string): ValidationState => {
@@ -1109,15 +1263,24 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   private onResolveSuggestions = async (selectedInput: string, filter: string,
     selectedItems: any[] | undefined): Promise<ITag[]> => {
 
-    const { departments } = this.state
+    const { departments, publishedYear } = this.state
     if (filter) {
-      return departments
-        .filter((department: any) => department.toLowerCase().indexOf(filter.toLowerCase()) > -1)
-        .map((department: any, index): any => {
+
+      let filters = [];
+      switch (selectedInput) {
+        case `Search ${Constants.department}`: filters = departments;
+          break;
+        case `Search ${Constants.publishedYear}`: filters = publishedYear;
+          break
+      }
+
+      return filters
+        .filter((value: any) => value.toLowerCase().indexOf(filter.toLowerCase()) > -1)
+        .map((value: any, index): any => {
           // console.log(category.id)
           return {
-            name: department,
-            key: department
+            name: value,
+            key: value
           };
         });
     }
@@ -1131,13 +1294,26 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
   private onPickerChange = (selectedInput, items?: ITag[] | undefined) => {
 
-    const { checkBoxCollection, departments } = this.state;
-    let departmentBoxIndex = departments.indexOf(items[0].name);
+    const { checkBoxCollection, departments, publishedYear } = this.state;
 
-    if (checkBoxCollection && checkBoxCollection.size > 0 && items.length > 0) {
-      checkBoxCollection.get(`${Constants.department}`)[departmentBoxIndex].checked = true;
-      this.setState({ checkBoxCollection })
+    let filters = [];
+    switch (selectedInput) {
+      case `Search ${Constants.department}`: let departmentBoxIndex = departments.indexOf(items[0].name);
+
+        if (checkBoxCollection && checkBoxCollection.size > 0 && items.length > 0) {
+          checkBoxCollection.get(`${Constants.department}`)[departmentBoxIndex].checked = true;
+          this.setState({ checkBoxCollection })
+        };
+        break;
+      case `Search ${Constants.publishedYear}`: let publishedYearIndex = publishedYear.indexOf(items[0].name);
+
+        if (checkBoxCollection && checkBoxCollection.size > 0 && items.length > 0) {
+          checkBoxCollection.get(`${Constants.colPublishedDate}`)[publishedYearIndex].checked = true;
+          this.setState({ checkBoxCollection })
+        }
+        break
     }
+
 
   }
 
@@ -1240,8 +1416,6 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       this.setState({ filteredItems: this.sortListItems(filteredItems, sortingFields, sortDirection) })
     })
   }
-
-
 
   private onFormatDate = (date?: Date): string => {
     return !date
@@ -1553,21 +1727,39 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     let filterArray = [];
     let checkBoxFilter = [];
 
+    let publishedYears = checkBoxCollection.get(`${Constants.colPublishedDate}`).filter((val) => val.checked == true).map((val) => {
+      return parseInt(val.value);
+    });
+
+    let publishedStartYear = null;
+    let publishedEndYear = null;
+    if (publishedYears.length > 0) {
+      publishedStartYear = Math.min(...publishedYears) + `-01-01`;
+      publishedEndYear = Math.max(...publishedYears) + `-12-31`;
+    }
+
+
     // Default Search will always be Circular Status as Published
     filterArray.push(`${filterProperties[5]}:equals("${Constants.published}")`);
 
     if (!isNormalSearch) {
       `${departmentVal != "" ? filterArray.push(`${filterProperties[3]}:equals("${departmentVal}")`) : ``} `;
       `${circularVal != "" ? filterArray.push(`${filterProperties[0]}:${circularRefinerOperator}("${circularVal}*")`) : ``} `;
-      if (publishedStartVal != "" && publishedEndVal != "") {
-        filterArray.push(`${filterProperties[4]}: range(${publishedStartVal.split('T')[0]}T23:59:59Z, ${publishedEndVal.split('T')[0]}T23:59:59Z)`)
+      // if (publishedStartVal != "" && publishedEndVal != "") {
+      //   filterArray.push(`${filterProperties[4]}: range(${publishedStartVal.split('T')[0]}T23:59:59Z, ${publishedEndVal.split('T')[0]}T23:59:59Z)`)
+      // }
+
+      if (publishedStartYear != null && publishedEndYear != null) {
+        filterArray.push(`${filterProperties[4]}: range(${publishedStartYear}T23:59:59Z, ${publishedEndYear}T23:59:59Z)`)
       }
+
+
 
 
       if (checkBoxCollection.size > 0) {
         checkBoxCollection.forEach((checkMap) => {
           let checkMapColl = checkMap.filter((val) => {
-            return val.checked == true && val.refinableString != "RefinableString00";
+            return val.checked == true && val.refinableString != "RefinableString00" && val.refinableString != "RefinableDate00";
           })
           if (checkMapColl.length > 1) {
             checkMapColl.map((val) => {
@@ -1609,7 +1801,19 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         //advanceFilterString += filterArray[0];
       }
       else {
-        advanceFilterString += `and(` + filterArray[0] + `${checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``})`;
+        if (filterArray.length == 1 && checkBoxFilterString != "") {
+          advanceFilterString += `and(` + filterArray[0] + `${checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``})`;
+        }
+        else if (filterArray.length == 1) {
+          advanceFilterString += `${filterArray.join(',')}`
+        }
+        else if (checkBoxFilterString != "") {
+          advanceFilterString += `${checkBoxFilterString}`;
+        }
+        else {
+          advanceFilterString += ``;
+        }
+
       }
 
     }
@@ -1677,17 +1881,35 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     // Default Search will always be Circular Status as Published
     filterArray.push(`${filterProperties[5]}:equals("${Constants.published}")`);
 
+    let publishedYears = checkBoxCollection.get(`${Constants.colPublishedDate}`).filter((val) =>
+      val.checked == true
+    ).map((val) => {
+      return parseInt(val.value);
+    });
+
+    let publishedStartYear = null;
+    let publishedEndYear = null;
+    if (publishedYears.length > 0) {
+      publishedStartYear = Math.min(...publishedYears) + `-01-01`;
+      publishedEndYear = Math.max(...publishedYears) + `-12-31`;
+    }
+
     if (!isNormalSearch) {
       `${departmentVal != "" ? filterArray.push(`${filterProperties[3]}:equals("${departmentVal}")`) : ``} `;
       `${circularVal != "" ? filterArray.push(`${filterProperties[0]}:${circularRefinerOperator}("${circularVal}*")`) : ``} `;
-      if (publishedStartVal != "" && publishedEndVal != "") {
-        filterArray.push(`${filterProperties[4]}: range(${publishedStartVal.split('T')[0]}T23:59:59Z, ${publishedEndVal.split('T')[0]}T23:59:59Z)`)
+      // if (publishedStartVal != "" && publishedEndVal != "") {
+      //   filterArray.push(`${filterProperties[4]}: range(${publishedStartVal.split('T')[0]}T23:59:59Z, ${publishedEndVal.split('T')[0]}T23:59:59Z)`)
+      // }
+
+      if (publishedStartYear != null && publishedEndYear != null) {
+        filterArray.push(`${filterProperties[4]}: range(${publishedStartYear}T23:59:59Z, ${publishedEndYear}T23:59:59Z)`)
       }
+
 
       if (checkBoxCollection.size > 0) {
         checkBoxCollection.forEach((checkMap) => {
           let checkMapColl = checkMap.filter((val) => {
-            return val.checked == true && val.refinableString != "RefinableString00";
+            return val.checked == true && val.refinableString != "RefinableString00" && val.refinableString != "RefinableDate00";
           })
           if (checkMapColl.length > 1) {
             checkMapColl.map((val) => {
@@ -1712,39 +1934,68 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     }
 
     if (filterArray.length > 1 || checkBoxFilter.length > 1) {
-      if (searchTextRefinment != "") {
-
-        advanceFilterString += filterArray.length > 1 ? `and(` : ``;
-        advanceFilterString += filterArray.length > 1 ? `${filterArray.join(',')}` : ``
-        advanceFilterString += checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``;
-        advanceFilterString += filterArray.length > 1 ? `)` : ``;
-      }
-      else {
-        advanceFilterString += filterArray.length > 1 ? `and(` : ``;
-        advanceFilterString += filterArray.length > 1 ? `${filterArray.join(',')}` : ``
-        advanceFilterString += checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``;
-        advanceFilterString += filterArray.length > 1 ? `)` : ``;
-      }
+      advanceFilterString += `and(${filterArray.join(',')}${checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``})`;
     }
     else if (filterArray.length == 1 || checkBoxFilterString != "") {
-      if (searchTextRefinment != "") {
-        advanceFilterString += filterArray.length == 1 && checkBoxFilterString != "" ? `and(` : ``;
-        advanceFilterString += filterArray.length == 1 ? `${filterArray[0]}` : ``;
-        advanceFilterString += checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``;
-        advanceFilterString += filterArray.length == 1 && checkBoxFilterString != "" ? `)` : ``;
-
+      if (filterArray.length == 1 && checkBoxFilterString != "") {
+        advanceFilterString += `and(${filterArray.join(',')}${checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``})`;
+      }
+      else if (filterArray.length == 1) {
+        advanceFilterString += `${filterArray.join(',')}`
+      }
+      else if (checkBoxFilterString != "") {
+        advanceFilterString += `${checkBoxFilterString}`;
       }
       else {
-        advanceFilterString += filterArray.length == 1 && checkBoxFilterString != "" ? `and(` : ``;
-        advanceFilterString += filterArray.length == 1 ? `${filterArray[0]}` : ``;
-        advanceFilterString += checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``;
-        advanceFilterString += filterArray.length == 1 && checkBoxFilterString != "" ? `)` : ``;
+        advanceFilterString += ``;
       }
+    }
 
-    }
-    else {
-      advanceFilterString += ``
-    }
+
+    // if (filterArray.length > 1 && checkBoxFilter.length > 1) {
+    //   if (searchTextRefinment != "") {
+
+    //     advanceFilterString += filterArray.length > 1 ? `and(` : ``;
+    //     advanceFilterString += filterArray.length > 1 ? `${filterArray.join(',')}` : ``
+    //     advanceFilterString += checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``;
+    //     advanceFilterString += filterArray.length > 1 ? `)` : ``;
+    //   }
+    //   else {
+    //     advanceFilterString += filterArray.length > 1 ? `and(` : ``;
+    //     advanceFilterString += filterArray.length > 1 ? `${filterArray.join(',')}` : ``
+    //     advanceFilterString += checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``;
+    //     advanceFilterString += filterArray.length > 1 ? `)` : ``;
+    //   }
+    // }
+    // else if ((filterArray.length > 1 || filterArray.length == 1) && checkBoxFilterString == "") {
+    //   advanceFilterString += filterArray.length > 1 ? `and(` : ``;
+    //   advanceFilterString += (filterArray.length > 1 || filterArray.length == 1) ? `${filterArray.join(',')}` : ``;
+    //   advanceFilterString += filterArray.length > 1 ? `)` : ``;
+    // }
+    // else if (filterArray.length == 1 && checkBoxFilterString != "") {
+    //   advanceFilterString += filterArray.length == 1 ? `and(` : ``;
+    //   advanceFilterString += filterArray.length == 1 ? `${filterArray.join(',')}` : ``;
+    //   advanceFilterString += checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``;
+    //   advanceFilterString += filterArray.length == 1 ? `)` : ``;
+    // }
+    // else if (filterArray.length == 1 || checkBoxFilterString != "") {
+    //   if (searchTextRefinment != "") {
+    //     advanceFilterString += filterArray.length == 1 && checkBoxFilterString != "" ? `and(` : ``;
+    //     advanceFilterString += filterArray.length == 1 ? `${filterArray[0]}` : ``;
+    //     advanceFilterString += checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``;
+    //     advanceFilterString += filterArray.length == 1 && checkBoxFilterString != "" ? `)` : ``;
+
+    //   }
+    //   else {
+    //     advanceFilterString += filterArray.length == 1 && checkBoxFilterString != "" ? `and(` : ``;
+    //     advanceFilterString += filterArray.length == 1 ? `${filterArray[0]}` : ``;
+    //     advanceFilterString += checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``;
+    //     advanceFilterString += filterArray.length == 1 && checkBoxFilterString != "" ? `)` : ``;
+    //   }
+    // }
+    // else {
+    //   advanceFilterString += ``
+    // }
 
     console.log("Refinable Filter")
 
