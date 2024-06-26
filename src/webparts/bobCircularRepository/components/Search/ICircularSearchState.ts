@@ -41,6 +41,8 @@ export interface ICircularSearchState {
     publishedYear?: any[];
     filterLabelName?: string;
     filterAccordion?: any;
+    openPanelCheckedValues?: ICheckBoxCollection[];
+    filterPanelCheckBoxCollection?: Map<string, ICheckBoxCollection[]>;
     // selectedFinancialYear: string;
     // selectedVertical: string;
     // selectedFinanicalPicker: ITag[];

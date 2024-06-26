@@ -3,14 +3,19 @@
 kumar.v@mlaitech.io
 T!151676077353ul
 
-
-Selected Tags & there value on top of search
-On Click of Apply Add Department to selected Tags
-Published by Year check box with see more (Done)
-Search Query ChangeEvent
-Keywords ,Circular Number text search to be added
-Classification,Issued For,Category,Compliance, Accordion (Done)
 Count of Circular by number
+Selected Tags & there value on top of search (Done)
+On Click of Apply Add Department to selected Tags (Not Needed)
+Clear All (Done)
+
+Filters Accordion Icon Change
+
+Published by Year check box with see more (Done)
+Search Query ChangeEvent (Done)
+Classification,Issued For,Category,Compliance, Accordion (Done)
+Keywords ,Circular Number text search to be added
+
+
 
 
 Mapping to be created
@@ -24,7 +29,7 @@ Regulatory Search Query string
 Category Search Query string
 
 -------------------------------------Number of hours------------------------------------
-1. Search Dashboard  --> 85 hours
+1. Search Dashboard  --> 110 hours
 2. Migration Script -> 60 hours
 3. Initial Consultation & Analysis -> 8 hours
 4. Download PDF with waterMark -> 25 hours

@@ -116,7 +116,7 @@ input * {
   }
 }
 
-.slideDown{
+.slideDown {
   @include ms-motion-slideDownOut;
 }
 
@@ -219,6 +219,21 @@ input * {
   @include ms-lg12;
   @include ms-sm12;
   height: "inherit";
+}
+
+.maxFilterHeight {
+  max-height: 70px;
+  overflow-y: scroll;
+  scrollbar-width: thin;
+}
+
+
+.tagClass {
+  //max-width: 200px;
+ // display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 4px;
 }
 
 .welcome {

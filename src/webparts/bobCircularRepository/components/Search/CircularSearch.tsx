@@ -45,7 +45,9 @@ import {
   Divider,
   SearchBox,
   SearchBoxChangeEvent,
-  webLightTheme
+  webLightTheme,
+  Overflow,
+  OverflowItem
 } from "@fluentui/react-components";
 import { DatePicker } from "@fluentui/react-datepicker-compat";
 import { ICircularSearchProps } from './ICircularSearchProps';
@@ -202,7 +204,9 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       sortingOptions: ["Date", "Subject"],
       currentSelectedFile: undefined,
       isAccordionSelected: false,
+      openPanelCheckedValues: [],
       checkBoxCollection: new Map<string, ICheckBoxCollection[]>(),
+      filterPanelCheckBoxCollection: new Map<string, ICheckBoxCollection[]>(),
       accordionFields: {
         isSummarySelected: false,
         isTypeSelected: false,
@@ -251,7 +255,9 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
             publishedYear: uniquePublishedYear
           }, () => {
             let checkBoxCollection = this.initializeCheckBoxFilter();
-            this.setState({ checkBoxCollection: checkBoxCollection, isLoading: false });
+            this.setState({ checkBoxCollection: checkBoxCollection, isLoading: false }, () => {
+              this.setState({ filterPanelCheckBoxCollection: checkBoxCollection })
+            });
           })
         }).catch((error) => {
           console.log(error);
@@ -270,6 +276,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
     let checkBoxCollection = new Map<string, ICheckBoxCollection[]>();
 
+
     checkBoxCollection.set(`${Constants.colPublishedDate}`, publishedYear.map((val) => {
       return {
         checked: false,
@@ -284,7 +291,9 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         value: val,
         refinableString: "RefinableString03"
       } as ICheckBoxCollection
-    }))
+    }));
+
+
 
     checkBoxCollection.set(`${Constants.circularNumber}`,
       [{
@@ -486,7 +495,12 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                     style={{ textDecoration: "underline", color: "var(--colorBrandBackground)" }}
                     iconPosition="after"
                     appearance="transparent" onClick={() => {
-                      this.setState({ isFilterPanel: true, filterLabelName: `${Constants.department}` })
+                      const { checkBoxCollection } = this.state
+                      this.setState({
+                        isFilterPanel: true,
+                        filterPanelCheckBoxCollection: checkBoxCollection,
+                        filterLabelName: `${Constants.department}`
+                      })
                     }}>See All </Button>
                 </div>
               </>
@@ -564,7 +578,12 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                   style={{ textDecoration: "underline", color: "var(--colorBrandBackground)" }}
                   iconPosition="after"
                   appearance="transparent" onClick={() => {
-                    this.setState({ isFilterPanel: true, filterLabelName: `${Constants.colPublishedDate}` })
+                    const { checkBoxCollection } = this.state
+                    this.setState({
+                      isFilterPanel: true,
+                      filterPanelCheckBoxCollection: checkBoxCollection,
+                      filterLabelName: `${Constants.colPublishedDate}`
+                    })
                   }}>See All</Button>
               </div>
             </>
@@ -678,18 +697,33 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   }
 
   private searchFilterResults = (): JSX.Element => {
-    const { filteredItems, isLoading, currentSelectedItemId,
+    const { filteredItems, isLoading, currentSelectedItemId, checkBoxCollection,
       previewItems, sortingOptions, selectedSortFields, sortDirection, isAccordionSelected } = this.state
     let filteredPageItems = this.paginateFn(filteredItems);
 
 
     let searchFilterResultsJSX = <>
-      <div className={`${styles1.row} ${styles1.marginTop}`}>
-        <div className={`${styles1.column10}`}>
+
+      <div className={`${styles1.row} `}>
+
+        {checkBoxCollection && checkBoxCollection.size > 0 &&
+
+          <>
+            <div className={`${styles1.row}`}>
+              {this.selectedFilters()}
+            </div>
+
+            <Divider appearance="subtle"></Divider>
+          </>
+        }
+      </div>
+
+      <div className={`${styles1.row} `}>
+        <div className={`${styles1.column10} ${styles1.marginTop}`}>
           {this.searchBox()}
         </div>
 
-        <Dropdown className={`${styles1.column1}`}
+        <Dropdown className={`${styles1.column1} ${styles1.marginTop}`}
           style={{ maxWidth: 95, minWidth: 95 }}
           mountNode={{}} placeholder={`Sorting`} value={selectedSortFields ?? ``}
           selectedOptions={[selectedSortFields ?? ""]}
@@ -699,7 +733,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
           })}
         </Dropdown>
 
-        <div className={`${styles1.column1}`}>
+        <div className={`${styles1.column1} ${styles1.marginTop}`}>
           <Button icon={sortDirection == "asc" ? <ArrowUpRegular /> : <ArrowDownRegular />} appearance="transparent"
             onClick={() => { this.onSorting() }} />
         </div>
@@ -720,6 +754,58 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     </>;
 
     return searchFilterResultsJSX;
+  }
+
+  private selectedFilters = (): JSX.Element => {
+    const { checkBoxCollection } = this.state;
+    let circularBox = checkBoxCollection.get(`${Constants.circularNumber}`)?.filter((val) => { return val.checked == true });
+    let departmentBox = checkBoxCollection.get(`${Constants.department}`)?.filter((val) => { return val.checked == true });
+    let publishedYearBox = checkBoxCollection.get(`${Constants.colPublishedDate}`)?.filter((val) => { return val.checked == true });
+    let categoryBox = checkBoxCollection.get(`${Constants.category}`)?.filter((val) => { return val.checked == true });
+    let regulatoryBox = checkBoxCollection.get(`${Constants.compliance}`)?.filter((val) => { return val.checked == true });
+    let issuedForBox = checkBoxCollection.get(`${Constants.issuedFor}`)?.filter((val) => { return val.checked == true });
+    let classificationBox = checkBoxCollection.get(`${Constants.classification}`)?.filter((val) => { return val.checked == true });
+    let selectedFiltersJSX = <>
+
+      {<div className={`${styles1.column12} ${styles1.marginFilterTop}`}>
+        {this.badgeControl(departmentBox, `${Constants.department}`)}
+        {this.badgeControl(publishedYearBox, `${Constants.colPublishedDate}`)}
+        {this.badgeControl(classificationBox, `${Constants.classification}`)}
+        {this.badgeControl(issuedForBox, `${Constants.issuedFor}`)}
+        {this.badgeControl(regulatoryBox, `${Constants.compliance}`)}
+        {this.badgeControl(categoryBox, `${Constants.category}`)}
+      </div>
+      }
+    </>;
+
+    return selectedFiltersJSX;
+  }
+
+
+  private badgeControl = (selectedFilters: ICheckBoxCollection[], labelName: string): JSX.Element => {
+    let badgeJSX = <>{
+      selectedFilters && selectedFilters.length > 0 && selectedFilters.map((val, index) => {
+        return <Tag
+          appearance="outline"
+          as="button"
+          dismissible={true}
+          shape="circular"
+          dismissIcon={<DismissRegular onClick={() => { this.onTagDismiss(labelName, val) }} />}
+          className={`${styles1.tagClass}`}
+          size="small"
+          primaryText={{ style: { textOverflow: "ellipsis", fontFamily: 'Roboto' } }}
+          title={`${val.value}`}>{val.value}</Tag>
+      })
+    }
+    </>
+    return badgeJSX;
+  }
+
+  private onTagDismiss = (labelName, selectedVal) => {
+    const { checkBoxCollection } = this.state;
+    let index = checkBoxCollection.get(labelName).indexOf(selectedVal);
+    checkBoxCollection.get(labelName)[index].checked = false;
+    this.setState({ checkBoxCollection });
   }
 
   private onFilterAccordionClick = (labelName) => {
@@ -786,11 +872,10 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
             return <>
               <TableRow className={`${styles1.tableRow}`}>
                 <TableCell colSpan={6} >
-                  <TableCellLayout className={`${styles1.verticalSpacing}`}>
+                  <TableCellLayout className={`${styles1.verticalSpacing}`} style={{ padding: 5 }}>
                     <div
                       className={`${styles1.colorLabel}`}
                       style={{
-                        padding: 0,
                         color: val.Classification == "Master" ? "#f26522" : "#162B75"
                       }}>{val.CircularNumber}</div>
                     <div className={`${styles1.verticalSpacing}`}>
@@ -870,7 +955,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                 <TableRow >
                   <TableCell colSpan={6}>
                     <div className={`${styles1.row}`}>
-                      <div className={`${styles1.column12}`}>
+                      <div className={`${styles1.column12} ${AnimationClassNames.slideDownIn20}`}>
                         {accordionFields.isSummarySelected &&
                           <>{`${previewItems?.Gist ?? ``}`}</>
                         }
@@ -1058,7 +1143,13 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   }
 
   private onCheckBoxLabelClick = (labelName, index, isChecked) => {
-    const { checkBoxCollection } = this.state;
+    const { checkBoxCollection, isFilterPanel } = this.state;
+    // const allBoxCollection = checkBoxCollection;
+    // const boxColl = new Map<string, ICheckBoxCollection[]>();
+    // allBoxCollection.forEach((val, key) => {
+    //   boxColl.set(key, val);
+    // });
+    // const allCheckedCollection: Map<string, ICheckBoxCollection[]> = boxColl;
     let circularBox = checkBoxCollection.get(`${Constants.circularNumber}`);
 
     switch (labelName) {
@@ -1085,11 +1176,12 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         });
         break;
 
-      case `${Constants.colPublishedDate}`: checkBoxCollection.get(`${labelName}`)[index].checked = isChecked;
-        this.setState({ checkBoxCollection })
+      case `${Constants.department}`:
+        checkBoxCollection.get(`${labelName}`)[index].checked = isChecked;
+        this.setState({ checkBoxCollection });
         break;
-
-      case `${Constants.department}`: checkBoxCollection.get(`${labelName}`)[index].checked = isChecked;
+      case `${Constants.colPublishedDate}`:
+        checkBoxCollection.get(`${labelName}`)[index].checked = isChecked;
         this.setState({ checkBoxCollection })
         break;
 
@@ -1110,8 +1202,8 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   }
 
   private createFilterPanel = (labelName): JSX.Element => {
-    const { isFilterPanel, checkBoxCollection, filterLabelName } = this.state;
-    let currentFilterCheckBox = checkBoxCollection.get(`${labelName}`);
+    const { isFilterPanel, filterPanelCheckBoxCollection, filterLabelName } = this.state;
+    let currentFilterCheckBox = filterPanelCheckBoxCollection.get(`${labelName}`);
     let checkedBoxes = [];
     if (currentFilterCheckBox) {
       checkedBoxes = currentFilterCheckBox.filter((val) => {
@@ -1122,14 +1214,18 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     let filterPanelJSX = <>
       <Panel isOpen={isFilterPanel}
         isLightDismiss={true}
-        onDismiss={() => { this.setState({ isFilterPanel: false }) }}
+        onDismiss={() => {
+          const { checkBoxCollection } = this.state;
+          this.setState({ checkBoxCollection, isFilterPanel: false })
+        }}
         type={PanelType.smallFixedFar}
         onRenderFooterContent={() => <>
           <FluentProvider theme={webLightTheme}>
-            <Button appearance="primary"
+            {/* <Button appearance="primary"
               style={{ marginRight: 5 }}
-              disabled={checkedBoxes.length > 0 ? false : true}>Apply</Button>
-            <Button onClick={() => { this.clearAllDepartment() }} >Clear all</Button>
+              onClick={() => { this.applyFilters(labelName) }}
+              disabled={checkedBoxes.length > 0 ? false : true}>Apply</Button> */}
+            <Button onClick={() => { this.clearAll(filterLabelName) }} >Clear all</Button>
           </FluentProvider>
         </>}
         closeButtonAriaLabel="Close"
@@ -1158,7 +1254,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
           </div>
         </div>
-        {checkBoxCollection.size > 0 && currentFilterCheckBox?.length > 0 && currentFilterCheckBox?.map((val, index) => {
+        {filterPanelCheckBoxCollection.size > 0 && currentFilterCheckBox?.length > 0 && currentFilterCheckBox?.map((val, index) => {
           return <div className={`${styles1.row}`}>
 
             <div className={`${styles1.column12}`} style={{ paddingLeft: 0, paddingRight: 0 }}>
@@ -1174,14 +1270,38 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     return filterPanelJSX;
   }
 
+  private applyFilters = (labelName) => {
+    const { isFilterPanel, checkBoxCollection, openPanelCheckedValues } = this.state;
+    if (isFilterPanel && openPanelCheckedValues && openPanelCheckedValues.length > 0) {
+      openPanelCheckedValues.map((val) => {
+        let checkedIndex = checkBoxCollection.get(`${labelName}`).indexOf(val);
+        if (checkedIndex > -1) {
+          checkBoxCollection.get(`${labelName}`)[checkedIndex].checked = true;
+        }
+      });
+      this.setState({ checkBoxCollection, filterPanelCheckBoxCollection: checkBoxCollection, isFilterPanel: false })
+    }
+  }
 
-  private clearAllDepartment = () => {
+  private clearAll = (labelName?: string) => {
     const { checkBoxCollection } = this.state;
-    checkBoxCollection.get(`${Constants.department}`).map((val) => {
-      val.checked = false
-    });
+    switch (labelName) {
+      case `${Constants.department}`: checkBoxCollection.get(`${Constants.department}`).map((val) => {
+        val.checked = false
+      });
 
-    this.setState({ checkBoxCollection })
+        this.setState({ checkBoxCollection, filterPanelCheckBoxCollection: checkBoxCollection })
+
+        break;
+
+      case `${Constants.colPublishedDate}`: checkBoxCollection.get(`${Constants.colPublishedDate}`).map((val) => {
+        val.checked = false
+      });
+
+        this.setState({ checkBoxCollection, filterPanelCheckBoxCollection: checkBoxCollection })
+        break;
+    }
+
 
   }
 
@@ -1302,14 +1422,14 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
         if (checkBoxCollection && checkBoxCollection.size > 0 && items.length > 0) {
           checkBoxCollection.get(`${Constants.department}`)[departmentBoxIndex].checked = true;
-          this.setState({ checkBoxCollection })
+          this.setState({ filterPanelCheckBoxCollection: checkBoxCollection })
         };
         break;
       case `Search ${Constants.publishedYear}`: let publishedYearIndex = publishedYear.indexOf(items[0].name);
 
         if (checkBoxCollection && checkBoxCollection.size > 0 && items.length > 0) {
           checkBoxCollection.get(`${Constants.colPublishedDate}`)[publishedYearIndex].checked = true;
-          this.setState({ checkBoxCollection })
+          this.setState({ filterPanelCheckBoxCollection: checkBoxCollection })
         }
         break
     }
@@ -1698,7 +1818,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         RefinableString07 -> CircularStatus
         RefinableString08 -> IssuedFor
         RefinableString09 -> Compliance
-  
+   
     |--------------------------------------------------
     */
     let departmentVal = selectedDepartment[0] ?? ``;//RefinableString03
