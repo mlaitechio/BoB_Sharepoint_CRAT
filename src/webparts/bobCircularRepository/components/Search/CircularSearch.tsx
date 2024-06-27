@@ -67,7 +67,7 @@ import { IBobCircularRepositoryProps } from '../IBobCircularRepositoryProps';
 import Pagination from 'react-js-pagination';
 import { DataContext } from '../../DataContext/DataContext';
 import FileViewer from '../FileViewer/FileViewer';
-import { AddCircleRegular, ArrowClockwise24Regular, ArrowClockwiseRegular, ArrowCounterclockwiseRegular, ArrowDownloadRegular, ArrowDownRegular, ArrowUpRegular, Attach12Filled, CalendarRegular, ChevronDownRegular, ChevronUpRegular, Dismiss24Regular, DismissRegular, EyeRegular, FilterRegular, OpenRegular, Search24Regular, ShareAndroidRegular, TextAlignJustifyRegular } from '@fluentui/react-icons';
+import { AddCircleRegular, ArrowClockwise24Regular, ArrowClockwiseRegular, ArrowCounterclockwiseRegular, ArrowDownloadRegular, ArrowDownRegular, ArrowResetRegular, ArrowUpRegular, Attach12Filled, CalendarRegular, ChevronDownRegular, ChevronUpRegular, Dismiss24Regular, DismissRegular, EyeRegular, Filter12Regular, Filter16Regular, FilterRegular, OpenRegular, Search24Regular, ShareAndroidRegular, TextAlignJustifyRegular } from '@fluentui/react-icons';
 import { ICheckBoxCollection, ICircularListItem } from '../../Models/IModel';
 import { PDFDocument, StandardFonts, degrees, rgb } from 'pdf-lib';
 import download from 'downloadjs'
@@ -410,21 +410,21 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         }
         {isSearchNavOpen &&
           <Drawer type="inline" style={{ maxHeight: "200vh" }} separator open={isSearchNavOpen} className={`${styles1.column2}`}>
-            <DrawerHeader>
+            <DrawerHeader style={{ padding: 16 }}>
               <DrawerHeaderTitle
                 heading={{ className: `${styles1.fontRoboto}` }}
                 className={`${styles1.formLabel}`}
                 action={
                   <>
-                    {/* <Button
-                    appearance="subtle"
-                    aria-label="Close"
-                    icon={<Dismiss24Regular />}
-                    onClick={() => { this.setState({ isSearchNavOpen: false }) }}
-                  /> */}
+                    <Button
+                      appearance="subtle"
+                      aria-label="Reset"
+                      icon={<ArrowCounterclockwiseRegular />}
+                      onClick={() => { this.clearFilters() }}
+                    >Reset Filters</Button>
                   </>
                 }>
-                <FilterRegular />Refine Search
+                <Filter16Regular />Refine
               </DrawerHeaderTitle>
             </DrawerHeader>
             <DrawerBody>
@@ -472,7 +472,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
             </div>
             <div className={`${styles1.column2} ${styles1.marginFilterTop} `}>
               <Button appearance="transparent"
-                icon={<ChevronDownRegular />}
+                icon={filterAccordion.isDepartmentSelected ? <ChevronUpRegular /> : <ChevronDownRegular />}
                 onClick={() => { this.onFilterAccordionClick(Constants.department) }}></Button>
             </div>
 
@@ -515,7 +515,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
             <div className={`${styles1.column2} ${styles1.marginFilterTop} `}>
               <Button appearance="transparent"
                 onClick={() => { this.onFilterAccordionClick(Constants.circularNumber) }}
-                icon={<ChevronDownRegular />}></Button>
+                icon={filterAccordion.isCircularNumberSelected ? <ChevronUpRegular /> : <ChevronDownRegular />}></Button>
             </div>
 
             <Divider appearance="subtle"></Divider>
@@ -558,7 +558,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
             <div className={`${styles1.column2} ${styles1.marginFilterTop} `}>
               <Button appearance="transparent"
                 onClick={() => { this.onFilterAccordionClick(Constants.publishedYear) }}
-                icon={<ChevronDownRegular />}></Button>
+                icon={filterAccordion.isPublishedYearSelected ? <ChevronUpRegular /> : <ChevronDownRegular />}></Button>
             </div>
             <Divider appearance="subtle"></Divider>
 
@@ -599,7 +599,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
               <Button
                 appearance="transparent"
                 onClick={() => { this.onFilterAccordionClick(Constants.classification) }}
-                icon={<ChevronDownRegular />}></Button>
+                icon={filterAccordion.isClassificationSelected ? <ChevronUpRegular /> : <ChevronDownRegular />}></Button>
             </div>
             <Divider appearance="subtle"></Divider>
             {
@@ -622,7 +622,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
               <Button
                 onClick={() => { this.onFilterAccordionClick(Constants.issuedFor) }}
                 appearance="transparent"
-                icon={<ChevronDownRegular />}></Button>
+                icon={filterAccordion.isIssuedForSelected ? <ChevronUpRegular /> : <ChevronDownRegular />}></Button>
             </div>
             <Divider appearance="subtle"></Divider>
             {
@@ -644,7 +644,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
               <Button
                 onClick={() => { this.onFilterAccordionClick(Constants.compliance) }}
                 appearance="transparent"
-                icon={<ChevronDownRegular />}></Button>
+                icon={filterAccordion.isComplianceSelected ? <ChevronUpRegular /> : <ChevronDownRegular />}></Button>
             </div>
             <Divider appearance="subtle"></Divider>
             {
@@ -667,7 +667,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
               <Button
                 onClick={() => { this.onFilterAccordionClick(Constants.category) }}
                 appearance="transparent"
-                icon={<ChevronDownRegular />}></Button>
+                icon={filterAccordion.isCategorySelected ? <ChevronUpRegular /> : <ChevronDownRegular />}></Button>
             </div>
             <Divider appearance="subtle"></Divider>
             {
@@ -677,11 +677,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                 </div>
               })
             }
-
           </div>
-
-
-
           <div className={`${styles1.row}`}>
             <div className={`${styles1.column12} ${styles1.marginFilterTop} `}>
               {this.searchClearButtons()}
@@ -689,7 +685,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
           </div>
 
         </div>
-      </div>
+      </div >
     </>;
 
     return searchFiltersJSX;
@@ -719,24 +715,30 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       </div>
 
       <div className={`${styles1.row} `}>
-        <div className={`${styles1.column10} ${styles1.marginTop}`}>
+        <div className={`${styles1.column9} ${styles1.marginTop}`}>
           {this.searchBox()}
         </div>
-
-        <Dropdown className={`${styles1.column1} ${styles1.marginTop}`}
-          style={{ maxWidth: 95, minWidth: 95 }}
-          mountNode={{}} placeholder={`Sorting`} value={selectedSortFields ?? ``}
-          selectedOptions={[selectedSortFields ?? ""]}
-          onOptionSelect={this.onDropDownChange.bind(this, `${Constants.sorting}`)}>
-          {sortingOptions && sortingOptions.length > 0 && sortingOptions.map((val) => {
-            return <><Option key={`${val}`} className={`${styles1.formLabel}`}>{val}</Option></>
-          })}
-        </Dropdown>
-
         <div className={`${styles1.column1} ${styles1.marginTop}`}>
+          {this.searchClearButtons()}
+        </div>
+        <div className={`${styles1.column2} ${styles1.marginTop}`}>
+          <Dropdown
+            style={{ maxWidth: 95, minWidth: 95 }}
+            mountNode={{}} placeholder={`Sorting`} value={selectedSortFields ?? ``}
+            selectedOptions={[selectedSortFields ?? ""]}
+            onOptionSelect={this.onDropDownChange.bind(this, `${Constants.sorting}`)}>
+            {sortingOptions && sortingOptions.length > 0 && sortingOptions.map((val) => {
+              return <><Option key={`${val}`} className={`${styles1.formLabel}`}>{val}</Option></>
+            })}
+          </Dropdown>
           <Button icon={sortDirection == "asc" ? <ArrowUpRegular /> : <ArrowDownRegular />} appearance="transparent"
             onClick={() => { this.onSorting() }} />
         </div>
+
+        {/* <div className={`${styles1.column1} ${styles1.marginTop}`}>
+          <Button icon={sortDirection == "asc" ? <ArrowUpRegular /> : <ArrowDownRegular />} appearance="transparent"
+            onClick={() => { this.onSorting() }} />
+        </div> */}
 
       </div>
       <div className={`${styles1.row} ${styles1.marginTop}`}>
@@ -1568,12 +1570,12 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
   private searchClearButtons = (): JSX.Element => {
     let searchClearJSX = <>
-      <FluentUIBtn appearance="primary" style={{ marginRight: 5 }} icon={<FilterRegular />} onClick={() => { this.searchResults() }}>
+      <FluentUIBtn appearance="primary" style={{ marginRight: 2 }} icon={<FilterRegular />} onClick={() => { this.searchResults() }}>
         Search
       </FluentUIBtn>
-      <FluentUIBtn appearance="secondary" icon={<DismissRegular />} onClick={() => { this.clearFilters() }}>
+      {/* <FluentUIBtn appearance="secondary" icon={<DismissRegular />} onClick={() => { this.clearFilters() }}>
         Clear
-      </FluentUIBtn>
+      </FluentUIBtn> */}
     </>;
 
     return searchClearJSX;
