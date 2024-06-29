@@ -232,9 +232,17 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
   public componentDidMount() {
     let providerValue = this.context;
-    const { services, serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
+    const { services, serverRelativeUrl, context } = providerValue as IBobCircularRepositoryProps;
 
     this.setState({ isLoading: true }, async () => {
+
+
+      await services.getCurrentUserInformation(context.pageContext.user.email).then((val) => {
+        console.log(val);
+      }).catch((error) => {
+        console.log(error)
+      })
+
       await services.getPagedListItems(serverRelativeUrl,
         Constants.circularList, Constants.colCircularRepository, `${Constants.filterString}`,
         Constants.expandColCircularRepository, 'PublishedDate', false).then(async (value: ICircularListItem[]) => {
@@ -269,7 +277,37 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
           this.setState({ isLoading: false })
         });
 
+      // await services.getLargeListItems(serverRelativeUrl, Constants.circularList, Constants.colCircularRepository, Constants.expandColCircularRepository).
+      //   then((value) => {
+      //     const listItems = value?.filter((val) => {
+      //       return val.CircularStatus == Constants.published;
+      //     })
 
+      //     const uniqueDepartment: any[] = [...new Set(listItems.map((item) => {
+      //       return item.Department;
+      //     }))].sort((a, b) => a < b ? -1 : 1);
+
+      //     const uniquePublishedYear: any[] = [...new Set(listItems.map((item) => {
+      //       return new Date(item.PublishedDate).getFullYear().toString();
+      //     }))];
+
+      //     this.setState({
+      //       items: listItems,
+      //       filteredItems: listItems,
+      //       departments: uniqueDepartment?.filter((option) => {
+      //         return option != undefined
+      //       }),
+      //       publishedYear: uniquePublishedYear
+      //     }, () => {
+      //       let checkBoxCollection = this.initializeCheckBoxFilter();
+      //       this.setState({ checkBoxCollection: checkBoxCollection, isLoading: false }, () => {
+      //         this.setState({ filterPanelCheckBoxCollection: checkBoxCollection })
+      //       });
+      //     })
+      //   }).catch((error) => {
+      //     console.log(error);
+      //     this.setState({ isLoading: false })
+      //   });
 
     })
   }
@@ -711,7 +749,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
           <>
             <div className={`${styles1.row}`}>
               <div className={`${styles1.column9} ${styles1.marginTop}`}>
-                <FluentLabel weight="semibold" style={{
+                <FluentLabel weight="regular" style={{
                   fontFamily: "Roboto",
                   padding: 10,
                   cursor: "pointer",
@@ -864,7 +902,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       { columnKey: "Date", label: "Date" },
       // { columnKey: "Classification", label: "Classification" },
       { columnKey: "Department", label: "Department" },
-      { columnKey: "IssuedFor", label: "Issued For" }
+      // { columnKey: "IssuedFor", label: "Issued For" }
     ];
 
     let tableJSX = <>
@@ -872,7 +910,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         <TableHeader>
           <TableRow >
             {columns.map((column, index) => (
-              <TableHeaderCell key={column.columnKey} colSpan={index == 0 ? 6 : index == 2 ? 2 : 1} className={`${styles1.fontWeightBold}`}>
+              <TableHeaderCell key={column.columnKey} colSpan={index == 0 ? 7 : index == 2 ? 2 : 1} className={`${styles1.fontWeightBold}`}>
                 {column.label}
               </TableHeaderCell>
             ))}
@@ -887,7 +925,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
             return <>
               <TableRow className={`${styles1.tableRow}`}>
-                <TableCell colSpan={6} >
+                <TableCell colSpan={7} >
                   <TableCellLayout className={`${styles1.verticalSpacing}`} style={{ padding: 5 }}>
                     <div
                       className={`${styles1.colorLabel}`}
@@ -920,15 +958,15 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                   </TableCellLayout>
                 </TableCell> */}
                 <TableCell colSpan={2}>
-                  <TableCellLayout className={`${styles1.verticalSpacing}`}>
+                  <TableCellLayout className={`${styles1.verticalSpacing}`} style={{ textTransform: "capitalize" }}>
                     {val.Department}
                   </TableCellLayout>
                 </TableCell>
-                <TableCell>
+                {/* <TableCell>
                   <TableCellLayout>
                     {val.IssuedFor}
                   </TableCellLayout>
-                </TableCell>
+                </TableCell> */}
               </TableRow>
               <TableRow className={`${tableRowClass}`}>
                 <TableCell colSpan={6}>
@@ -1144,7 +1182,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         label={
           <FluentLabel weight="regular"
             onClick={this.onCheckBoxLabelClick.bind(this, labelName, index, !currentCheck)}
-            style={{ fontFamily: "Roboto", cursor: "pointer" }}>{checkBoxVal}</FluentLabel>
+            style={{ fontFamily: "Roboto", cursor: "pointer", textTransform: "capitalize" }}>{checkBoxVal}</FluentLabel>
         }
         shape="square" size="medium" onChange={this.onCheckBoxChange.bind(this, labelName, index)} />
     </>
@@ -1863,7 +1901,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     let filterArray = [];
     let checkBoxFilter = [];
 
-    let publishedYears = checkBoxCollection.get(`${Constants.colPublishedDate}`).filter((val) => val.checked == true).map((val) => {
+    let publishedYears = checkBoxCollection.get(`${Constants.colPublishedDate}`)?.filter((val) => val.checked == true).map((val) => {
       return parseInt(val.value);
     });
 
@@ -2017,7 +2055,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     // Default Search will always be Circular Status as Published
     filterArray.push(`${filterProperties[5]}:equals("${Constants.published}")`);
 
-    let publishedYears = checkBoxCollection.get(`${Constants.colPublishedDate}`).filter((val) =>
+    let publishedYears = checkBoxCollection.get(`${Constants.colPublishedDate}`)?.filter((val) =>
       val.checked == true
     ).map((val) => {
       return parseInt(val.value);

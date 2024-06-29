@@ -54,6 +54,53 @@ Form
 13. Working on it Logic
 14. Success message logic
 
+supporting documents > list of circulars will be of specific department (multiple check box)
+
+
+// let users = await this.context.msGraphClientFactory.getClient("3").then((client: MSGraphClientV3) => {
+        //     // get information about the current user from the Microsoft Graph
+        //     return client
+        //         .api('/users')
+        //         .get((error, response: any[], rawResponse?: any) => {
+        //             return Promise.resolve(response)
+        //         });
+        // }).catch((error) => {
+        //     return Promise.reject(error);
+        // });
+
+await services.getPagedListItems(serverRelativeUrl,
+        Constants.circularList, Constants.colCircularRepository, `${Constants.filterString}`,
+        Constants.expandColCircularRepository, 'PublishedDate', false).then(async (value: ICircularListItem[]) => {
+
+          const listItems = value?.filter((val) => {
+            return val.CircularStatus == Constants.published;
+          })
+
+          const uniqueDepartment: any[] = [...new Set(listItems.map((item) => {
+            return item.Department;
+          }))].sort((a, b) => a < b ? -1 : 1);
+
+          const uniquePublishedYear: any[] = [...new Set(listItems.map((item) => {
+            return new Date(item.PublishedDate).getFullYear().toString();
+          }))];
+
+          this.setState({
+            items: listItems,
+            filteredItems: listItems,
+            departments: uniqueDepartment?.filter((option) => {
+              return option != undefined
+            }),
+            publishedYear: uniquePublishedYear
+          }, () => {
+            let checkBoxCollection = this.initializeCheckBoxFilter();
+            this.setState({ checkBoxCollection: checkBoxCollection, isLoading: false }, () => {
+              this.setState({ filterPanelCheckBoxCollection: checkBoxCollection })
+            });
+          })
+        }).catch((error) => {
+          console.log(error);
+          this.setState({ isLoading: false })
+        });
 
 {/* <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`Published To Date`}</FluentLabel>}>
                 <DatePicker mountNode={{}}

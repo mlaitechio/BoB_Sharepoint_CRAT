@@ -61,6 +61,8 @@ export default class BobCircularRepositoryWebPart extends BaseClientSideWebPart<
 
     return super.onInit().then(async _ => {
 
+      
+
       this._services = new Services(this.context);
 
       let currentUserEmail = this.context.pageContext.user.email;

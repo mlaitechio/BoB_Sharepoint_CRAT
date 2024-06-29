@@ -1,7 +1,8 @@
 import { IServices } from "./IServices";
 import {
     IAttachmentFileInfo, IAttachmentInfo, IItem, IItemAddResult, IItemUpdateResult,
-    ISiteUserInfo, SPFI, spfi, SPFx, ControlMode, IFile, Web, IFileInfo
+    ISiteUserInfo, SPFI, spfi, SPFx as spSPFX, ControlMode, IFile, Web, IFileInfo,
+    PagedItemCollection
 } from '@pnp/sp/presets/all'
 import { ISearchQuery, SearchResults, SearchQueryBuilder, QueryPropertyValueType } from "@pnp/sp/search";
 import "@pnp/sp/batching";
@@ -11,36 +12,41 @@ import "@pnp/sp/security/web";
 import "@pnp/sp/site-users/web";
 import { IList } from "@pnp/sp/lists";
 import { Constants } from "../Constants/Constants";
+import { WebPartContext } from "@microsoft/sp-webpart-base";
+
+import { SPHttpClient, SPHttpClientResponse, MSGraphClientV3 } from '@microsoft/sp-http'
+import { GraphBrowser, GraphFI, graphfi, SPFx as graphSPFx } from "@pnp/graph/presets/all";
 
 let sp: SPFI;
 
+
 export class Services implements IServices {
 
+    private context: WebPartContext;
+    private graph: GraphFI;
 
     public constructor(context: any) {
-        sp = spfi().using(SPFx(context));
+        sp = spfi().using(spSPFX(context));
+        this.context = context;
+        this.graph = graphfi().using(graphSPFx(context));
     }
-
 
     public async getPagedListItems(serverRelativeUrl: string, listName: string, selectColumns: string, filterString: string, expandColumns: string, orderByColum: string, asc: boolean = true): Promise<any> {
         try {
             let selectQuery: any[] = ['Id'];
             let expandQuery: any[] = [];
             let listItems = [];
-            let items: any;
 
-            //let web = Web("https://sidbi.sharepoint.com/sites/BulletinBoardDev")
+            let items: PagedItemCollection<any[]> = undefined;
+            do {
+                if (!items) items = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items.select(selectColumns)
+                    .expand(expandColumns).top(4999).getPaged();
+                else items = await items.getNext();
+                if (items.results.length > 0) {
+                    listItems = listItems.concat(items.results);
+                }
+            } while (items.hasNext);
 
-            items = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items
-                .select(selectColumns)
-                .expand(expandColumns).orderBy(orderByColum, asc)
-                .top(4999)
-                .getPaged();
-            listItems = items.results;
-            while (items.hasNext) {
-                items = await items.getNext();
-                listItems = [...listItems, ...items.results];
-            }
             return Promise.resolve(listItems);
         } catch (err) {
             return Promise.reject(err);
@@ -61,6 +67,18 @@ export class Services implements IServices {
             });
 
         return updateItemResults;
+    }
+
+    public async getCurrentUserInformation(userEmail?: string): Promise<any[]> {
+
+        let users = await this.graph.users.filter(`mail eq '${userEmail}'`).
+            select(`id,department,displayName,mail`)().then((value) => {
+                return value
+            }).catch((error) => {
+                return error;
+            });
+
+        return Promise.resolve(users);
     }
 
     public async deleteListItem(serverRelativeUrl: string, listName: string, itemId: number) {
@@ -452,6 +470,103 @@ export class Services implements IServices {
 
         return getListInfoPromise;
 
+    }
+
+    public async getLargeListItems(serverRelativeUrl: string, listName: string, selectedColumn, expandColumns): Promise<any[]> {
+        var largeListItems: any[] = [];
+
+        return new Promise<any[]>(async (resolve, reject) => {
+            // Array to hold async calls  
+            const asyncFunctions = [];
+
+            let finalItems: any[] = [];
+            let items: PagedItemCollection<any[]> = undefined;
+            do {
+                if (!items) items = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items.select(selectedColumn)
+                    .expand(expandColumns).top(2000).getPaged();
+                else items = await items.getNext();
+                if (items.results.length > 0) {
+                    finalItems = finalItems.concat(items.results);
+                }
+            } while (items.hasNext);
+
+            resolve(finalItems);
+
+            // this.getLatestItemId(serverRelativeUrl, listName).then(async (itemCount: number) => {
+            //     for (let i = 0; i < Math.ceil(itemCount / 5000); i++) {
+            //         // Make multiple async calls  
+            //         let resolvePagedListItems = () => {
+            //             return new Promise(async (resolve) => {
+            //                 let pagedItems: any[] = await this.getPageListItems(listName, serverRelativeUrl, i, selectedColumn, expandColumns);
+            //                 resolve(pagedItems);
+            //             })
+            //         };
+            //         asyncFunctions.push(resolvePagedListItems());
+            //     }
+
+            //     // Wait for all async calls to finish  
+            //     const results: any = await Promise.all(asyncFunctions);
+            //     for (let i = 0; i < results.length; i++) {
+            //         largeListItems = largeListItems.concat(results[i]);
+            //     }
+
+            //     resolve(largeListItems);
+            // });
+        });
+    }
+
+    private getPageListItems(listName: string, serverRelativeUrl, index: number, selectedColumn: string, expandedColumn): Promise<any[]> {
+        return new Promise<any[]>((resolve, reject): void => {
+
+            let requestUrl = this.context.pageContext.web.absoluteUrl
+                + `/_api/Web/GetList('${serverRelativeUrl}/Lists/${listName}')/items`
+                + `?$skiptoken=Paged=TRUE%26p_ID=` + (index * 5000 + 1)
+                + `&$top=` + 5000
+                + `&$select=${selectedColumn}` + `&$expand=${expandedColumn}`;
+
+            this.context.spHttpClient.get(requestUrl, SPHttpClient.configurations.v1)
+                .then((response: SPHttpClientResponse) => {
+                    response.json().then((responseJSON: any) => {
+                        resolve(responseJSON.value);
+                    });
+                });
+        });
+    }
+
+
+
+
+    private getLatestItemId(serverRelativeUrl: string, listName: string): Promise<any> {
+
+        return new Promise<any[]>((resolve, reject): void => {
+            let requestUrl = this.context.pageContext.web.absoluteUrl
+                + `/_api/Web/GetList('${serverRelativeUrl}/Lists/${listName}')/ItemCount`
+
+
+            this.context.spHttpClient.get(requestUrl, SPHttpClient.configurations.v1)
+                .then((response: SPHttpClientResponse) => {
+                    response.json().then((responseJSON: any) => {
+                        resolve(responseJSON.value);
+                    });
+                }, (error: any): void => {
+                    reject(error);
+                });
+        });
+
+        // return new Promise<number>((resolve: (itemId: number) => void, reject: (error: any) => void): void => {
+        //     sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`)
+        //         .items.orderBy('Id,ItemCount', false).top(1).select('Id')()
+        //         .then((items: { Id: number, ItemCount: any }[]): void => {
+        //             if (items.length === 0) {
+        //                 resolve(-1);
+        //             }
+        //             else {
+        //                 resolve(items[0].ItemCount);
+        //             }
+        //         }, (error: any): void => {
+        //             reject(error);
+        //         });
+        // });
     }
 
 }

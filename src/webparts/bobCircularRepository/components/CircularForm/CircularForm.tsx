@@ -229,12 +229,12 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         let formSectionJSX = <>
             <div className={`${styles.column12}`} >
                 <div className={`${styles.row} ${styles.formFieldMarginTop}`}>
-                    <div className={`${styles.column6}`}>
+                    <div className={`${styles.column12}`}>
                         {this.textAreaControl(`${Constants.subject}`, true, `${circularListItem.Subject}`, false, `Field cannot be empty`)}
                     </div>
-                    <div className={`${styles.column6}`}>
+                    {/* <div className={`${styles.column6}`}>
                         {this.avatarControl(`${Constants.circularInitator}`, `${context.pageContext.user.displayName}`)}
-                    </div>
+                    </div> */}
 
 
                 </div>
