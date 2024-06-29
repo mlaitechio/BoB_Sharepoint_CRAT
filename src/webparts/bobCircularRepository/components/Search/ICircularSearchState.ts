@@ -5,8 +5,8 @@ export interface ICircularSearchState {
     navLinkGroups?: INavLinkGroup[];
     selectedKey?: string;
     searchText?: string;
-    items?: IListItem[];
-    filteredItems?: IListItem[];
+    items?: ICircularListItem[];
+    filteredItems?: ICircularListItem[];
     columns?: any[];
     currentPage?: number;
     sortingOptions?: any[];

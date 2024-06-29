@@ -33,7 +33,7 @@ export class Services implements IServices {
 
             items = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items
                 .select(selectColumns)
-                .expand(expandColumns).filter(filterString).orderBy(orderByColum, asc)
+                .expand(expandColumns).orderBy(orderByColum, asc)
                 .top(4999)
                 .getPaged();
             listItems = items.results;

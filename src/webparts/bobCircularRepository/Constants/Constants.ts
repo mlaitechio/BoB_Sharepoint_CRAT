@@ -54,7 +54,7 @@ export class Constants {
   public static readonly publishedYear = "Published Year";
 
 
-  public static readonly colCircularRepository = "Id,Subject,PublishedDate,Category,IssuedFor,MigratedDepartment,Department,IsMigrated,CircularNumber,Classification,MigratedOriginator,Author/Title,Author/Id,Author/EMail"
+  public static readonly colCircularRepository = "Id,Subject,PublishedDate,CircularStatus,Category,IssuedFor,MigratedDepartment,Department,IsMigrated,CircularNumber,Classification,MigratedOriginator,Author/Title,Author/Id,Author/EMail"
   public static readonly expandColCircularRepository = "Author";
 
   public static readonly hindiBarodaPedia = "बड़ौदापीडिया";

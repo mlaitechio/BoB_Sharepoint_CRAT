@@ -47,7 +47,8 @@ import {
   SearchBoxChangeEvent,
   webLightTheme,
   Overflow,
-  OverflowItem
+  OverflowItem,
+  Caption1Strong
 } from "@fluentui/react-components";
 import { DatePicker } from "@fluentui/react-datepicker-compat";
 import { ICircularSearchProps } from './ICircularSearchProps';
@@ -236,20 +237,24 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     this.setState({ isLoading: true }, async () => {
       await services.getPagedListItems(serverRelativeUrl,
         Constants.circularList, Constants.colCircularRepository, `${Constants.filterString}`,
-        Constants.expandColCircularRepository, 'PublishedDate', false).then(async (value) => {
+        Constants.expandColCircularRepository, 'PublishedDate', false).then(async (value: ICircularListItem[]) => {
 
-          const uniqueDepartment: any[] = [...new Set(value.map((item) => {
+          const listItems = value?.filter((val) => {
+            return val.CircularStatus == Constants.published;
+          })
+
+          const uniqueDepartment: any[] = [...new Set(listItems.map((item) => {
             return item.Department;
           }))].sort((a, b) => a < b ? -1 : 1);
 
-          const uniquePublishedYear: any[] = [...new Set(value.map((item) => {
+          const uniquePublishedYear: any[] = [...new Set(listItems.map((item) => {
             return new Date(item.PublishedDate).getFullYear().toString();
           }))];
 
           this.setState({
-            items: value,
-            filteredItems: value,
-            departments: uniqueDepartment.filter((option) => {
+            items: listItems,
+            filteredItems: listItems,
+            departments: uniqueDepartment?.filter((option) => {
               return option != undefined
             }),
             publishedYear: uniquePublishedYear
@@ -679,7 +684,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
             }
           </div>
           <div className={`${styles1.row}`}>
-            <div className={`${styles1.column12} ${styles1.marginFilterTop} `}>
+            <div className={`${styles1.column12} `} style={{ marginTop: 15 }}>
               {this.searchClearButtons()}
             </div>
           </div>
@@ -693,8 +698,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   }
 
   private searchFilterResults = (): JSX.Element => {
-    const { filteredItems, isLoading, currentSelectedItemId, checkBoxCollection,
-      previewItems, sortingOptions, selectedSortFields, sortDirection, isAccordionSelected } = this.state
+    const { filteredItems, isLoading, checkBoxCollection, sortingOptions, selectedSortFields, sortDirection } = this.state
     let filteredPageItems = this.paginateFn(filteredItems);
 
 
@@ -705,6 +709,16 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         {checkBoxCollection && checkBoxCollection.size > 0 &&
 
           <>
+            <div className={`${styles1.row}`}>
+              <div className={`${styles1.column9} ${styles1.marginTop}`}>
+                <FluentLabel weight="semibold" style={{
+                  fontFamily: "Roboto",
+                  padding: 10,
+                  cursor: "pointer",
+                  fontSize: "var(--fontSizeHero700)"
+                }}>Circulars {`(${filteredItems.length})`}</FluentLabel>
+              </div>
+            </div>
             <div className={`${styles1.row}`}>
               {this.selectedFilters()}
             </div>
@@ -1208,7 +1222,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     let currentFilterCheckBox = filterPanelCheckBoxCollection.get(`${labelName}`);
     let checkedBoxes = [];
     if (currentFilterCheckBox) {
-      checkedBoxes = currentFilterCheckBox.filter((val) => {
+      checkedBoxes = currentFilterCheckBox?.filter((val) => {
         return val.checked == true;
       });
     }
@@ -1397,7 +1411,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       }
 
       return filters
-        .filter((value: any) => value.toLowerCase().indexOf(filter.toLowerCase()) > -1)
+        ?.filter((value: any) => value.toLowerCase().indexOf(filter.toLowerCase()) > -1)
         .map((value: any, index): any => {
           // console.log(category.id)
           return {
@@ -1469,7 +1483,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
           </TagPickerControl>
           <TagPickerList >
             {departments.length > 0
-              ? departments.filter((option) => {
+              ? departments?.filter((option) => {
                 if (selectedDepartment[0] !== option) {
                   return option;
                 }
@@ -1570,7 +1584,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
   private searchClearButtons = (): JSX.Element => {
     let searchClearJSX = <>
-      <FluentUIBtn appearance="primary" style={{ marginRight: 2 }} icon={<FilterRegular />} onClick={() => { this.searchResults() }}>
+      <FluentUIBtn appearance="primary" style={{ marginRight: 2, width: "100%" }} icon={<FilterRegular />} onClick={() => { this.searchResults() }}>
         Search
       </FluentUIBtn>
       {/* <FluentUIBtn appearance="secondary" icon={<DismissRegular />} onClick={() => { this.clearFilters() }}>

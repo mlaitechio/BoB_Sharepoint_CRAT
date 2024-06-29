@@ -1,5 +1,43 @@
 # bob-circular-repository
 
+
+1.All master circulars should be updated in the second quarter of the year.Till 1st October
+2.Limited period circulars are not incorporated in master circular (This will not be visible in reference)
+3.Longer time circular should be incorporated in master circular
+4.Circular are of three broad categories
+ a. Intimation
+ b. Information
+ c. Action
+
+Maker- Department users for creating request
+Checker -> Department Administrators who can review & approve
+Compliance -> Compliance Department will act as compliance admin
+User -> Users will be able to see published circulars/ master & filter them
+
+Maker fills up the form
+1.Keywords,Metadata & Gist of Circular
+2.Flow for sending email notification
+3.All master circulars should be updated in the second quarter of the year.Till 1st October
+4.Return with remarks history from Compliance & Checker
+5.Compliance Return & Checker Return will send notification to Maker for revision
+6.Limited period circulars will have expiry date (Will this circular be visible to end users after expiry date)
+7.An alert notification for expiry date circular one week before the expiry of circular
+8.Annunal updation of circular will happen for longer term circulars and with a checkbox functionality to mark its incorporation in master circular
+9.“This data is as on “-date of view/download-”.
+For updated information refer to circular/master circular on portal” this should be added to watermark pdf
+10.The Content Owner (Checker) will also be responsible for archiving and
+incorporation activity during annual updation of the master circular. Here, the
+circulars of limited period relevance will be tagged as archived and on next access by
+Normal user will have following Header/footer visible in red “The circular stands
+archived with effect from -date- consequent upon validity expiry“ The circulars of
+longer term impact will be tagged “incorporated in master circular” and on next access
+by Normal user will have following Header/footer visible in red “The circular stands
+archived with effect from -date- consequent upon its incorporation in the master
+circular“
+11.
+
+
+
 ## Summary
 
 Short summary on functionality and used technologies.
