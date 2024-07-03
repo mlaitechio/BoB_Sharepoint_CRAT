@@ -3,6 +3,8 @@ import PDF from 'react-pdf-watermark';
 import { PDFDocument, StandardFonts, degrees, rgb } from 'pdf-lib';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { Dialog, DialogBody, DialogContent, DialogSurface, Spinner } from '@fluentui/react-components';
+import { Constants } from '../../Constants/Constants';
+import { Text } from '@microsoft/sp-core-library'
 
 export interface IMyPDFViewerProps {
     pdfFilePath: any;
@@ -114,6 +116,28 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
             const { width, height } = page.getSize();
             const textFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
             const fontSize = 50;
+
+            const font = pdfDoc.embedStandardFont(StandardFonts.Helvetica);
+            const headerHeight = 50;
+
+
+            const textWidth = font.widthOfTextAtSize(Constants.infoPDFText, fontSize);
+            const textHeight = font.heightAtSize(fontSize);
+
+            const startX = (width - textWidth) / 2;
+            const startY =
+                height + headerHeight - (headerHeight - textHeight) / 2 - textHeight;
+
+            page.moveTo(startX, startY);
+
+            // page.drawText(Text.format(Constants.infoPDFText, new Date().toLocaleDateString()), {
+            //     x: 5,
+            //     y: 5,
+            //     size: 12,
+            //     font: font,
+            //     opacity: 1,
+            //     color: rgb(0.86, 0.09, 0.26),
+            // });
 
             page.drawText(watermarkText, {
                 x: width / 6,

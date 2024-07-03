@@ -11,12 +11,12 @@ import CircularForm from './CircularForm/CircularForm';
 export const customLightTheme: Theme = {
   ...webLightTheme,
   colorBrandBackground: "#f26522",
-  colorBrandBackgroundHover:"#f26522",
-  colorBrandBackgroundSelected:"#f26522",
-  colorBrandForegroundOnLightPressed:"#f26522",
-  colorNeutralForeground2BrandHover:"#f26522",
-  colorSubtleBackgroundHover:"#ffff",
-  colorSubtleBackgroundPressed:"#ffff"
+  colorBrandBackgroundHover: "#f26522",
+  colorBrandBackgroundSelected: "#f26522",
+  colorBrandForegroundOnLightPressed: "#f26522",
+  colorNeutralForeground2BrandHover: "#f26522",
+  colorSubtleBackgroundHover: "#ffff",
+  colorSubtleBackgroundPressed: "#ffff"
 }
 
 export interface IBobCircularRepositoryState {
@@ -33,8 +33,8 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
     super(props)
 
     this.state = {
-      isCreateCircular: false,
-      isHome: true
+      isCreateCircular: true,
+      isHome: false
     }
 
     this.formRef = React.createRef();

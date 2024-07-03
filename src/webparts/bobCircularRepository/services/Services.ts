@@ -16,6 +16,7 @@ import { WebPartContext } from "@microsoft/sp-webpart-base";
 
 import { SPHttpClient, SPHttpClientResponse, MSGraphClientV3 } from '@microsoft/sp-http'
 import { GraphBrowser, GraphFI, graphfi, SPFx as graphSPFx } from "@pnp/graph/presets/all";
+import { error } from "pdf-lib";
 
 let sp: SPFI;
 
@@ -31,6 +32,18 @@ export class Services implements IServices {
         this.graph = graphfi().using(graphSPFx(context));
     }
 
+    public async getListItemById(serverRelativeUrl: string, listName: string, itemID: number): Promise<any> {
+
+        let listItem = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items.getById(itemID)().then((val) => {
+            return Promise.resolve(val);
+        }).catch((error) => {
+            return Promise.reject(error);
+        })
+
+        return listItem;
+
+    }
+
     public async getPagedListItems(serverRelativeUrl: string, listName: string, selectColumns: string, filterString: string, expandColumns: string, orderByColum: string, asc: boolean = true): Promise<any> {
         try {
             let selectQuery: any[] = ['Id'];
@@ -40,8 +53,10 @@ export class Services implements IServices {
             let items: PagedItemCollection<any[]> = undefined;
             do {
                 if (!items) items = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items.select(selectColumns)
-                    .expand(expandColumns).top(4999).getPaged();
-                else items = await items.getNext();
+                    .expand(expandColumns).top(4000).getPaged();
+                else {
+                    items = await items.getNext();
+                }
                 if (items.results.length > 0) {
                     listItems = listItems.concat(items.results);
                 }
@@ -53,7 +68,7 @@ export class Services implements IServices {
         }
     }
 
-    public async updateItem(serverRelativeUrl: string, listName: string, itemID: number, metadataValues: any, etag: any): Promise<any> {
+    public async updateItem(serverRelativeUrl: string, listName: string, itemID: number, metadataValues: any, etag: any = "*"): Promise<any> {
 
         const updateItemResults = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items.
             getById(itemID).update(metadataValues, etag).then(async (results: IItemUpdateResult) => {
@@ -69,10 +84,17 @@ export class Services implements IServices {
         return updateItemResults;
     }
 
-    public async getCurrentUserInformation(userEmail?: string): Promise<any[]> {
+    public async getCurrentUserInformation(userEmail: string, selectedColumns: string): Promise<any[]> {
 
+        // "2cf9fef8-c7cb-48b4-be0c-43c958d4f658"
+        // getById("2cf9fef8-c7cb-48b4-be0c-43c958d4f658")()
+        let myProfile = await sp.profiles.getPropertiesFor(`i:0#.f|membership|Aditya.Pal@bankofbaroda.co.in`).then((val) => {
+            console.log(val)
+        }).catch((error) => {
+            console.log(error)
+        })
         let users = await this.graph.users.filter(`mail eq '${userEmail}'`).
-            select(`id,department,displayName,mail`)().then((value) => {
+            select(`${selectedColumns}`)().then((value) => {
                 return value
             }).catch((error) => {
                 return error;
@@ -89,6 +111,31 @@ export class Services implements IServices {
         });
 
         return deleteItem;
+    }
+
+
+    public async getFileContent(fileServerRelativeUrl): Promise<any> {
+
+        let fileContent = await sp.web.getFileByServerRelativePath(fileServerRelativeUrl).getBuffer().then((file) => {
+            return Promise.resolve(file)
+        }).catch((error) => {
+            return Promise.reject(error)
+        });
+
+        return fileContent;
+    }
+
+    public async addListItemAttachmentAsBuffer(listName: string, serverRelativeUrl: string, itemID: number, fileName: string, buffer: any): Promise<any> {
+
+        let attachmentPromise = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items
+            .getById(itemID)
+            .attachmentFiles.add(fileName, buffer).then((result) => {
+                return Promise.resolve(result)
+            }).catch((error) => {
+                return Promise.reject(error);
+            });
+
+        return attachmentPromise;
     }
 
     public async addListItemAttachments(serverRelativeUrl: string, listName: string, itemID: number,
@@ -123,13 +170,15 @@ export class Services implements IServices {
             const file = fileArray[i];
             const fileName = file.name;
 
-            attachmentsPromise.push(await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items
-                .getById(itemID)
-                .attachmentFiles.add(fileName, file.content).then((result) => {
-                    return Promise.resolve(result)
-                }).catch((error) => {
-                    Promise.reject(error);
-                }));
+            attachmentsPromise.push(
+                await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items
+                    .getById(itemID)
+                    .attachmentFiles.add(fileName, file.content).then((result) => {
+                        return Promise.resolve(result)
+                    }).catch((error) => {
+                        Promise.reject(error);
+                    })
+            );
 
 
         }
@@ -180,6 +229,34 @@ export class Services implements IServices {
         }
 
 
+    }
+
+    public async deleteListItemAttachment(serverRelativeUrl: string, listName: string, itemID: number, fileName: string): Promise<any> {
+
+        let deleteAttachmentPromise = await sp.web.getFolderByServerRelativePath(`${serverRelativeUrl}/Lists/${listName}/Attachments/${itemID}`).files.
+            getByUrl(`${fileName}`).deleteWithParams({
+                BypassSharedLock: true
+            }).then((val) => {
+                return Promise.resolve(val)
+            }).catch((error) => {
+                return Promise.reject(error);
+            });
+
+        // let checkInFile = await sp.web.getFileByServerRelativePath(`${serverRelativeUrl}/Lists/${listName}/Attachments/${itemID}/${fileName}`).
+        //     checkin('Deleting this file').then((val) => {
+        //         console.log(`File Checked In`)
+        //     }).catch((error) => {
+        //         console.log(error)
+        //     })
+
+        // let deleteAttachmentPromise = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items
+        //     .getById(itemID).attachmentFiles.getByName(fileName).recycle().then((attachmentVal) => {
+        //         return Promise.resolve(attachmentVal)
+        //     }).catch((error) => {
+        //         return Promise.reject(error);
+        //     });
+
+        return deleteAttachmentPromise;
     }
 
     public async recycleListItemAttachments(serverRelativeUrl: string, listName: string, itemID: number,
@@ -273,9 +350,6 @@ export class Services implements IServices {
     }
 
 
-
-
-
     public async getFileById(fileArray: any[]): Promise<any> {
         const fileAttachmentPromise = await Promise.all(fileArray.map(async (file) => {
             return await sp.web.getFileById(file.AttachmentId.replace('{', '').replace('}', ''))().then((fileInfo) => {
@@ -288,6 +362,16 @@ export class Services implements IServices {
         return fileAttachmentPromise
     }
 
+    public async getAllFiles(folderServerRelativeUrl): Promise<any[]> {
+
+        let files = await sp.web.getFolderByServerRelativePath(folderServerRelativeUrl).files().then((fileInfo) => {
+            return Promise.resolve(fileInfo)
+        }).catch((error) => {
+            return Promise.reject(error)
+        })
+
+        return files
+    }
 
 
     public async createItem(serverRelativeUrl: string, listName: string, metadataValues: any): Promise<boolean | any> {
@@ -533,40 +617,22 @@ export class Services implements IServices {
         });
     }
 
+    public async getLatestItemId(serverRelativeUrl: string, listName: string): Promise<any> {
 
-
-
-    private getLatestItemId(serverRelativeUrl: string, listName: string): Promise<any> {
-
-        return new Promise<any[]>((resolve, reject): void => {
-            let requestUrl = this.context.pageContext.web.absoluteUrl
-                + `/_api/Web/GetList('${serverRelativeUrl}/Lists/${listName}')/ItemCount`
-
-
-            this.context.spHttpClient.get(requestUrl, SPHttpClient.configurations.v1)
-                .then((response: SPHttpClientResponse) => {
-                    response.json().then((responseJSON: any) => {
-                        resolve(responseJSON.value);
-                    });
+        return new Promise<number>((resolve: (itemId: number) => void, reject: (error: any) => void): void => {
+            sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`)
+                .items.orderBy('Id', false).top(1).select('Id')()
+                .then((items: { Id: number }[]): void => {
+                    if (items.length === 0) {
+                        resolve(-1);
+                    }
+                    else {
+                        resolve(items[0].Id);
+                    }
                 }, (error: any): void => {
                     reject(error);
                 });
         });
-
-        // return new Promise<number>((resolve: (itemId: number) => void, reject: (error: any) => void): void => {
-        //     sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`)
-        //         .items.orderBy('Id,ItemCount', false).top(1).select('Id')()
-        //         .then((items: { Id: number, ItemCount: any }[]): void => {
-        //             if (items.length === 0) {
-        //                 resolve(-1);
-        //             }
-        //             else {
-        //                 resolve(items[0].ItemCount);
-        //             }
-        //         }, (error: any): void => {
-        //             reject(error);
-        //         });
-        // });
     }
 
 }

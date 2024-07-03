@@ -127,89 +127,89 @@ input * {
 
 .column1 {
   @include ms-Grid-col;
-  @include ms-sm1;
-  @include ms-md1;
+  @include ms-sm12;
+  @include ms-md2;
   @include ms-lg1;
   height: "inherit";
 }
 
 .column2 {
   @include ms-Grid-col;
-  @include ms-sm2;
-  @include ms-md2;
+  @include ms-sm12;
+  @include ms-md12;
   @include ms-lg2;
   height: "inherit";
 }
 
 .column3 {
   @include ms-Grid-col;
-  @include ms-sm3;
-  @include ms-md3;
+  @include ms-sm12;
+  @include ms-md12;
   @include ms-lg3;
   height: "inherit";
 }
 
 .column4 {
   @include ms-Grid-col;
-  @include ms-sm4;
-  @include ms-md4;
+  @include ms-sm12;
+  @include ms-md12;
   @include ms-lg4;
   height: "inherit";
 }
 
 .column5 {
   @include ms-Grid-col;
-  @include ms-sm5;
-  @include ms-md5;
+  @include ms-sm12;
+  @include ms-md12;
   @include ms-lg5;
   height: "inherit";
 }
 
 .column6 {
   @include ms-Grid-col;
-  @include ms-sm6;
-  @include ms-md6;
+  @include ms-sm12;
+  @include ms-md12;
   @include ms-lg6;
   height: "inherit";
 }
 
 .column7 {
   @include ms-Grid-col;
-  @include ms-sm7;
-  @include ms-md7;
+  @include ms-sm12;
+  @include ms-md12;
   @include ms-lg7;
   height: "inherit";
 }
 
 .column8 {
   @include ms-Grid-col;
-  @include ms-sm8;
-  @include ms-md8;
+  @include ms-sm12;
+  @include ms-md12;
   @include ms-lg8;
   height: "inherit";
 }
 
 .column9 {
   @include ms-Grid-col;
-  @include ms-sm9;
-  @include ms-md9;
+  @include ms-sm12;
+  @include ms-md12;
   @include ms-lg9;
   height: "inherit";
 }
 
 .column10 {
   @include ms-Grid-col;
-  @include ms-md10;
+  @include ms-sm12;
+  @include ms-md8;
   @include ms-lg10;
-  @include ms-sm10;
   height: "inherit";
 }
 
 .column11 {
   @include ms-Grid-col;
-  @include ms-md11;
-  @include ms-lg11;
   @include ms-sm11;
+  @include ms-md12;
+  @include ms-lg11;
   height: "inherit";
 }
 

@@ -237,7 +237,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     this.setState({ isLoading: true }, async () => {
 
 
-      await services.getCurrentUserInformation(context.pageContext.user.email).then((val) => {
+      await services.getCurrentUserInformation(`Aditya.Pal@bankofbaroda.com`, Constants.adSelectedColumns).then((val) => {
         console.log(val);
       }).catch((error) => {
         console.log(error)
@@ -2590,6 +2590,20 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
   }
 
+  private drawLine = (page, height, width) => {
+    page.drawLine({
+      start: {
+        x: 0,
+        y: height,
+      },
+      end: {
+        x: width,
+        y: height,
+      },
+      thickness: 0.5,
+      color: rgb(0.8, 0.8, 0.8),
+    });
+  }
 
   private downloadWaterMarkPDF = async (file, watermarkText) => {
 
@@ -2600,7 +2614,26 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       const page = pdfDoc.getPage(pageNum);
       const { width, height } = page.getSize();
       const textFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      const font = pdfDoc.embedStandardFont(StandardFonts.Helvetica);
+      const headerHeight = 50;
       const fontSize = 50;
+
+      const textWidth = font.widthOfTextAtSize(Constants.infoPDFText, fontSize);
+      const textHeight = font.heightAtSize(fontSize);
+
+      const startX = (width - textWidth) / 2;
+      const startY =
+        height + headerHeight - (headerHeight - textHeight) / 2 - textHeight;
+
+      page.moveTo(startX, startY);
+
+      page.drawText(Constants.infoPDFText, {
+        size: fontSize,
+        font: font,
+        opacity: 1,
+        color: rgb(0.86, 0.09, 0.26),
+      });
+
 
       page.drawText(watermarkText, {
         x: width / 6,

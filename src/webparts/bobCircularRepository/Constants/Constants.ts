@@ -40,7 +40,7 @@ export class Constants {
   public static readonly compliance = `Regulatory Compliance`;
   public static readonly faqs = "FAQs";
   public static readonly sop = "SOP";
-  public static readonly supportingDocument = `Upload Supporting Documents`;
+  public static readonly supportingDocument = `Supporting Documents`;
   public static readonly limited = "Limited";
   public static readonly unlimited = "Unlimited";
   public static readonly lblCompliance = "This circular will go to compliance department";
@@ -52,10 +52,20 @@ export class Constants {
   public static readonly goBack = `Go Back`;
   public static readonly delete = `Delete`;
   public static readonly publishedYear = "Published Year";
+  public static readonly validationAlertTitle = "Validation Alert!";
+  public static readonly validationAlertMessage = "Please input all fields marked as *";
+  public static readonly validationAlertMessageFileSize = "File Size is greater than 5MB";
+  public static readonly validationAlertMessageFileType = "File type is not .pdf or .docx";
+  public static readonly deleteCircularTitle = `Delete Circular File`;
+  public static readonly deleteCircularMessage = `Are you sure you want to delete the file?`;
+
+  public static readonly searchSupportingCirculars = `Search Circulars`;
 
 
   public static readonly colCircularRepository = "Id,Subject,PublishedDate,CircularStatus,Category,IssuedFor,MigratedDepartment,Department,IsMigrated,CircularNumber,Classification,MigratedOriginator,Author/Title,Author/Id,Author/EMail"
   public static readonly expandColCircularRepository = "Author";
+  public static readonly adSelectedColumns = "id,mail,displayName,department,employeeId,extensions,businessPhones,title,employeeNumber";
+
 
   public static readonly hindiBarodaPedia = "बड़ौदापीडिया";
   public static readonly hindiSearchHeader = "परिपत्र का विवरण दर्ज करें";
@@ -64,6 +74,14 @@ export class Constants {
   public static readonly engSearchCircular = "Search Circular";
 
   public static readonly sorting = "Sorting";
+
+  public static readonly infoPDFText = "This data is as on {0} of view/download.For updated information refer to circular/master circular on portal";
+
+  //Archived Status circulars with limited period after expiry date will have this text on header of pdf with red font
+  public static readonly warninglimitedPDFText = "The circular stands archived with effect from {0} consequent upon validity expiry";
+
+  //Archived Status circulars with Unlimited period after incorporation in master circular will have this text on header of pdf with red font
+  public static readonly warningUnlimitedPDFText = "The circular stands archived with effect from {0} consequent upon its incorporation in the master circular"
 
   /**
   |--------------------------------------------------
@@ -148,6 +166,8 @@ export class Constants {
   public static readonly colSummary = "Summary";
   public static readonly colType = "Type";
   public static readonly colSupportingDoc = "Supporting Documents";
+  public static readonly lblTemplate = "Template";
+  public static readonly templateFolder = "Shared Documents/Template";
 
   /**
   |--------------------------------------------------
@@ -173,6 +193,7 @@ export class Constants {
   |--------------------------------------------------
   */
 
+  public static readonly lblNew = `New`
   public static readonly draft = "Draft";
   public static readonly sbmtCompliance = "Submitted to Compliance";
   public static readonly sbmtChecker = "Submitted to Checker";

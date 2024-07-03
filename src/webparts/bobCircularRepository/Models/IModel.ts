@@ -71,7 +71,7 @@ export interface ICircularListItem {
     Created?: string;
     Category?: string;
     CircularContent?: string;
-    CircularCreationDate?: string;
+    CircularCreationDate?: string | Date;
     CircularFAQ?: string;
     CircularNumber?: string;
     CircularSOP?: string;
@@ -105,6 +105,14 @@ export interface ICircularListItem {
     SubFileCode?: string;
     Subject?: string;
     SubmittedDate?: string;
+}
+
+export interface IADProperties {
+    id: string;
+    mail: string;
+    employeeNumber: any;
+    displayName: any;
+    department: string;
 }
 
 export interface IAttachments {

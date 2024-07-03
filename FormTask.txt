@@ -1,0 +1,52 @@
+Form Related Task
+1. Bind drop down Field Values
+2. Logic to implement circular number
+3. Logic to set state of a field on change
+4. Logic for My Request & Compliance 
+5. Logic to save item as Draft
+6. Logic to submit item 
+7. Logic to implement comments history
+8. Logic to implement checker history.
+9. Logic to disable fields
+10.Logic to update item
+11.Logic to show attachment preview section & have the ability to edit item
+12.Permission handling of item
+13. Working on it Dialog 
+14. Success message Dialog
+---- List of Task ----
+15. If no search criteria is added , do rest api call to get all items
+16. Supporting Documents with Pop up & selection functionality (Master --> Previous year & published & department circulars) (Circulars - All years ,published & related to department)
+17. FAQ
+18. Edit Circular Dashboard Screen / Edit Circular Form Draft & Returned 
+19. Delete Circular Screen/ Delete Circular Form in Draft Mode
+20. Annunal Year Updation flow
+21. Compliance Pending Request Dashboard
+22. Checker Pending Request Dashboard
+23. Create Circular 
+24. Graph api get EmployeeCode & Department
+25. Add Watermark text to the all published Documents with two different text
+26. Iframe docx file upload.(Naming convention according to circular number)
+27. Comments Compliance History
+28. Comments Checker History
+29. SOP upload maximum 5 MB file with File Name change & attachment added
+30. Circular Content delete with pop up & naming convention
+31. Department value fill up
+32. Auto increment ID to be added in circular
+33. Full Screen View
+34. Add Validation Field text below date picker field
+35. Docx & PDF restriction in SOP Upload
+36. Error alert to be shown to the users
+37.CircularCreation Date logic
+38.Delete Circular List Item when in draft mode
+
+Circular Number Duplicate Checkbox
+Circular Number Disabled after saved as version draft
+Department field disabled with pre populated field
+Supporting Documents put department of respective users
+SOP File Naming convention
+Supporting Documents JSON format
+Restrict File Limit to 5 SOP Files
+Delete Circular List Item if in Draft Mode
+Circular Creation Date Change in Object
+Supporting Documents Field Creation
+Maximum how many supporting documents can be attached?

@@ -4,7 +4,7 @@ export interface IServices {
     addListItemAttachments(serverRelativeUrl: string, listName: string, itemID: number, fileMetadata: Map<string, any>): Promise<any>
     recycleListItemAttachments: (serverRelativeUrl: string, listName: string, itemID: number, files: Map<string, any>) => Promise<any>;
     readListItemAttachment: (serverRelativeUrl: string, listName: string, itemId: number) => Promise<any[]>
-    updateItem: (serverRelativeUrl: string, listName: string, itemID: number, metadataValues: any, etag: any) => Promise<any>;
+    updateItem: (serverRelativeUrl: string, listName: string, itemID: number, metadataValues: any, etag?: any) => Promise<any>;
     createItem: (serverRelativeUrl: string, listName: string, metadataValues: any) => Promise<boolean | any>;
     deleteListItem: (serverRelativeUrl: string, listName: string, itemId: number) => Promise<any>;
     checkIfUserBelongToGroup: (groupName: any, userEmail: string) => Promise<any>;
@@ -15,6 +15,12 @@ export interface IServices {
     renderListDataStream: (serverRelativeUrl: string, listName: string, viewXML: string) => Promise<any>;
     getListInfo: (serverRelativeUrl: string, listName: string) => Promise<any>;
     getFileById: (fileArray: any[]) => Promise<any>;
-    getCurrentUserInformation: (userEmail?:string) => Promise<any[]>;
+    getCurrentUserInformation: (userEmail: string, selectedColumns: string) => Promise<any[]>;
+    getListItemById: (serverRelativeUrl: string, listName: string, itemID: number) => Promise<any>;
+    addListItemAttachmentAsBuffer: (listName: string, serverRelativeUrl: string, itemID: number, fileName: string, buffer: any) => Promise<any>;
+    getAllFiles: (folderServerRelativeUrl: string) => Promise<any[]>;
+    getFileContent: (fileServerRelativeUrl: string) => Promise<any>;
+    getLatestItemId: (serverRelativeUrl: string, listName: string) => Promise<any>
     getAllListItemAttachments: (serverRelativeUrl: string, listName: string, itemID: number) => Promise<Map<string, any>>;
+    deleteListItemAttachment: (serverRelativeUrl: string, listName: string, itemID: number, fileName: string) => Promise<any>;
 }

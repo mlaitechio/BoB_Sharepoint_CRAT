@@ -4,12 +4,31 @@ export interface ICircularFormState {
     circularListItem?: ICircularListItem;
     currentCircularListItemValue?: ICircularListItem;
     expiryDate?: any;
+    isExpiryDateDisabled?: boolean;
+    openSupportingDocument?: boolean;
+    selectedSupportingCirculars?: any[];
+    openSupportingCircularFile?: boolean;
+    supportingDocLinkItem?: any
+    isFormInValid?: boolean;
+    isFileSizeAlert?:boolean;
+    isFileTypeAlert?:boolean;
+    alertTitle?: string;
+    alertMessage?: string;
+    isDeleteCircularFile?: boolean;
+    sopUploads?: Map<string, any>;
+    sopAttachmentColl?: any[];
+    documentPreviewURL?: string;
+    attachedFile?: any;
+    currentItemID?: any;
     lblCircularType?: string;
     lblCompliance?: string;
     isLimited?: boolean;
     issuedFor?: any[];
     classification?: any[];
     category?: any[];
+    templates?: any[];
+    selectedTemplate?: string;
+    templateFiles?: any[];
     isBack?: boolean;
     isDelete?: boolean;
     isMaker?: boolean;
@@ -19,5 +38,6 @@ export interface ICircularFormState {
     isSuccess?: boolean;
     isNewForm?: boolean;
     isEditForm?: boolean;
+   
 
 }
