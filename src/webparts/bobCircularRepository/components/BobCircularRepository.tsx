@@ -33,8 +33,8 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
     super(props)
 
     this.state = {
-      isCreateCircular: true,
-      isHome: false
+      isCreateCircular: false,
+      isHome: true
     }
 
     this.formRef = React.createRef();
@@ -48,6 +48,7 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
     const { hasTeamsContext, context } = this.props;
 
     setTimeout(() => {
+      
       let bodyElement: HTMLElement = document.querySelector("body");
       bodyElement.style.cssText = "margin:0;padding:0";
 

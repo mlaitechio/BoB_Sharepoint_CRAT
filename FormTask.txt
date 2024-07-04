@@ -50,3 +50,6 @@ Delete Circular List Item if in Draft Mode
 Circular Creation Date Change in Object
 Supporting Documents Field Creation
 Maximum how many supporting documents can be attached?
+Compliance User Permission Mapping with Department
+Checker User Permission Mapping with Department
+Comments Section ,History Section

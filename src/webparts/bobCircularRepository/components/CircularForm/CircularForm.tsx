@@ -31,6 +31,7 @@ import { IADProperties } from '../../Models/IModel';
 import { IFileInfo } from '@pnp/sp/files';
 import SupportingDocument from './SupportingDocument/SupportingDocument';
 import FileViewer from '../FileViewer/FileViewer';
+import { error } from 'pdf-lib';
 
 
 
@@ -112,6 +113,13 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
         //context.pageContext.user.email;
         this.setState({ isLoading: true }, async () => {
+
+            await services.filterLargeListItem(serverRelativeUrl, Constants.circularList, `CircularNumber eq 'BCC : BR : 95 :89'`).then((listItem) => {
+                console.log(listItem)
+            }).catch((error) => {
+                console.log(error)
+            })
+
             await services.getAllFiles(`${serverRelativeUrl}/${Constants.templateFolder}`).then((files: any[]) => {
                 let templates = files.map((file) => {
                     return file.Name.split('.')[0]
@@ -139,7 +147,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
             await services.getLatestItemId(serverRelativeUrl, Constants.circularList).then((itemID) => {
                 const { circularListItem } = this.state;
-                circularListItem.CircularNumber = itemID;
+                circularListItem.CircularNumber = itemID.toString();
                 this.setState({ circularListItem })
             }).catch((error) => {
                 console.log(`Latest Item ID` + error);
@@ -798,6 +806,13 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
     private createUpdateCircularFile = () => {
         const { circularListItem } = this.state;
+        let circularNumberText = circularListItem.CircularNumber;
+        let circularNumberIndexOf = circularListItem.CircularNumber.indexOf(`${this.getCircularNumber()}`);
+
+        // if BOB:BR:116: not present then circular Number will be this
+        if (circularNumberIndexOf == -1) {
+            circularListItem.CircularNumber = `${this.getCircularNumber()}` + `${circularNumberText}`
+        }
         if (circularListItem.CircularStatus == Constants.lblNew) {
             this.addCircularItemAndFile();
         }
@@ -863,7 +878,6 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
                     let ID = parseInt(currentCircularListItemValue.ID);
 
-
                     await services.updateItem(serverRelativeUrl, Constants.circularList, ID, circularListItem).then(async (listItem) => {
 
                         this.addAttachmentAsBuffer(listItem, fileContent)
@@ -886,12 +900,13 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         const { services, serverRelativeUrl, context } = providerValue as IBobCircularRepositoryProps;
         let circularNumberText = circularListItem.CircularNumber;
 
-        let fileName = this.getCircularNumber().split(':').join('_') + `_` + circularNumberText + `.docx`;
+        let fileName = circularListItem.CircularNumber.split(':').join('_') + `.docx`; //this.getCircularNumber().split(':').join('_') + `_` + circularNumberText + `.docx`;
 
         await services.addListItemAttachmentAsBuffer(Constants.circularList, serverRelativeUrl, listItem.ID, fileName, fileContent).
             then(async () => {
                 await services.getListDataAsStream(serverRelativeUrl, Constants.circularList, listItem.ID).then((val) => {
-                    circularListItem.CircularNumber = circularNumberText;
+                    //circularListItem.CircularNumber = circularNumberText;
+                    circularListItem.CircularNumber = circularNumberText.replace(`${this.getCircularNumber()}`, ``);
                     this.setState({
                         attachedFile: val.ListData.Attachments.Attachments[0],
                         currentCircularListItemValue: listItem,
@@ -1492,7 +1507,11 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             const { services, serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
 
             let circularNumberText = circularListItem.CircularNumber;
-
+            let circularNumberIndexOf = circularListItem.CircularNumber.indexOf(`${this.getCircularNumber()}`);
+            // if BOB:BR:116: not present then circular Number will be this
+            if (circularNumberIndexOf == -1) {
+                circularListItem.CircularNumber = `${this.getCircularNumber()}` + `${circularNumberText}`;
+            }
 
             /**
             |--------------------------------------------------
@@ -1508,11 +1527,13 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 //this.setState({ isLoading: false });
                 if (currentCircularListItemValue == undefined) {
 
-                    circularListItem.CircularNumber = this.getCircularNumber() + ":" + circularNumberText;
+
+                    // circularListItem.CircularNumber = this.getCircularNumber() + ":" + circularNumberText;
 
                     await services.createItem(serverRelativeUrl, Constants.circularList, circularListItem).then(async (value) => {
 
-                        circularListItem.CircularNumber = circularNumberText;
+                        circularListItem.CircularNumber = circularNumberText.replace(`${this.getCircularNumber()}`, ``);
+                        //circularListItem.CircularNumber = circularNumberText;
 
                         console.log(value)
 
@@ -1523,10 +1544,11 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 }
                 else {
                     let ID = parseInt(currentCircularListItemValue.ID);
-                    circularListItem.CircularNumber = this.getCircularNumber() + ":" + circularListItem.CircularNumber;
+                    // circularListItem.CircularNumber = this.getCircularNumber() + ":" + circularListItem.CircularNumber;
                     //let eTag = currentCircularListItemValue["odata.etag"];
                     await services.updateItem(serverRelativeUrl, Constants.circularList, ID, circularListItem).then((value) => {
-                        circularListItem.CircularNumber = circularNumberText;
+                        // circularListItem.CircularNumber = circularNumberText;
+                        circularListItem.CircularNumber = circularNumberText.replace(`${this.getCircularNumber()}`, ``);
                         console.log(value)
                         this.setState({ isSuccess: true, isLoading: false, circularListItem, currentCircularListItemValue: value })
                     }).catch((error) => {

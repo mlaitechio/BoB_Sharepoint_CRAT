@@ -6,7 +6,7 @@ export class Constants {
   // public static readonly yearsList = "FinancialYears";
   // public static readonly verticalsList = "Verticals";
   public static readonly configurationList = "Configuration";
-  public static readonly circularNo = "BOB:BR:{0}";
+  public static readonly circularNo = "BOB:BR:{0}:";
   public static readonly filterString = "CircularStatus eq 'Published'";
 
 

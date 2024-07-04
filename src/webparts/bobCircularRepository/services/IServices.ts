@@ -13,6 +13,7 @@ export interface IServices {
     breakItemRoleInheritance: (serverRelativeUrl: string, listName: string, itemID) => Promise<any>;
     getSearchResults: (queryText: string, selectedProperties: any[], queryTemplate?: string, refinementFilters?: string, sortList?: any[]) => Promise<any>;
     renderListDataStream: (serverRelativeUrl: string, listName: string, viewXML: string) => Promise<any>;
+    filterLargeListItem: (serverRelativeUrl: string, listName: string, filterString: string) => Promise<any>;
     getListInfo: (serverRelativeUrl: string, listName: string) => Promise<any>;
     getFileById: (fileArray: any[]) => Promise<any>;
     getCurrentUserInformation: (userEmail: string, selectedColumns: string) => Promise<any[]>;

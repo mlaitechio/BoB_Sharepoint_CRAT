@@ -84,6 +84,17 @@ export class Services implements IServices {
         return updateItemResults;
     }
 
+    public async filterLargeListItem(serverRelativeUrl: string, listName: string, filterString: string): Promise<any> {
+        let moreThan5KPromise = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).
+            items.select('ID').filter(filterString)().then((filterItem) => {
+                return Promise.resolve(filterItem)
+            }).catch((error) => {
+                return Promise.reject(error);
+            })
+
+        return moreThan5KPromise;
+    }
+
     public async getCurrentUserInformation(userEmail: string, selectedColumns: string): Promise<any[]> {
 
         // "2cf9fef8-c7cb-48b4-be0c-43c958d4f658"
