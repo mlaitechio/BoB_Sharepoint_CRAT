@@ -256,8 +256,8 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
           }))].sort((a, b) => a < b ? -1 : 1);
 
           const uniquePublishedYear: any[] = [...new Set(listItems.map((item) => {
-            return new Date(item.PublishedDate).getFullYear().toString();
-          }))];
+            return new Date(item.PublishedDate).getFullYear();
+          }))].sort((a, b) => a < b ? -1 : 1);
 
           this.setState({
             items: listItems,
@@ -265,7 +265,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
             departments: uniqueDepartment?.filter((option) => {
               return option != undefined
             }),
-            publishedYear: uniquePublishedYear
+            publishedYear: uniquePublishedYear.map((val) => { return val.toString() })
           }, () => {
             let checkBoxCollection = this.initializeCheckBoxFilter();
             this.setState({ checkBoxCollection: checkBoxCollection, isLoading: false }, () => {

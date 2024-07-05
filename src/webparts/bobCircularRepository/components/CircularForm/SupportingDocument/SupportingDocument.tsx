@@ -48,7 +48,7 @@ export default class SupportingDocument extends React.Component<ISupportingDocum
         // Default Search will always be Circular Status as Published
 
         filterArray.push(`${filterProperties[5]}:equals("${Constants.published}")`);
-        filterArray.push(`${filterProperties[3]}:equals("MSME BANKING DEPARTMENT")`);//${department} MSME BANKING DEPARTMENT IT PROJECTS AND CRM
+        filterArray.push(`${filterProperties[3]}:equals("${department}")`);//${department} MSME BANKING DEPARTMENT IT PROJECTS AND CRM
 
         let filterString = `and(${filterArray.join(',')})`
         let sortListProperty = [{

@@ -10,8 +10,8 @@ export interface ICircularFormState {
     openSupportingCircularFile?: boolean;
     supportingDocLinkItem?: any
     isFormInValid?: boolean;
-    isFileSizeAlert?:boolean;
-    isFileTypeAlert?:boolean;
+    isFileSizeAlert?: boolean;
+    isFileTypeAlert?: boolean;
     alertTitle?: string;
     alertMessage?: string;
     isDeleteCircularFile?: boolean;
@@ -38,6 +38,6 @@ export interface ICircularFormState {
     isSuccess?: boolean;
     isNewForm?: boolean;
     isEditForm?: boolean;
-   
+
 
 }

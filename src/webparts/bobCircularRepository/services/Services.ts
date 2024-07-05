@@ -99,11 +99,12 @@ export class Services implements IServices {
 
         // "2cf9fef8-c7cb-48b4-be0c-43c958d4f658"
         // getById("2cf9fef8-c7cb-48b4-be0c-43c958d4f658")()
-        let myProfile = await sp.profiles.getPropertiesFor(`i:0#.f|membership|Aditya.Pal@bankofbaroda.co.in`).then((val) => {
-            console.log(val)
-        }).catch((error) => {
-            console.log(error)
-        })
+        // let myProfile = await sp.profiles.getPropertiesFor(`i:0#.f|membership|Aditya.Pal@bankofbaroda.co.in`).then((val) => {
+        //     console.log(val)
+        // }).catch((error) => {
+        //     console.log(error)
+        // })
+        //${userEmail}
         let users = await this.graph.users.filter(`mail eq '${userEmail}'`).
             select(`${selectedColumns}`)().then((value) => {
                 return value

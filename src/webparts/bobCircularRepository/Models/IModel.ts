@@ -105,6 +105,7 @@ export interface ICircularListItem {
     SubFileCode?: string;
     Subject?: string;
     SubmittedDate?: string;
+    SupportingDocuments?: string;
 }
 
 export interface IADProperties {

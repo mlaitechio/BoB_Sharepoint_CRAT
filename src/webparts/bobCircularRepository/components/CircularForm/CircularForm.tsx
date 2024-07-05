@@ -66,7 +66,10 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 CommentsCompliance: ``,
                 CircularContent: ``,
                 CircularFAQ: ``,
-                CircularSOP: ``
+                CircularSOP: ``,
+                SubmittedDate: null,
+                CircularCreationDate: null,
+                SupportingDocuments: ``
             },
             currentCircularListItemValue: undefined,
             selectedSupportingCirculars: [],
@@ -110,15 +113,12 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
         let providerValue = this.context;
         const { services, serverRelativeUrl, context } = providerValue as IBobCircularRepositoryProps;
+        const { circularListItem } = this.state
 
         //context.pageContext.user.email;
         this.setState({ isLoading: true }, async () => {
 
-            await services.filterLargeListItem(serverRelativeUrl, Constants.circularList, `CircularNumber eq 'BCC : BR : 95 :89'`).then((listItem) => {
-                console.log(listItem)
-            }).catch((error) => {
-                console.log(error)
-            })
+
 
             await services.getAllFiles(`${serverRelativeUrl}/${Constants.templateFolder}`).then((files: any[]) => {
                 let templates = files.map((file) => {
@@ -174,6 +174,13 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 console.log(error);
                 this.setState({ isLoading: false })
             });
+
+            await services.getCurrentUserInformation(context.pageContext.user.email, Constants.adSelectedColumns).then((val) => {
+                circularListItem.Department = val[0]?.department ?? ``
+                this.setState({ circularListItem })
+            }).catch((error) => {
+                console.log(error)
+            })
         })
 
 
@@ -207,6 +214,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         let message = isFormInValid ? Constants.validationAlertMessage :
             isDeleteCircularFile ? `${Constants.deleteCircularMessage}` : isFileSizeAlert ? Constants.validationAlertMessageFileSize :
                 isFileTypeAlert ? Constants.validationAlertMessageFileType : ``;
+
 
         return (
             <>
@@ -328,8 +336,11 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             classification, isNewForm, isEditForm, selectedSupportingCirculars } = this.state;
         let providerValue = this.context;
         const { context, isUserChecker, isUserMaker, isUserCompliance } = providerValue as IBobCircularRepositoryProps;
+
         let isTypeChecked = circularListItem.CircularType == Constants.unlimited;
         let isTypeDisabled = circularListItem.Classification == Constants.lblMaster;
+
+        let disableCircularNumber = circularListItem.CircularNumber != "" && circularListItem.CircularStatus != Constants.lblNew;
 
         let formSectionJSX = <>
             <div className={`${styles.column12}`} >
@@ -347,7 +358,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 <div className={`${styles.row}  ${styles.formFieldMarginTop}`}>
                     <div className={`${styles.column6}`}>
 
-                        {this.textFieldControl(`${Constants.circularNumber}`, true, `${circularListItem.CircularNumber}`, false, `Field cannot be empty`)}
+                        {this.textFieldControl(`${Constants.circularNumber}`, true, `${circularListItem.CircularNumber}`, disableCircularNumber, `Field cannot be empty`)}
                     </div>
                     <div className={`${styles.column6}`}>
                         {this.dropDownControl(`${Constants.issuedFor}`, true, `${circularListItem.IssuedFor}`, issuedFor, false, `Field cannot be empty`)}
@@ -386,7 +397,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 <Divider appearance="subtle" ></Divider>
                 <div className={`${styles.row} ${styles.formFieldMarginTop}`}>
                     <div className={`${styles.column6}`}>
-                        {this.textFieldControl(`${Constants.department}`, false, `${circularListItem.Department}`)}
+                        {this.textFieldControl(`${Constants.department}`, false, `${circularListItem.Department}`, true)}
                     </div>
                     <div className={`${styles.column6}`}>
                         {this.switchControl(`${Constants.compliance}`, false, `${lblCompliance}`)}
@@ -682,6 +693,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     }
                     <div className={`${columnClassInput}`}>
                         <Input value={value} maxLength={255}
+                            disabled={isDisabled}
                             style={{ width: "100%" }}
                             input={{ style: { width: "100%" } }}
                             className={`${styles.formInput}`}
@@ -804,131 +816,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
     }
 
 
-    private createUpdateCircularFile = () => {
-        const { circularListItem } = this.state;
-        let circularNumberText = circularListItem.CircularNumber;
-        let circularNumberIndexOf = circularListItem.CircularNumber.indexOf(`${this.getCircularNumber()}`);
 
-        // if BOB:BR:116: not present then circular Number will be this
-        if (circularNumberIndexOf == -1) {
-            circularListItem.CircularNumber = `${this.getCircularNumber()}` + `${circularNumberText}`
-        }
-        if (circularListItem.CircularStatus == Constants.lblNew) {
-            this.addCircularItemAndFile();
-        }
-        else {
-            this.updateCircularItemAndFile()
-        }
-    }
-
-    private addCircularItemAndFile = () => {
-
-        let providerValue = this.context;
-        const { services, serverRelativeUrl, context } = providerValue as IBobCircularRepositoryProps;
-        const { templateFiles, selectedTemplate, currentCircularListItemValue, attachedFile, circularListItem } = this.state;
-        let selectedTemplateFile = templateFiles.filter((val) => {
-            return val.templateName == selectedTemplate;
-        })
-
-        if (selectedTemplateFile.length > 0) {
-
-            if (attachedFile == null && currentCircularListItemValue == undefined) {
-                this.setState({ isLoading: true }, async () => {
-
-                    if (circularListItem.CircularStatus == Constants.lblNew) {
-
-                        await services.getFileContent(selectedTemplateFile[0].ServerRelativeUrl).then(async (fileContent) => {
-                            //Set Circular Status as Draft
-                            circularListItem.CircularStatus = Constants.draft;
-
-                            await services.createItem(serverRelativeUrl, Constants.circularList, circularListItem).then(async (listItem) => {
-
-                                this.addAttachmentAsBuffer(listItem, fileContent)
-
-                            }).catch((error) => {
-                                console.log(error);
-                                this.setState({ isLoading: false })
-                            })
-                        }).catch((error) => {
-                            console.log(error);
-                            this.setState({ isLoading: false })
-                        })
-                    }
-
-                })
-
-            }
-
-        }
-
-    }
-
-    private updateCircularItemAndFile = () => {
-        let providerValue = this.context;
-        const { services, serverRelativeUrl, context } = providerValue as IBobCircularRepositoryProps;
-        const { attachedFile, circularListItem, currentCircularListItemValue, templateFiles, selectedTemplate } = this.state;
-        let selectedTemplateFile = templateFiles.filter((val) => {
-            return val.templateName == selectedTemplate;
-        })
-
-        if (currentCircularListItemValue != undefined && attachedFile == null) {
-
-            this.setState({ isLoading: true }, async () => {
-                await services.getFileContent(selectedTemplateFile[0].ServerRelativeUrl).then(async (fileContent) => {
-
-                    let ID = parseInt(currentCircularListItemValue.ID);
-
-                    await services.updateItem(serverRelativeUrl, Constants.circularList, ID, circularListItem).then(async (listItem) => {
-
-                        this.addAttachmentAsBuffer(listItem, fileContent)
-
-                    }).catch((error) => {
-                        console.log(error);
-                        this.setState({ isLoading: false })
-                    })
-                }).catch((error) => {
-                    console.log(error);
-                    this.setState({ isLoading: false })
-                })
-            })
-        }
-    }
-
-    private addAttachmentAsBuffer = async (listItem, fileContent) => {
-        const { circularListItem } = this.state
-        let providerValue = this.context;
-        const { services, serverRelativeUrl, context } = providerValue as IBobCircularRepositoryProps;
-        let circularNumberText = circularListItem.CircularNumber;
-
-        let fileName = circularListItem.CircularNumber.split(':').join('_') + `.docx`; //this.getCircularNumber().split(':').join('_') + `_` + circularNumberText + `.docx`;
-
-        await services.addListItemAttachmentAsBuffer(Constants.circularList, serverRelativeUrl, listItem.ID, fileName, fileContent).
-            then(async () => {
-                await services.getListDataAsStream(serverRelativeUrl, Constants.circularList, listItem.ID).then((val) => {
-                    //circularListItem.CircularNumber = circularNumberText;
-                    circularListItem.CircularNumber = circularNumberText.replace(`${this.getCircularNumber()}`, ``);
-                    this.setState({
-                        attachedFile: val.ListData.Attachments.Attachments[0],
-                        currentCircularListItemValue: listItem,
-                        ...circularListItem
-                    }, () => {
-                        const { attachedFile } = this.state;
-                        //interactivepreview
-                        let documentPreviewURL = `${window.location.origin}/:w:/r${context.pageContext.legacyPageContext.webServerRelativeUrl}/_layouts/15/Doc.aspx?sourcedoc=`;
-                        documentPreviewURL += `${attachedFile.AttachmentId}&file=${encodeURI(attachedFile.FileName)}&action=edit&mobileredirect=true`;
-
-                        this.setState({ documentPreviewURL, isLoading: false })
-
-                    })
-                }).catch((error) => {
-                    console.log(error);
-                    this.setState({ isLoading: false })
-                })
-            }).catch((error) => {
-                console.log(error);
-                this.setState({ isLoading: false })
-            })
-    }
     /**
     |--------------------------------------------------
     | This attachment Link is Circular Content File
@@ -1425,11 +1313,11 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
     private filterPanelSupportingDocument = (): JSX.Element => {
 
-        const { selectedSupportingCirculars } = this.state
+        const { selectedSupportingCirculars, circularListItem } = this.state
         let providerValue = this.context as IBobCircularRepositoryProps;
 
         let panelSupportingDocumentsJSX = <>
-            <SupportingDocument department={``}
+            <SupportingDocument department={`${circularListItem.Department}`}
                 providerValue={providerValue}
                 selectedSupportingCirculars={selectedSupportingCirculars}
                 onDismiss={(supportingCirculars) => {
@@ -1463,6 +1351,29 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         return messageBarJSX;
     }
 
+
+    private checkCircularNumberExist = async (circularNumber): Promise<boolean> => {
+
+        let providerValue = this.context;
+        const { services, serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
+
+        let circularFilterString = Text.format(Constants.filterCircularNumber, circularNumber);
+
+        let validCircularNumberPromise = await services.filterLargeListItem(serverRelativeUrl, Constants.circularList, circularFilterString).then((item) => {
+            if (item.length > 0) {
+                return Promise.resolve(true)
+            }
+            else {
+                return Promise.resolve(false)
+            }
+        }).catch((error) => {
+            console.log(error)
+            return Promise.reject(error)
+        })
+
+        return validCircularNumberPromise;
+
+    }
 
     private clearAllFormFields = () => {
         this.setState({
@@ -1524,37 +1435,35 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             this.setState({ isLoading: true }, async () => {
 
                 console.log(circularListItem)
-                //this.setState({ isLoading: false });
-                if (currentCircularListItemValue == undefined) {
 
+                let isValidCircularNumberNumber = await this.checkCircularNumberExist(circularListItem.CircularNumber).
+                    then((val) => { return val }).catch((error) => {
+                        return false;
+                    })
 
-                    // circularListItem.CircularNumber = this.getCircularNumber() + ":" + circularNumberText;
+                if (!isValidCircularNumberNumber) {
+                    if (currentCircularListItemValue == undefined) {
 
-                    await services.createItem(serverRelativeUrl, Constants.circularList, circularListItem).then(async (value) => {
+                        await services.createItem(serverRelativeUrl, Constants.circularList, circularListItem).then(async (value) => {
+                            circularListItem.CircularNumber = circularNumberText.replace(`${this.getCircularNumber()}`, ``);
+                            console.log(value);
+                            this.setState({ isSuccess: true, isLoading: false, circularListItem, currentCircularListItemValue: value })
+                        }).catch((error) => {
+                            this.setState({ isLoading: false })
+                        });
+                    }
+                    else {
+                        let ID = parseInt(currentCircularListItemValue.ID);
 
-                        circularListItem.CircularNumber = circularNumberText.replace(`${this.getCircularNumber()}`, ``);
-                        //circularListItem.CircularNumber = circularNumberText;
-
-                        console.log(value)
-
-                        this.setState({ isSuccess: true, isLoading: false, circularListItem, currentCircularListItemValue: value })
-                    }).catch((error) => {
-                        this.setState({ isLoading: false })
-                    });
-                }
-                else {
-                    let ID = parseInt(currentCircularListItemValue.ID);
-                    // circularListItem.CircularNumber = this.getCircularNumber() + ":" + circularListItem.CircularNumber;
-                    //let eTag = currentCircularListItemValue["odata.etag"];
-                    await services.updateItem(serverRelativeUrl, Constants.circularList, ID, circularListItem).then((value) => {
-                        // circularListItem.CircularNumber = circularNumberText;
-                        circularListItem.CircularNumber = circularNumberText.replace(`${this.getCircularNumber()}`, ``);
-                        console.log(value)
-                        this.setState({ isSuccess: true, isLoading: false, circularListItem, currentCircularListItemValue: value })
-                    }).catch((error) => {
-                        console.log(error);
-                        this.setState({ isLoading: false })
-                    });
+                        await services.updateItem(serverRelativeUrl, Constants.circularList, ID, circularListItem).then((value) => {
+                            circularListItem.CircularNumber = circularNumberText.replace(`${this.getCircularNumber()}`, ``);
+                            console.log(value)
+                            this.setState({ isSuccess: true, isLoading: false, circularListItem, currentCircularListItemValue: value })
+                        }).catch((error) => {
+                            console.log(error);
+                            this.setState({ isLoading: false })
+                        });
+                    }
                 }
             })
         }
@@ -1563,6 +1472,142 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             this.setState({ isFormInValid: true })
         }
 
+    }
+
+    private createUpdateCircularFile = async () => {
+        const { circularListItem } = this.state;
+        let circularNumberText = circularListItem.CircularNumber;
+        let circularNumberIndexOf = circularListItem.CircularNumber.indexOf(`${this.getCircularNumber()}`);
+
+        // if BOB:BR:116: not present then circular Number will be this
+        if (circularNumberIndexOf == -1) {
+            circularListItem.CircularNumber = `${this.getCircularNumber()}` + `${circularNumberText}`
+        }
+
+        let circularNumberExist = await this.checkCircularNumberExist(circularListItem.CircularNumber).
+            then((val) => {
+                return val
+            }).catch((error) => {
+                return false;
+            })
+
+        if (circularListItem.CircularStatus == Constants.lblNew && !circularNumberExist) {
+            this.addCircularItemAndFile();
+        }
+        else {
+            this.updateCircularItemAndFile()
+        }
+    }
+
+    private addCircularItemAndFile = () => {
+
+        let providerValue = this.context;
+        const { services, serverRelativeUrl, context } = providerValue as IBobCircularRepositoryProps;
+        const { templateFiles, selectedTemplate, currentCircularListItemValue, attachedFile, circularListItem } = this.state;
+        let selectedTemplateFile = templateFiles.filter((val) => {
+            return val.templateName == selectedTemplate;
+        })
+
+        if (selectedTemplateFile.length > 0) {
+
+            if (attachedFile == null && currentCircularListItemValue == undefined) {
+                this.setState({ isLoading: true }, async () => {
+
+
+
+                    if (circularListItem.CircularStatus == Constants.lblNew) {
+
+                        await services.getFileContent(selectedTemplateFile[0].ServerRelativeUrl).then(async (fileContent) => {
+                            //Set Circular Status as Draft
+                            circularListItem.CircularStatus = Constants.draft;
+
+                            await services.createItem(serverRelativeUrl, Constants.circularList, circularListItem).then(async (listItem) => {
+
+                                this.addAttachmentAsBuffer(listItem, fileContent)
+
+                            }).catch((error) => {
+                                console.log(error);
+                                this.setState({ isLoading: false })
+                            })
+                        }).catch((error) => {
+                            console.log(error);
+                            this.setState({ isLoading: false })
+                        })
+                    }
+
+                })
+
+            }
+
+        }
+
+    }
+
+    private updateCircularItemAndFile = () => {
+        let providerValue = this.context;
+        const { services, serverRelativeUrl, context } = providerValue as IBobCircularRepositoryProps;
+        const { attachedFile, circularListItem, currentCircularListItemValue, templateFiles, selectedTemplate } = this.state;
+        let selectedTemplateFile = templateFiles.filter((val) => {
+            return val.templateName == selectedTemplate;
+        })
+
+        if (currentCircularListItemValue != undefined && attachedFile == null) {
+
+            this.setState({ isLoading: true }, async () => {
+                await services.getFileContent(selectedTemplateFile[0].ServerRelativeUrl).then(async (fileContent) => {
+
+                    let ID = parseInt(currentCircularListItemValue.ID);
+
+                    await services.updateItem(serverRelativeUrl, Constants.circularList, ID, circularListItem).then(async (listItem) => {
+
+                        this.addAttachmentAsBuffer(listItem, fileContent)
+
+                    }).catch((error) => {
+                        console.log(error);
+                        this.setState({ isLoading: false })
+                    })
+                }).catch((error) => {
+                    console.log(error);
+                    this.setState({ isLoading: false })
+                })
+            })
+        }
+    }
+
+    private addAttachmentAsBuffer = async (listItem, fileContent) => {
+        const { circularListItem } = this.state
+        let providerValue = this.context;
+        const { services, serverRelativeUrl, context } = providerValue as IBobCircularRepositoryProps;
+        let circularNumberText = circularListItem.CircularNumber;
+
+        let fileName = circularListItem.CircularNumber.split(':').join('_') + `.docx`; //this.getCircularNumber().split(':').join('_') + `_` + circularNumberText + `.docx`;
+
+        await services.addListItemAttachmentAsBuffer(Constants.circularList, serverRelativeUrl, listItem.ID, fileName, fileContent).
+            then(async () => {
+                await services.getListDataAsStream(serverRelativeUrl, Constants.circularList, listItem.ID).then((val) => {
+                    //circularListItem.CircularNumber = circularNumberText;
+                    circularListItem.CircularNumber = circularNumberText.replace(`${this.getCircularNumber()}`, ``);
+                    this.setState({
+                        attachedFile: val.ListData.Attachments.Attachments[0],
+                        currentCircularListItemValue: listItem,
+                        ...circularListItem
+                    }, () => {
+                        const { attachedFile } = this.state;
+                        //interactivepreview
+                        let documentPreviewURL = `${window.location.origin}/:w:/r${context.pageContext.legacyPageContext.webServerRelativeUrl}/_layouts/15/Doc.aspx?sourcedoc=`;
+                        documentPreviewURL += `${attachedFile.AttachmentId}&file=${encodeURI(attachedFile.FileName)}&action=edit&mobileredirect=true`;
+
+                        this.setState({ documentPreviewURL, isLoading: false })
+
+                    })
+                }).catch((error) => {
+                    console.log(error);
+                    this.setState({ isLoading: false })
+                })
+            }).catch((error) => {
+                console.log(error);
+                this.setState({ isLoading: false })
+            })
     }
 
 }

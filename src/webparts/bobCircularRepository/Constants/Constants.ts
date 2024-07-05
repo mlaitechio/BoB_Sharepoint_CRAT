@@ -8,6 +8,7 @@ export class Constants {
   public static readonly configurationList = "Configuration";
   public static readonly circularNo = "BOB:BR:{0}:";
   public static readonly filterString = "CircularStatus eq 'Published'";
+  public static readonly filterCircularNumber = `CircularNumber eq '{0}'`;
 
 
   public static readonly makerGroup = "Maker";
