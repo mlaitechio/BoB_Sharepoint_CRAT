@@ -15,6 +15,7 @@ import { Services } from './services/Services';
 import { IServices } from './services/IServices';
 import { Constants } from './Constants/Constants';
 import { IListInfo } from '@pnp/sp/presets/all';
+import { IADProperties } from './Models/IModel';
 
 export interface IBobCircularRepositoryWebPartProps {
   description: string;
@@ -29,6 +30,7 @@ export default class BobCircularRepositoryWebPart extends BaseClientSideWebPart<
   private isUserMaker = false;
   private isUserChecker = false;
   private isUserCompliance = false;
+  private _userInformation: IADProperties = null;
 
   public render(): void {
     const element: React.ReactElement<IBobCircularRepositoryProps> = React.createElement(
@@ -45,7 +47,8 @@ export default class BobCircularRepositoryWebPart extends BaseClientSideWebPart<
         circularListID: this._circularRepoListID,
         isUserMaker: this.isUserMaker,
         isUserCompliance: this.isUserCompliance,
-        isUserChecker: this.isUserChecker
+        isUserChecker: this.isUserChecker,
+        userInformation: this._userInformation
       }
     );
 
@@ -60,8 +63,6 @@ export default class BobCircularRepositoryWebPart extends BaseClientSideWebPart<
     this._environmentMessage = this._getEnvironmentMessage();
 
     return super.onInit().then(async _ => {
-
-      
 
       this._services = new Services(this.context);
 
@@ -92,10 +93,14 @@ export default class BobCircularRepositoryWebPart extends BaseClientSideWebPart<
         console.log(error)
       })
 
+      await this._services.getCurrentUserInformation(`${this.context.pageContext.user.email}`, Constants.adSelectedColumns).then((userInfo) => {
+        this._userInformation = userInfo[0];
+      }).catch((error) => {
+        console.log(error)
+      })
+
     });
   }
-
-
 
   private _getEnvironmentMessage(): Promise<string> {
     if (!!this.context.sdks.microsoftTeams) { // running in Teams, office.com or Outlook

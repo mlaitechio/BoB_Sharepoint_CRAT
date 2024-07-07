@@ -77,6 +77,7 @@ export interface ICircularListItem {
     CircularSOP?: string;
     CircularStatus?: string;
     CircularType?: string;
+    CircularTemplate?: string;
     Classification?: string;
     CommentsChecker?: string;
     CommentsCompliance?: string;
@@ -106,6 +107,7 @@ export interface ICircularListItem {
     Subject?: string;
     SubmittedDate?: string;
     SupportingDocuments?: string;
+
 }
 
 export interface IADProperties {

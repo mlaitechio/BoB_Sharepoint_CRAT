@@ -231,17 +231,16 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   }
 
   public componentDidMount() {
+    this.loadCircularRepository()
+  }
+
+
+  private loadCircularRepository = () => {
+
     let providerValue = this.context;
-    const { services, serverRelativeUrl, context } = providerValue as IBobCircularRepositoryProps;
+    const { services, serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
 
     this.setState({ isLoading: true }, async () => {
-
-
-      await services.getCurrentUserInformation(`Aditya.Pal@bankofbaroda.com`, Constants.adSelectedColumns).then((val) => {
-        console.log(val);
-      }).catch((error) => {
-        console.log(error)
-      })
 
       await services.getPagedListItems(serverRelativeUrl,
         Constants.circularList, Constants.colCircularRepository, `${Constants.filterString}`,
@@ -276,38 +275,6 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
           console.log(error);
           this.setState({ isLoading: false })
         });
-
-      // await services.getLargeListItems(serverRelativeUrl, Constants.circularList, Constants.colCircularRepository, Constants.expandColCircularRepository).
-      //   then((value) => {
-      //     const listItems = value?.filter((val) => {
-      //       return val.CircularStatus == Constants.published;
-      //     })
-
-      //     const uniqueDepartment: any[] = [...new Set(listItems.map((item) => {
-      //       return item.Department;
-      //     }))].sort((a, b) => a < b ? -1 : 1);
-
-      //     const uniquePublishedYear: any[] = [...new Set(listItems.map((item) => {
-      //       return new Date(item.PublishedDate).getFullYear().toString();
-      //     }))];
-
-      //     this.setState({
-      //       items: listItems,
-      //       filteredItems: listItems,
-      //       departments: uniqueDepartment?.filter((option) => {
-      //         return option != undefined
-      //       }),
-      //       publishedYear: uniquePublishedYear
-      //     }, () => {
-      //       let checkBoxCollection = this.initializeCheckBoxFilter();
-      //       this.setState({ checkBoxCollection: checkBoxCollection, isLoading: false }, () => {
-      //         this.setState({ filterPanelCheckBoxCollection: checkBoxCollection })
-      //       });
-      //     })
-      //   }).catch((error) => {
-      //     console.log(error);
-      //     this.setState({ isLoading: false })
-      //   });
 
     })
   }
@@ -753,7 +720,9 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                   fontFamily: "Roboto",
                   padding: 10,
                   cursor: "pointer",
-                  fontSize: "var(--fontSizeHero700)"
+                  fontSize: "var(--fontSizeBase500)",
+                  fontWeight: "var(--fontWeightSemibold)",
+                  lineHeight: "var(--lineHeightBase500)"
                 }}>Circulars {`(${filteredItems.length})`}</FluentLabel>
               </div>
             </div>
@@ -958,7 +927,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                   </TableCellLayout>
                 </TableCell> */}
                 <TableCell colSpan={2}>
-                  <TableCellLayout className={`${styles1.verticalSpacing}`} style={{ textTransform: "capitalize" }}>
+                  <TableCellLayout className={`${styles1.verticalSpacing}`}>
                     {val.Department}
                   </TableCellLayout>
                 </TableCell>
@@ -1703,74 +1672,47 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   private searchResults = (newValue?: string) => {
     let providerValue = this.context;
     const { context, services, serverRelativeUrl, circularListID } = providerValue as IBobCircularRepositoryProps;
-
+    const { searchText, circularNumber, checkBoxCollection } = this.state
     let siteID = context.pageContext.site.id;
     let webID = context.pageContext.web.id;
     let siteURL = context.pageContext.site.absoluteUrl;
+    let checkedValues = []
+    checkBoxCollection?.forEach((filters) => {
+      filters.filter((val) => {
+        return val.refinableString != "RefinableString00"
+      }).map((val) => {
+        if (val.checked) {
+          checkedValues.push(val);
+        }
+      })
+    })
 
-    this.setState({ isLoading: true }, async () => {
+    if (searchText != "" || circularNumber != "" || checkedValues.length > 0) {
+      this.setState({ isLoading: true }, async () => {
 
-      let listItemData: any[] = [];
-      let searchProperties = Constants.selectedSearchProperties;
-      const { searchText, sortingFields, sortDirection } = this.state
-      let queryTemplate = `{searchTerms} (siteId:{${siteID}} OR siteId:${siteID}) (webId:{${webID}} OR webId:${webID}) (NormListID:${circularListID}) `;
-      queryTemplate += `(path:"${siteURL}/Lists/${Constants.circularList}" OR ParentLink:"${siteURL}/Lists/${Constants.circularList}*") ContentTypeId:0x0* `;
+        let listItemData: any[] = [];
+        let searchProperties = Constants.selectedSearchProperties;
+        const { searchText, sortingFields, sortDirection } = this.state
+        let queryTemplate = `{searchTerms} (siteId:{${siteID}} OR siteId:${siteID}) (webId:{${webID}} OR webId:${webID}) (NormListID:${circularListID}) `;
+        queryTemplate += `(path:"${siteURL}/Lists/${Constants.circularList}" OR ParentLink:"${siteURL}/Lists/${Constants.circularList}*") ContentTypeId:0x0* `;
 
-      let refinableFilterQuery = this.refinableQuery();
-      let advancedSearchTextAndFilterQuery = this.searchQueryAndFilterQuery();
-      let sortListProperty = [{
-        Property: Constants.managePropPublishedDate,
-        Direction: 1 //0 for asc & 1 for descending
-      }]
+        let refinableFilterQuery = this.refinableQuery();
+        let advancedSearchTextAndFilterQuery = this.searchQueryAndFilterQuery();
+        let sortListProperty = [{
+          Property: Constants.managePropPublishedDate,
+          Direction: 1 //0 for asc & 1 for descending
+        }]
 
-      /**
-      |--------------------------------------------------
-      | This is to search text inside List Metadata & attachments with below refinments
-      | It will search using Search Text in QueryText Search Properties & then use below
-        refinableFilterQuery -> Department,CircularNumber,PublishedDate filters 
-      |--------------------------------------------------
-      */
-      await services.
-        getSearchResults(searchText.trim() == '' ? `` : searchText, searchProperties, queryTemplate, refinableFilterQuery, sortListProperty).
-        then(async (searchResults: any[]) => {
-          searchResults.map((val) => {
-
-            listItemData.push({
-              ID: parseInt(val.ListItemID),
-              Id: parseInt(val.ListItemID),
-              Created: val?.Created,
-              CircularNumber: val.RefinableString00,
-              Subject: val.RefinableString01,
-              MigratedDepartment: val.RefinableString02,
-              Department: val.RefinableString03,
-              Category: val.RefinableString04,
-              IsMigrated: val.RefinableString05,
-              Classification: val.RefinableString06,
-              PublishedDate: val.RefinableDate00,
-              IssuedFor: val.RefinableString08
-            })
-
-          })
-        }).catch((error) => {
-          console.log(error);
-          this.setState({ isLoading: false })
-        });
-
-      /**
-      |--------------------------------------------------
-      | Query Text= * , 
-      | Will do the search text from search box inside Subject using Refinment Filters & Other Refinable Filters
-      | This for combination of Search Text + Refinment Filters. 
-      | It searches Subject using search text & then adds Refinment Filters.
-      | It will do * Search in Query Text Property & add RefinmentFilters= (Subject:or(SearchText) + Refinment Filters)
-      | 
-      |--------------------------------------------------
-      */
-      if (advancedSearchTextAndFilterQuery != "") {
-
-        await services.getSearchResults('', searchProperties, queryTemplate, advancedSearchTextAndFilterQuery, sortListProperty).
+        /**
+        |--------------------------------------------------
+        | This is to search text inside List Metadata & attachments with below refinments
+        | It will search using Search Text in QueryText Search Properties & then use below
+          refinableFilterQuery -> Department,CircularNumber,PublishedDate filters 
+        |--------------------------------------------------
+        */
+        await services.
+          getSearchResults(searchText.trim() == '' ? `` : searchText, searchProperties, queryTemplate, refinableFilterQuery, sortListProperty).
           then(async (searchResults: any[]) => {
-
             searchResults.map((val) => {
 
               listItemData.push({
@@ -1789,25 +1731,67 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
               })
 
             })
-
           }).catch((error) => {
             console.log(error);
             this.setState({ isLoading: false })
           });
-      }
+
+        /**
+        |--------------------------------------------------
+        | Query Text= * , 
+        | Will do the search text from search box inside Subject using Refinment Filters & Other Refinable Filters
+        | This for combination of Search Text + Refinment Filters. 
+        | It searches Subject using search text & then adds Refinment Filters.
+        | It will do * Search in Query Text Property & add RefinmentFilters= (Subject:or(SearchText) + Refinment Filters)
+        | 
+        |--------------------------------------------------
+        */
+        if (advancedSearchTextAndFilterQuery != "") {
+
+          await services.getSearchResults('', searchProperties, queryTemplate, advancedSearchTextAndFilterQuery, sortListProperty).
+            then(async (searchResults: any[]) => {
+
+              searchResults.map((val) => {
+
+                listItemData.push({
+                  ID: parseInt(val.ListItemID),
+                  Id: parseInt(val.ListItemID),
+                  Created: val?.Created,
+                  CircularNumber: val.RefinableString00,
+                  Subject: val.RefinableString01,
+                  MigratedDepartment: val.RefinableString02,
+                  Department: val.RefinableString03,
+                  Category: val.RefinableString04,
+                  IsMigrated: val.RefinableString05,
+                  Classification: val.RefinableString06,
+                  PublishedDate: val.RefinableDate00,
+                  IssuedFor: val.RefinableString08
+                })
+
+              })
+
+            }).catch((error) => {
+              console.log(error);
+              this.setState({ isLoading: false })
+            });
+        }
 
 
-      let uniqueResults = advancedSearchTextAndFilterQuery != "" ? [...new Map(listItemData.map(item =>
-        [item["Id"], item])).values()] : listItemData;
+        let uniqueResults = advancedSearchTextAndFilterQuery != "" ? [...new Map(listItemData.map(item =>
+          [item["Id"], item])).values()] : listItemData;
 
-      let searchFilterItems = uniqueResults.filter((val) => { return val !== undefined });
+        let searchFilterItems = uniqueResults.filter((val) => { return val !== undefined });
 
-      this.setState({
-        filteredItems: this.sortListItems(searchFilterItems, sortingFields, sortDirection),
-        searchItems: searchFilterItems, currentPage: 1, isLoading: false
-      })
+        this.setState({
+          filteredItems: this.sortListItems(searchFilterItems, sortingFields, sortDirection),
+          searchItems: searchFilterItems, currentPage: 1, isLoading: false
+        })
 
-    });
+      });
+    }
+    else {
+      this.loadCircularRepository()
+    }
 
   }
 
@@ -1856,8 +1840,9 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
   private searchQueryAndFilterQuery = (): string => {
 
-    const { selectedDepartment, searchText, isNormalSearch, circularNumber, circularRefinerOperator,
-      publishedStartDate, publishedEndDate, checkBoxCollection } = this.state;
+    const { searchText, isNormalSearch, circularNumber, circularRefinerOperator,
+      checkBoxCollection } = this.state;
+
 
     /**
     |--------------------------------------------------
@@ -1875,10 +1860,10 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
    
     |--------------------------------------------------
     */
-    let departmentVal = selectedDepartment[0] ?? ``;//RefinableString03
+    // let departmentVal = selectedDepartment[0] ?? ``;//RefinableString03
     let circularVal = circularNumber != "" ? circularNumber : ``;
-    let publishedStartVal = publishedStartDate?.toISOString() ?? ``;//RefinableDate00
-    let publishedEndVal = publishedEndDate?.toISOString() ?? ``;
+    // let publishedStartVal = publishedStartDate?.toISOString() ?? ``;//RefinableDate00
+    // let publishedEndVal = publishedEndDate?.toISOString() ?? ``;
 
 
     let advanceFilterString = "";
@@ -1917,12 +1902,8 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     filterArray.push(`${filterProperties[5]}:equals("${Constants.published}")`);
 
     if (!isNormalSearch) {
-      `${departmentVal != "" ? filterArray.push(`${filterProperties[3]}:equals("${departmentVal}")`) : ``} `;
-      `${circularVal != "" ? filterArray.push(`${filterProperties[0]}:${circularRefinerOperator}("${circularVal}*")`) : ``} `;
-      // if (publishedStartVal != "" && publishedEndVal != "") {
-      //   filterArray.push(`${filterProperties[4]}: range(${publishedStartVal.split('T')[0]}T23:59:59Z, ${publishedEndVal.split('T')[0]}T23:59:59Z)`)
-      // }
 
+      `${circularVal != "" ? filterArray.push(`${filterProperties[0]}:${circularRefinerOperator}("${circularVal}*")`) : ``} `;
       if (publishedStartYear != null && publishedEndYear != null) {
         filterArray.push(`${filterProperties[4]}: range(${publishedStartYear}T23:59:59Z, ${publishedEndYear}T23:59:59Z)`)
       }
@@ -2017,8 +1998,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   */
 
   private refinableQuery = () => {
-    const { selectedDepartment, searchText, isNormalSearch, circularNumber, circularRefinerOperator,
-      publishedStartDate, publishedEndDate, checkBoxCollection } = this.state;
+    const { isNormalSearch, circularNumber, circularRefinerOperator, checkBoxCollection } = this.state;
 
     /**
     |--------------------------------------------------
@@ -2035,18 +2015,16 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         RefinableString09 -> Compliance
     |--------------------------------------------------
     */
-    let departmentVal = selectedDepartment[0] ?? ``;//RefinableString03
+    // let departmentVal = selectedDepartment[0] ?? ``;//RefinableString03
     let circularVal = circularNumber != "" ? circularNumber : ``;
-    let publishedStartVal = publishedStartDate?.toISOString() ?? ``;//RefinableDate00
-    let publishedEndVal = publishedEndDate?.toISOString() ?? ``;
+    // let publishedStartVal = publishedStartDate?.toISOString() ?? ``;//RefinableDate00
+    // let publishedEndVal = publishedEndDate?.toISOString() ?? ``;
 
     let filterArray = [];
 
     let advanceFilterString = "";
 
     let filterProperties = Constants.filterSearchProperties;
-
-    let searchTextRefinment = this.normalSearchQuery(searchText);
 
     let checkBoxFilterString = "";
 
@@ -2069,7 +2047,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     }
 
     if (!isNormalSearch) {
-      `${departmentVal != "" ? filterArray.push(`${filterProperties[3]}:equals("${departmentVal}")`) : ``} `;
+      //`${departmentVal != "" ? filterArray.push(`${filterProperties[3]}:equals("${departmentVal}")`) : ``} `;
       `${circularVal != "" ? filterArray.push(`${filterProperties[0]}:${circularRefinerOperator}("${circularVal}*")`) : ``} `;
       // if (publishedStartVal != "" && publishedEndVal != "") {
       //   filterArray.push(`${filterProperties[4]}: range(${publishedStartVal.split('T')[0]}T23:59:59Z, ${publishedEndVal.split('T')[0]}T23:59:59Z)`)

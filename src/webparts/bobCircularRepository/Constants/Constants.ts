@@ -1,10 +1,9 @@
 export class Constants {
-  public static readonly headerText = "Circular Repository Access Tool";
+  public static readonly headerText = "Circular Repository Access Tool(CRAT)";
   public static readonly searchText = "Search";
   //public static readonly documentCategoryList = "DocumentCategory";
   public static readonly circularList = "CircularRepository";
-  // public static readonly yearsList = "FinancialYears";
-  // public static readonly verticalsList = "Verticals";
+
   public static readonly configurationList = "Configuration";
   public static readonly circularNo = "BOB:BR:{0}:";
   public static readonly filterString = "CircularStatus eq 'Published'";
@@ -14,11 +13,28 @@ export class Constants {
   public static readonly makerGroup = "Maker";
   public static readonly checkerGroup = "Checker";
   public static readonly complianceGroup = "Compliance";
-
-
-
-
   public static readonly headerCircularUpload = "{0} Circular Upload";
+
+  /**
+  |--------------------------------------------------
+  | Edit Circular ,Pending Compliance & Pending Checker Filter string
+  |--------------------------------------------------
+  */
+  public static readonly editCircularFilterString = "CircularStatus eq 'Draft' or CircularStatus eq 'Comments from Compliance' or CircularStatus eq 'Comments from Checker'"
+  public static readonly compliancePendingFilterString = "(CircularStatus eq 'Submitted to Compliance' or CircularStatus eq 'Comments from Checker') and (Compliance eq 'Yes')";
+  public static readonly checkerPendingFilterString = "(CircularStatus eq 'Approved by Compliance' or CircularStatus eq 'Submitted to Checker') and (Compliance eq 'No')";
+
+  /**
+  |--------------------------------------------------
+  | MegaMenu Constants
+  |--------------------------------------------------
+  */
+
+  public static readonly lblHome = "Home";
+  public static readonly lblAddCircular = "Add Circular";
+  public static readonly lblEditCircular = "Edit Circular";
+  public static readonly lblPendingCompliance = "Pending Compliance Request";
+  public static readonly lblPendingChecker = "Pending Checker Request";
 
   /**
   |--------------------------------------------------
@@ -57,6 +73,7 @@ export class Constants {
   public static readonly validationAlertMessage = "Please input all fields marked as *";
   public static readonly validationAlertMessageFileSize = "File Size is greater than 5MB";
   public static readonly validationAlertMessageFileType = "File type is not .pdf or .docx";
+  public static readonly validationCircularNumber = "Circular Number Already exist.";
   public static readonly deleteCircularTitle = `Delete Circular File`;
   public static readonly deleteCircularMessage = `Are you sure you want to delete the file?`;
 

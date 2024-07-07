@@ -7,6 +7,8 @@ import { FluentProvider, IdPrefixProvider, webDarkTheme, webLightTheme, Theme } 
 import { ContextProvider } from "../DataContext/DataContext";
 import Header from "./Header/Header";
 import CircularForm from './CircularForm/CircularForm';
+import { Constants } from '../Constants/Constants';
+import EditDashBoard from './EditDashBoard/EditDashBoard';
 
 export const customLightTheme: Theme = {
   ...webLightTheme,
@@ -20,8 +22,11 @@ export const customLightTheme: Theme = {
 }
 
 export interface IBobCircularRepositoryState {
-  isCreateCircular?: boolean;
   isHome?: boolean;
+  isCreateCircular?: boolean;
+  isEditCircular?: boolean;
+  isPendingCompliance: boolean;
+  isPendingChecker: boolean;
 }
 
 export default class BobCircularRepository extends React.Component<IBobCircularRepositoryProps, IBobCircularRepositoryState> {
@@ -33,15 +38,17 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
     super(props)
 
     this.state = {
-      isCreateCircular: false,
-      isHome: true
+      isHome: false,
+      isCreateCircular: true,
+      isEditCircular: false,
+      isPendingChecker: false,
+      isPendingCompliance: false
+
     }
 
     this.formRef = React.createRef();
     this.navRef = React.createRef();
   }
-
-
 
 
   public hideSharePointComponents() {
@@ -151,7 +158,7 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
   }
 
   public render(): React.ReactElement<IBobCircularRepositoryProps> {
-    const { isCreateCircular, isHome } = this.state
+    const { isCreateCircular, isHome, isEditCircular, isPendingCompliance, isPendingChecker } = this.state
 
     return (
       <>
@@ -168,12 +175,7 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
                 </div> */}
                   <div className={`${styles.column12}`} ref={ref => this.formRef = ref} style={{ padding: 0 }}>
                     <ContextProvider value={this.props}>
-                      <Header
-                        onGoBackHome={() => { this.setState({ isHome: true, isCreateCircular: false }) }}
-                        addCircular={this.onAddNewCircular}
-                        editCircular={() => { }}
-                        deleteCircular={() => { }}
-                        pendingRequest={() => { }}></Header>
+                      <Header onMenuSubMenuLinkClick={this.onMenuSubMenuClick}></Header>
                     </ContextProvider>
                     {isHome && <ContextProvider value={this.props}>
                       <CircularSearch />
@@ -181,10 +183,33 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
                     }
                     {isCreateCircular && <>
                       <ContextProvider value={this.props}>
-                        <CircularForm onGoBack={() => { this.setState({ isHome: true, isCreateCircular: false }) }} />
+                        <CircularForm displayMode={Constants.lblNew}
+                          onGoBack={() => { this.setState({ isHome: true, isCreateCircular: false }) }} />
                       </ContextProvider>
                     </>
                     }
+                    {
+                      isEditCircular && <>
+                        <ContextProvider value={this.props}>
+                          <EditDashBoard filterString={Constants.editCircularFilterString} />
+                        </ContextProvider>
+
+                      </>
+                    }
+                    {
+                      (isPendingCompliance) && <>
+                        <ContextProvider value={this.props}>
+                          <EditDashBoard filterString={Constants.compliancePendingFilterString} />
+                        </ContextProvider></>
+                    }
+
+                    {
+                      (isPendingChecker) && <>
+                        <ContextProvider value={this.props}>
+                          <EditDashBoard filterString={Constants.checkerPendingFilterString} />
+                        </ContextProvider></>
+                    }
+
                   </div>
                 </div>
 
@@ -197,7 +222,36 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
     );
   }
 
-  private onAddNewCircular = () => {
-    this.setState({ isCreateCircular: true, isHome: false });
+  private onMenuSubMenuClick = (labelName) => {
+    switch (labelName) {
+      case Constants.lblHome: this.setState({
+        isHome: true, isCreateCircular: false, isEditCircular: false,
+        isPendingCompliance: false, isPendingChecker: false
+      });
+        break;
+      case Constants.lblAddCircular: this.setState({
+        isHome: false, isCreateCircular: true, isEditCircular: false,
+        isPendingCompliance: false, isPendingChecker: false
+      });
+        break;
+      case Constants.lblEditCircular: this.setState({
+        isHome: false, isCreateCircular: false, isEditCircular: true,
+        isPendingCompliance: false, isPendingChecker: false
+      });
+        break;
+      case Constants.lblPendingCompliance: this.setState({
+        isHome: false, isCreateCircular: false, isEditCircular: false,
+        isPendingCompliance: true, isPendingChecker: false
+      });
+        break;
+      case Constants.lblPendingChecker: this.setState({
+        isHome: false, isCreateCircular: false, isEditCircular: false,
+        isPendingCompliance: false, isPendingChecker: true
+      });
+        break;
+    }
+
   }
+
+
 }

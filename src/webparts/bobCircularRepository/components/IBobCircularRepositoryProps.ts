@@ -1,6 +1,7 @@
 import { ResponsiveMode } from "@fluentui/react";
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 import { IServices } from "../services/IServices";
+import { IADProperties } from "../Models/IModel";
 
 export interface IBobCircularRepositoryProps {
   description: string;
@@ -9,6 +10,7 @@ export interface IBobCircularRepositoryProps {
   hasTeamsContext: boolean;
   userDisplayName: string;
   context?: WebPartContext;
+  userInformation?: IADProperties;
   responsiveMode?: ResponsiveMode;
   serverRelativeUrl?: any;
   services?: IServices;

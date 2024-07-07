@@ -7,7 +7,7 @@ import { DataContext } from '../../DataContext/DataContext';
 import { IBobCircularRepositoryProps } from '../IBobCircularRepositoryProps';
 import { Constants } from '../../Constants/Constants';
 import { IconButton } from '@fluentui/react'
-import { Button, Link, Menu, MenuButton, MenuItem, MenuList, MenuPopover, MenuTrigger } from '@fluentui/react-components';
+import { Button, Divider, Link, Menu, MenuButton, MenuItem, MenuList, MenuPopover, MenuTrigger } from '@fluentui/react-components';
 import { AddCircleRegular, AddRegular, CheckboxPersonRegular, ClockRegular, DeleteRegular, EditRegular, HomeRegular, NavigationFilled, NavigationRegular, ShieldPersonAddRegular, TaskListLtrRegular } from '@fluentui/react-icons';
 
 export default class Header extends React.Component<IHeaderProps, IHeaderState> {
@@ -33,7 +33,7 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
 
     public render() {
 
-        const { addCircular, editCircular, deleteCircular, pendingRequest } = this.props
+        const { onMenuSubMenuLinkClick } = this.props
         let providerContext = this.context;
         this.masterProps = providerContext as IBobCircularRepositoryProps;
 
@@ -49,8 +49,10 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
         let headerClassTabletMode = `${styles.column6}`;
         let logoImg = context.pageContext.web.absoluteUrl + "/_api/siteiconmanager/getsitelogo";//require('../../assets/sidbilogo.png')
 
-        return (
-            <div className={`${styles.row} ${styles.headerBgColor} ${styles.minHeight}`}>
+        // ${styles.headerBgColor}
+
+        return (<>
+            <div className={`${styles.row}  ${styles.minHeight}`}>
 
                 {(desktopMode) && <>
 
@@ -64,16 +66,17 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                                 verticalAlign: "-webkit-baseline-middle",
                                 // minHeight: 40,
                                 height: 50,
-                                width: "90%"
+                                width: "100%"
                                 //width: responsiveMode == 5 ? 250 : `100%`
                             }
                         }}></Image>
                     </div>
                 </>
                 }
+                {/* ${styles.textColor}  */}
                 {(desktopMode) &&
                     <div className={`${headerClass} 
-                    ${styles.headerTextAlignLeft} ${styles.textColor} 
+                    ${styles.headerTextAlignLeft} 
                     ${styles.padding} ${styles.minHeight} `}>
                         <>
                             {`${Constants.headerText}`}
@@ -85,52 +88,55 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                     <div className={`${styles.column6}`}>
 
                         <Button className={`${styles.formBtn}`}
-                            appearance="primary" icon={<HomeRegular />}
+                            appearance="transparent" icon={<HomeRegular />}
                             iconPosition="before"
-                            onClick={() => { this.props.onGoBackHome() }}
+                            onClick={() => { onMenuSubMenuLinkClick(Constants.lblHome) }}
 
                         >Home</Button>
 
                         {isUserMaker && <Menu>
                             <MenuTrigger disableButtonEnhancement>
-                                <MenuButton className={`${styles.formBtn}`} appearance="primary" icon={<TaskListLtrRegular />}>Circular</MenuButton>
+                                <MenuButton className={`${styles.formBtn}`} appearance="transparent" icon={<TaskListLtrRegular />}>Circular</MenuButton>
 
                             </MenuTrigger>
                             <MenuPopover>
                                 <MenuList>
                                     <MenuItem className={`${styles.fontRoboto}`} icon={<AddCircleRegular />}
-                                        onClick={() => { this.props.addCircular() }}>Add Circular</MenuItem>
+                                        onClick={() => { onMenuSubMenuLinkClick(Constants.lblAddCircular) }}>Add Circular</MenuItem>
                                     <MenuItem className={`${styles.fontRoboto}`}
                                         icon={<EditRegular />}
-                                        onClick={() => { this.props.editCircular() }}>
+                                        onClick={() => { onMenuSubMenuLinkClick(Constants.lblEditCircular) }}>
                                         Edit Circular</MenuItem>
-                                    <MenuItem className={`${styles.fontRoboto}`}
+                                    {/* <MenuItem className={`${styles.fontRoboto}`}
                                         icon={<DeleteRegular />}
-                                        onClick={() => { this.props.deleteCircular() }}>Delete Circular</MenuItem>
+                                        onClick={() => { onMenuSubMenuLinkClick(Constants.lblEditCircular) }}>Delete Circular</MenuItem> */}
                                 </MenuList>
                             </MenuPopover>
                         </Menu>}
                         {isUserCompliance && <Menu>
                             <MenuTrigger disableButtonEnhancement>
                                 <MenuButton className={`${styles.formBtn}`}
-                                    appearance="primary" icon={<ShieldPersonAddRegular /> }
-                                    onClick={() => { this.props.pendingRequest() }}>Compilance</MenuButton>
+                                    appearance="transparent" icon={<ShieldPersonAddRegular />}
+                                    onClick={() => { }}>Compilance</MenuButton>
                             </MenuTrigger>
                             <MenuPopover>
                                 <MenuList>
                                     <MenuItem className={`${styles.fontRoboto}`} icon={<ClockRegular />}
-                                        onClick={() => { this.props.pendingRequest() }}>Pending Request</MenuItem>
+                                        onClick={() => { onMenuSubMenuLinkClick(Constants.lblPendingCompliance) }}>Pending Request</MenuItem>
                                 </MenuList>
                             </MenuPopover>
                         </Menu>}
                         {isUserChecker && <Menu>
                             <MenuTrigger disableButtonEnhancement>
-                                <MenuButton className={`${styles.fontRoboto}`} appearance="primary" 
-                                icon={<CheckboxPersonRegular />}>Checker</MenuButton>
+                                <MenuButton className={`${styles.fontRoboto}`} appearance="transparent"
+                                    icon={<CheckboxPersonRegular />}>Checker</MenuButton>
                             </MenuTrigger>
                             <MenuPopover>
                                 <MenuList>
-                                    <MenuItem className={`${styles.fontRoboto}`} icon={<ClockRegular />}>Pending Request</MenuItem>
+                                    <MenuItem
+                                        onClick={() => { onMenuSubMenuLinkClick(Constants.lblPendingChecker) }}
+                                        className={`${styles.fontRoboto}`}
+                                        icon={<ClockRegular />}>Pending Request</MenuItem>
                                 </MenuList>
                             </MenuPopover>
                         </Menu>}
@@ -138,7 +144,7 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                 }
                 {
                     (desktopMode) && <>
-                        <div className={`${styles.column2} ${styles.textColor} ${styles.user} ${styles.textAlignEnd} `}
+                        <div className={`${styles.column2} ${styles.user} ${styles.textAlignEnd} `}
                             title={`${userDisplayName}`}
                             style={{}}>
                             {`${userDisplayName}`}
@@ -200,7 +206,10 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                         </div>
                     </>
                 }
+
             </div>
+            <Divider appearance="subtle"></Divider>
+        </>
         )
     }
 

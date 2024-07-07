@@ -2,9 +2,20 @@ import * as React from 'react';
 import { ISupportingDocumentProps } from './ISupportingDocumentProps';
 import { ISupportingDocumentState } from './ISupportingDocumentState';
 import { IBasePickerSuggestionsProps, IInputProps, ITag, Panel, PanelType, TagPicker as Picker, ValidationState } from '@fluentui/react';
-import { Button, Checkbox, FluentProvider, Label, webLightTheme } from '@fluentui/react-components';
+import { Button, Checkbox, FluentProvider, Label, Theme, webLightTheme } from '@fluentui/react-components';
 import { Constants } from '../../../Constants/Constants';
 import styles from '../../BobCircularRepository.module.scss';
+
+export const customLightTheme: Theme = {
+    ...webLightTheme,
+    colorBrandBackground: "#162B75",
+    colorBrandBackgroundHover: "#162B75",
+    colorBrandBackgroundSelected: "#162B75",
+    colorBrandForegroundOnLightPressed: "#162B75",
+    colorNeutralForeground2BrandHover: "#162B75",
+    colorSubtleBackgroundHover: "#ffff",
+    colorSubtleBackgroundPressed: "#ffff"
+}
 
 export default class SupportingDocument extends React.Component<ISupportingDocumentProps, ISupportingDocumentState> {
 
@@ -48,7 +59,7 @@ export default class SupportingDocument extends React.Component<ISupportingDocum
         // Default Search will always be Circular Status as Published
 
         filterArray.push(`${filterProperties[5]}:equals("${Constants.published}")`);
-        filterArray.push(`${filterProperties[3]}:equals("${department}")`);//${department} MSME BANKING DEPARTMENT IT PROJECTS AND CRM
+        filterArray.push(`${filterProperties[3]}:equals("MSME BANKING DEPARTMENT")`);//${department} MSME BANKING DEPARTMENT IT PROJECTS AND CRM
 
         let filterString = `and(${filterArray.join(',')})`
         let sortListProperty = [{
@@ -110,7 +121,7 @@ export default class SupportingDocument extends React.Component<ISupportingDocum
             return val.checked == true
         }).length;
         return (
-            checkBoxCollection.size > 0 && <FluentProvider theme={webLightTheme}>
+            checkBoxCollection.size > 0 && <FluentProvider theme={customLightTheme}>
                 <Panel isOpen={isSupportingPanelOpen}
                     isLightDismiss={true}
                     onDismiss={() => {
@@ -123,7 +134,7 @@ export default class SupportingDocument extends React.Component<ISupportingDocum
                     }}
                     type={PanelType.smallFixedFar}
                     onRenderFooterContent={() => <>
-                        <FluentProvider theme={webLightTheme}>
+                        <FluentProvider theme={customLightTheme}>
                             <div className={`${styles.row}`}>
                                 <div className={`${styles.column12}`}>
                                     <Button appearance="primary"
