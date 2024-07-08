@@ -94,7 +94,7 @@ export interface ICircularListItem {
     IsMigrated?: string;
     Attachments?: IAttachments;
     MasterCircularMapping?: string;
-    Author?: IUserInformation;
+    Author?: string;
     MigratedDepartment?: string;
     MigratedDocPath?: string;
     MigratedIssuedFor?: string;

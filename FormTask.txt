@@ -46,17 +46,21 @@ Department field disabled with pre populated field (Done)
 Supporting Documents put department of respective users (Done)
 Show Supporting Documents in circular search dashboard
 SOP File Naming convention
-Supporting Documents JSON format
+Supporting Documents JSON format (Done)
 Restrict File Limit to 5 SOP Files
 Delete Circular List Item if in Draft Mode
-Circular Creation Date Change in Object (Done)
-Supporting Documents Field Creation -->done
-Edit Circular Screens & Pagination pending
-Add  one more condition for department of user in edit circular filter string
+Circular Creation Date Change in Object (Done) 
+Supporting Documents Field Creation -->(done)
+Edit Circular Screens (Done) & Pagination pending
+View Circular Compliance & Checker
+Add  one more condition for department of user in edit circular filter string (Pending)
 Maximum how many supporting documents can be attached? --> No limit, Certainly have to keep a limit of 20
 Compliance User Permission Mapping with Department --
 Checker User Permission Mapping with Department
 Comments Section ,History Section
 Employee ID watermarking from Azure AD
 Responsive SCSS changes
+Document Interaction preview
 Master Circular should be editable in 2nd quarter of the year
+CircularCreation Date Issue on Display
+After published PDF File Conversion

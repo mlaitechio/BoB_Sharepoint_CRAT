@@ -38,6 +38,17 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
     }
 
     public async componentDidMount() {
+        this.onEditDashBoardLoad();
+    }
+
+    public componentDidUpdate(prevProps: Readonly<IEditDashBoardProps>, prevState: Readonly<IEditDashBoardState>, snapshot?: any): void {
+        if (prevProps.stateKey != this.props.stateKey) {
+            this.onEditDashBoardLoad()
+        }
+    }
+
+
+    private onEditDashBoardLoad = () => {
         let providerValue = this.context;
         const { services, serverRelativeUrl, isUserMaker, isUserChecker, isUserCompliance } = providerValue as IBobCircularRepositoryProps;
         const { filterString } = this.props
@@ -53,18 +64,20 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                         return []
                     })
                 }))
-                this.setState({ listItems: allListItems.sort((a, b) => a.ID > b.ID ? -1 : 1), isLoading: false })
+                this.setState({
+                    listItems: allListItems.sort((a, b) => a.ID > b.ID ? -1 : 1),
+                    isItemEdited: false,
+                    isLoading: false
+                })
             }).catch((error) => {
                 console.log(error);
                 this.setState({ isLoading: false })
             })
         })
-
-
     }
 
     render() {
-        const { isLoading, openSupportingDoc, supportingDocItem, isItemEdited } = this.state;
+        const { isLoading, openSupportingDoc, supportingDocItem, isItemEdited, editFormItem } = this.state;
         let providerValue = this.context;
         const { context } = providerValue as IBobCircularRepositoryProps;
         return (
@@ -73,7 +86,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                     isLoading && this.workingOnIt()
                 }
                 {
-                    this.circularResults()
+                    !isItemEdited && this.circularResults()
                 }
                 {
                     openSupportingDoc && <FileViewer
@@ -84,7 +97,15 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                     />
                 }
                 {
-                    isItemEdited && <CircularForm displayMode={Constants.lblEditCircular} onGoBack={() => { }} />
+                    isItemEdited &&
+                    <CircularForm
+                        editFormItem={editFormItem}
+                        displayMode={Constants.lblEditCircular}
+                        onGoBack={() => {
+                            this.setState({ isItemEdited: false }, () => {
+                                this.onEditDashBoardLoad()
+                            })
+                        }} />
                 }
 
             </>
@@ -146,7 +167,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {listItems && listItems.length > 0 && listItems.map((val: ICircularListItem, index) => {
+                            {listItems && listItems.length > 0 && listItems.map((val: any, index) => {
 
                                 let isFieldSelected = (accordionFields.isSummarySelected || accordionFields.isTypeSelected || accordionFields.isCategorySelected || accordionFields.isSupportingDocuments);
                                 let isCurrentItem = currentSelectedItemId == val.ID;
@@ -281,7 +302,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
 
 
     private editCircular = (selectedItem) => {
-
+        this.setState({ isItemEdited: true, editFormItem: selectedItem });
     }
 
     private supportingDocument = (supportingCirculars): JSX.Element => {

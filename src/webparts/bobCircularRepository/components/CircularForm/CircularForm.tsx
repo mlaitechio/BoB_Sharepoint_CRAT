@@ -27,7 +27,7 @@ import { Add16Filled, ArrowCounterclockwiseRegular, ArrowLeftFilled, ArrowUpload
 import { IBobCircularRepositoryProps } from '../IBobCircularRepositoryProps';
 import { Dialog } from '@fluentui/react-components';
 import { DialogContent } from '@fluentui/react';
-import { IADProperties, ICircularListItem } from '../../Models/IModel';
+import { IADProperties, IAttachmentsInfo, ICircularListItem } from '../../Models/IModel';
 import { IFileInfo } from '@pnp/sp/files';
 import SupportingDocument from './SupportingDocument/SupportingDocument';
 import FileViewer from '../FileViewer/FileViewer';
@@ -114,46 +114,12 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
     public async componentDidMount() {
 
         let providerValue = this.context;
-        const { services, serverRelativeUrl, context } = providerValue as IBobCircularRepositoryProps;
+        const { services, serverRelativeUrl, context, userInformation } = providerValue as IBobCircularRepositoryProps;
         const { circularListItem } = this.state
-        const { displayMode } = this.props
+        const { displayMode, editFormItem } = this.props
 
         //context.pageContext.user.email;
         this.setState({ isLoading: true }, async () => {
-
-            await services.getAllFiles(`${serverRelativeUrl}/${Constants.templateFolder}`).then((files: any[]) => {
-                let templates = files.map((file) => {
-                    return file.Name.split('.')[0]
-                });
-
-                let templateFiles = files.map((file) => {
-                    file.templateName = file.Name.split('.')[0];
-                    return file;
-                })
-
-                this.setState({ templates, templateFiles })
-
-            }).catch((error) => {
-                console.log(error);
-                this.setState({ isLoading: false })
-            })
-
-            //context.pageContext.user.email
-            // await services.getCurrentUserInformation(`Aditya.Pal@bankofbaroda.com`, Constants.adSelectedColumns).then((val: IADProperties[]) => {
-            //     console.log(val)
-            // }).catch((error) => {
-            //     console.log(error);
-            //     this.setState({ isLoading: false })
-            // })
-
-            await services.getLatestItemId(serverRelativeUrl, Constants.circularList).then((itemID) => {
-                const { circularListItem } = this.state;
-                circularListItem.CircularNumber = parseInt(itemID + 1).toString();
-                this.setState({ circularListItem })
-            }).catch((error) => {
-                console.log(`Latest Item ID` + error);
-                this.setState({ isLoading: false })
-            })
 
             await this.fieldValues(Constants.colIssuedFor).then((val) => {
                 this.setState({ issuedFor: val?.Choices ?? [] })
@@ -176,15 +142,121 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 this.setState({ isLoading: false })
             });
 
-            await services.getCurrentUserInformation(context.pageContext.user.email, Constants.adSelectedColumns).then((val) => {
-                circularListItem.Department = val[0]?.department ?? ``
-                this.setState({ circularListItem })
+            await services.getAllFiles(`${serverRelativeUrl}/${Constants.templateFolder}`).then((files: any[]) => {
+                let templates = files.map((file) => {
+                    return file.Name.split('.')[0]
+                });
+
+                let templateFiles = files.map((file) => {
+                    file.templateName = file.Name.split('.')[0];
+                    return file;
+                })
+
+                this.setState({ templates, templateFiles })
+
             }).catch((error) => {
-                console.log(error)
+                console.log(error);
+                this.setState({ isLoading: false })
             })
+
+            if (displayMode == Constants.lblNew) {
+                circularListItem.Department = userInformation?.department ?? ``;
+                await services.getLatestItemId(serverRelativeUrl, Constants.circularList).then((itemID) => {
+                    const { circularListItem } = this.state;
+                    circularListItem.CircularNumber = parseInt(itemID + 1).toString();
+                    this.setState({ circularListItem, isLoading: false })
+                }).catch((error) => {
+                    console.log(`Latest Item ID` + error);
+                    this.setState({ isLoading: false })
+                })
+
+                this.setState({ circularListItem })
+            }
+            else if (displayMode == Constants.lblEditCircular) {
+                this.onEditFormLoad(editFormItem)
+            }
+
         })
 
 
+    }
+
+
+    private onEditFormLoad = (editFormItem) => {
+
+        let providerValue = this.context;
+        const { context } = providerValue as IBobCircularRepositoryProps;
+
+        let editCircularItem = {
+            CircularCreationDate: editFormItem.CircularCreationDate && editFormItem.CircularCreationDate != "" ? new Date(editFormItem?.CircularCreationDate)?.toISOString() : null,
+            Subject: editFormItem?.Subject ?? ``,
+            CircularNumber: editFormItem?.CircularNumber ?? ``,
+            IssuedFor: editFormItem?.IssuedFor ?? ``,
+            Category: editFormItem?.Category ?? ``,
+            CircularStatus: editFormItem?.CircularStatus ?? ``,
+            Classification: editFormItem?.Classification ?? ``,
+            SubFileCode: editFormItem?.SubFileCode ?? ``,
+            Keywords: editFormItem?.Keywords ?? ``,
+            Expiry: editFormItem?.Expiry && editFormItem?.Expiry != "" ? new Date(editFormItem?.Expiry)?.toISOString(): null,
+            CircularType: editFormItem?.CircularType ?? ``,
+            Department: editFormItem?.Department ?? ``,
+            Compliance: editFormItem?.Compliance ?? ``,
+            CircularTemplate: editFormItem?.CircularTemplate ?? ``,
+            SupportingDocuments: editFormItem?.SupportingDocuments ?? ``,
+            Gist: editFormItem?.Gist ?? ``,
+            CircularFAQ: editFormItem?.CircularFAQ ?? ``,
+            CommentsMaker: editFormItem?.CommentsMaker ?? ``,
+            CommentsChecker: editFormItem?.CommentsChecker ?? ``,
+            CommentsCompliance: editFormItem?.CommentsCompliance ?? ``,
+
+        } as ICircularListItem
+
+        this.setState({
+            circularListItem: editCircularItem,
+            currentCircularListItemValue: editFormItem,
+
+        }, () => {
+            let supportingCirculars = [];
+            if (editFormItem?.SupportingDocuments) {
+                supportingCirculars = JSON.parse(editFormItem.SupportingDocuments);
+            }
+
+            this.setState({
+                selectedSupportingCirculars: supportingCirculars,
+                attachedFile: editFormItem?.Attachments != "" ? editFormItem?.Attachments?.Attachments[0] : null
+            }, () => {
+                const { attachedFile } = this.state;
+                //interactivepreview
+                let documentPreviewURL = ``
+                if (attachedFile != null) {
+                    documentPreviewURL = `${window.location.origin}/:w:/r${context.pageContext.legacyPageContext.webServerRelativeUrl}/_layouts/15/Doc.aspx?sourcedoc=`;
+                    documentPreviewURL += `${attachedFile.AttachmentId}&file=${encodeURI(attachedFile.FileName)}&action=edit&mobileredirect=true`;
+                }
+
+                editCircularItem.CircularTemplate = attachedFile == null ? `` : editFormItem?.CircularTemplate;
+
+                this.setState({
+                    documentPreviewURL,
+                    selectedTemplate: attachedFile != null ? editCircularItem.CircularTemplate : ``,
+                    circularListItem: editCircularItem,
+                    expiryDate: editFormItem?.Expiry != null && editFormItem.Expiry != "" ?
+                        new Date(editFormItem.Expiry) : null,
+                    isLoading: false
+                })
+            })
+
+        })
+    }
+
+
+    private editCircularContentFile = (editFormItem) => {
+        let circularContentFile = null;
+        if (editFormItem?.Attachments && editFormItem.Attachments.Attachments.length > 0) {
+            let allFiles: IAttachmentsInfo[] = editFormItem.Attachments.Attachments as IAttachmentsInfo[];
+            circularContentFile = allFiles.filter((val) => {
+                return val.FileName.indexOf(`_SOP`) < -1
+            })
+        }
     }
 
 
@@ -204,15 +276,21 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
     }
 
     public render() {
+
+        const { displayMode } = this.props
+
         const { isBack, isDelete, isLoading, isSuccess,
             documentPreviewURL, attachedFile,
             isFormInValid, openSupportingDocument,
             isDeleteCircularFile, isFileSizeAlert, isFileTypeAlert, isDuplicateCircular,
             openSupportingCircularFile } = this.state;
+
         let showAlert = (isDelete || isBack);
+
         let title = isFormInValid || isFileSizeAlert || isFileTypeAlert || isDuplicateCircular ?
             Constants.validationAlertTitle :
             isDeleteCircularFile ? `${Constants.deleteCircularTitle}` : ``;
+
         let message = isFormInValid ? Constants.validationAlertMessage :
             isDeleteCircularFile ? `${Constants.deleteCircularMessage}` :
                 isFileSizeAlert ? Constants.validationAlertMessageFileSize :
@@ -233,7 +311,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     </div>
                     <div className={`${styles.column10} ${styles.headerBackgroundColor} ${styles['text-center']}`}>
                         <Label className={`${styles.formHeader}`}>
-                            {Text.format(Constants.headerCircularUpload, "New")}
+                            {Text.format(Constants.headerCircularUpload, `${displayMode == Constants.lblNew ? Constants.lblNew : "Edit"}`)}
                         </Label>
 
                     </div>
@@ -307,11 +385,16 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
     private infoHeader = (): JSX.Element => {
 
-        const { circularListItem } = this.state
+        const { circularListItem, currentCircularListItemValue } = this.state;
+        const { displayMode } = this.props
         let providerValue = this.context;
         const { context } = providerValue as IBobCircularRepositoryProps;
-        let requester = context.pageContext.user.displayName;
-        let circularCreationDate = this.onFormatDate(new Date());
+        let requester = displayMode == Constants.lblNew ? context.pageContext.user.displayName :
+            currentCircularListItemValue?.Author?.split('#')[1].replace(',', '');
+        let circularCreationDate = displayMode == Constants.lblNew ? this.onFormatDate(new Date()) :
+            this.onFormatDate(new Date(currentCircularListItemValue?.CircularCreationDate));
+
+
         let infoSectionJSX = <>
 
             <div className={`${styles.column12}`}>
@@ -341,9 +424,11 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             classification, isNewForm, isEditForm, selectedSupportingCirculars } = this.state;
         let providerValue = this.context;
         const { context, isUserChecker, isUserMaker, isUserCompliance } = providerValue as IBobCircularRepositoryProps;
+        const { displayMode } = this.props
 
         let isTypeChecked = circularListItem.CircularType == Constants.unlimited;
         let isTypeDisabled = circularListItem.Classification == Constants.lblMaster;
+
 
         let disableCircularNumber = circularListItem.CircularNumber != "" && circularListItem.CircularStatus != Constants.lblNew;
 
@@ -362,8 +447,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 <Divider appearance="subtle" ></Divider>
                 <div className={`${styles.row}  ${styles.formFieldMarginTop}`}>
                     <div className={`${styles.column6}`}>
-
                         {this.textFieldControl(`${Constants.circularNumber}`, true, `${circularListItem.CircularNumber}`, disableCircularNumber, `Field cannot be empty`)}
+
                     </div>
                     <div className={`${styles.column6}`}>
                         {this.dropDownControl(`${Constants.issuedFor}`, true, `${circularListItem.IssuedFor}`, issuedFor, false, `Field cannot be empty`)}
@@ -680,8 +765,10 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
     }
 
     private textFieldControl = (labelName: string, isRequired: boolean, value: string, isDisabled?: boolean, errorMessage?: string, placeholder?: string): JSX.Element => {
+        const { displayMode } = this.props
         let columnClassLabel = labelName == Constants.circularNumber ? `${styles.column3}` : ``;
-        let columnClassInput = labelName == Constants.circularNumber ? `${styles.column9}` : `${styles.column12}`
+        let columnClassInput = labelName == Constants.circularNumber && displayMode == Constants.lblNew ?
+            `${styles.column9}` : `${styles.column12}`
 
         let textFieldJSX = <>
             <Field label={<Label className={`${styles.formLabel} ${styles.fieldTitle}`}>{labelName}</Label>}
@@ -689,7 +776,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 validationState={isRequired && value == "" ? "error" : "none"}
                 validationMessage={isRequired && value == "" ? errorMessage : ``} >
                 <div className={`${styles.row}`}>
-                    {labelName == Constants.circularNumber &&
+                    {labelName == Constants.circularNumber && displayMode == Constants.lblNew &&
                         <div className={`${columnClassLabel}`} style={{ marginTop: 5 }}>
                             <Label className={`${styles.formLabel} ${styles.fieldTitle}`} style={{ fontWeight: 400 }}>
                                 {this.getCircularNumber()}
@@ -699,6 +786,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     <div className={`${columnClassInput}`}>
                         <Input value={value} maxLength={255}
                             disabled={isDisabled}
+                            type={labelName == Constants.circularNumber && displayMode == Constants.lblNew ? "number" : "text"}
                             style={{ width: "100%" }}
                             input={{ style: { width: "100%" } }}
                             className={`${styles.formInput}`}
@@ -727,10 +815,14 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         }
     }
 
-    private getCircularNumber = (): string => {
+    private getCircularNumber = (circularNo?: string): string => {
+        const { displayMode } = this.props
         let currentDate = new Date();
-
         let circularNumber = Text.format(Constants.circularNo, (currentDate.getFullYear() - 1908))
+        // if(displayMode!=Constants.lblNew){
+        //     circularNumber=circularNumber.split()
+        // }
+
         return circularNumber;
     }
 
@@ -1242,7 +1334,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         let dialogControlJSX = <>
             <Dialog modalType="alert" defaultOpen={(showAlert)}>
                 <DialogSurface>
-                    <DialogBody >
+                    <DialogBody style={{gridTemplateColumns:"1fr 0fr auto"}}>
                         <DialogTitle style={{ fontFamily: "Roboto" }}>{isDelete ? `Delete Circular` : `Back to Home`}</DialogTitle>
                         <DialogContent styles={{ header: { display: "none" }, inner: { padding: 0 }, innerContent: { fontFamily: "Roboto" } }}>
                             {isDelete ? `Are you sure you want to delete the circular?` : `Are you sure you want to leave this page?`}
@@ -1370,22 +1462,28 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         const { selectedSupportingCirculars, circularListItem } = this.state;
         let index = selectedSupportingCirculars.indexOf(supportingCircular);
         if (index > -1) {
-            //selectedSupportingCirculars.splice(index, 1);
-            delete selectedSupportingCirculars[index];
+            selectedSupportingCirculars.splice(index, 1);
+            //delete selectedSupportingCirculars[index];
             this.setState({ selectedSupportingCirculars }, () => {
                 const { selectedSupportingCirculars } = this.state;
-                if (selectedSupportingCirculars.length > 0) {
-                    let supportingDoc = selectedSupportingCirculars.map((val: ICircularListItem) => {
-                        return {
-                            ID: val.ID,
-                            Id: val.Id,
-                            CircularNumber: val.CircularNumber
-                        }
-                    });
 
+                let supportingDoc = selectedSupportingCirculars?.map((val: ICircularListItem) => {
+                    return {
+                        ID: val.ID,
+                        Id: val.Id,
+                        CircularNumber: val.CircularNumber
+                    }
+                });
+
+                if (supportingDoc.length > 0) {
                     circularListItem.SupportingDocuments = JSON.stringify(supportingDoc);
-                    this.setState({ circularListItem })
                 }
+                else {
+                    circularListItem.SupportingDocuments = ``;
+                }
+
+                this.setState({ circularListItem })
+
             })
         }
     }
@@ -1418,6 +1516,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
     private saveForm = (status?: string) => {
         const { circularListItem, currentCircularListItemValue, isNewForm } = this.state;
         let isFormValid = this.validateAllRequiredFields();
+        const { displayMode } = this.props
         if (isFormValid) {
 
             let providerValue = this.context;
@@ -1467,7 +1566,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     //In this if condition Circular Number is already in disabled state
                     if (circularListItem.CircularStatus != Constants.lblNew) {
                         await services.updateItem(serverRelativeUrl, Constants.circularList, ID, circularListItem).then((value) => {
-                            circularListItem.CircularNumber = circularNumberText.replace(`${this.getCircularNumber()}`, ``);
+                            circularListItem.CircularNumber = displayMode == Constants.lblNew ? circularNumberText.replace(`${this.getCircularNumber()}`, ``) : circularListItem.CircularNumber;
+                            value.Author = currentCircularListItemValue.Author;
                             console.log(value)
                             this.setState({ isSuccess: true, isLoading: false, circularListItem, currentCircularListItemValue: value })
                         }).catch((error) => {
@@ -1579,15 +1679,14 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             return val.templateName == selectedTemplate;
         })
 
-        if (currentCircularListItemValue != undefined && attachedFile == null) {
+        if (currentCircularListItemValue && attachedFile == null) {
 
             this.setState({ isLoading: true }, async () => {
                 await services.getFileContent(selectedTemplateFile[0].ServerRelativeUrl).then(async (fileContent) => {
 
                     let ID = parseInt(currentCircularListItemValue.ID);
-
                     await services.updateItem(serverRelativeUrl, Constants.circularList, ID, circularListItem).then(async (listItem) => {
-
+                        listItem.Author = currentCircularListItemValue.Author;
                         this.addAttachmentAsBuffer(listItem, fileContent)
 
                     }).catch((error) => {
@@ -1607,14 +1706,16 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         let providerValue = this.context;
         const { services, serverRelativeUrl, context } = providerValue as IBobCircularRepositoryProps;
         let circularNumberText = circularListItem.CircularNumber;
-
+        const { displayMode } = this.props
         let fileName = circularListItem.CircularNumber.split(':').join('_') + `.docx`; //this.getCircularNumber().split(':').join('_') + `_` + circularNumberText + `.docx`;
 
         await services.addListItemAttachmentAsBuffer(Constants.circularList, serverRelativeUrl, listItem.ID, fileName, fileContent).
             then(async () => {
                 await services.getListDataAsStream(serverRelativeUrl, Constants.circularList, listItem.ID).then((val) => {
                     //circularListItem.CircularNumber = circularNumberText;
-                    circularListItem.CircularNumber = circularNumberText.replace(`${this.getCircularNumber()}`, ``);
+                    //circularListItem.CircularNumber = circularNumberText.replace(`${this.getCircularNumber()}`, ``);
+                    circularListItem.CircularNumber = displayMode == Constants.lblNew ? circularNumberText.replace(`${this.getCircularNumber()}`, ``) : circularListItem.CircularNumber
+
                     this.setState({
                         attachedFile: val.ListData.Attachments.Attachments[0],
                         currentCircularListItemValue: listItem,

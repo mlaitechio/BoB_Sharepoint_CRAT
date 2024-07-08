@@ -1,4 +1,25 @@
 
+      //context.pageContext.user.email
+            // await services.getCurrentUserInformation(`Aditya.Pal@bankofbaroda.com`, Constants.adSelectedColumns).then((val: IADProperties[]) => {
+            //     console.log(val)
+            // }).catch((error) => {
+            //     console.log(error);
+            //     this.setState({ isLoading: false })
+            // })
+
+
+
+
+
+
+
+            // await services.getCurrentUserInformation(context.pageContext.user.email, Constants.adSelectedColumns).then((val) => {
+            //     circularListItem.Department = val[0]?.department ?? ``
+            //     this.setState({ circularListItem })
+            // }).catch((error) => {
+            //     console.log(error)
+            // })
+      
       {/* <div className={`${styles.row} ${styles1.search}`} style={{ marginTop: 10 }}>
 
 

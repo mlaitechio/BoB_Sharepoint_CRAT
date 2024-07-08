@@ -5,8 +5,10 @@ export interface IEditDashBoardState {
     accordionFields?: any;
     currentSelectedItemId?: any;
     currentSelectedItem?: ICircularListItem;
+    editFormItem?: any;
+    isItemEdited?: boolean;
     isLoading?: boolean;
     openSupportingDoc?: boolean;
     supportingDocItem?: ICircularListItem;
-    isItemEdited?: boolean;
+    
 }

@@ -1,4 +1,7 @@
+import { ICircularListItem } from "../../Models/IModel";
+
 export interface ICircularFormProps {
-    onGoBack?: () => void;
+    onGoBack?: (currentPage?: string) => void;
     displayMode?: string;
+    editFormItem?: ICircularListItem;
 }

@@ -39,8 +39,8 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
 
     this.state = {
       isHome: false,
-      isCreateCircular: true,
-      isEditCircular: false,
+      isCreateCircular: false,
+      isEditCircular: true,
       isPendingChecker: false,
       isPendingCompliance: false
 
@@ -191,7 +191,11 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
                     {
                       isEditCircular && <>
                         <ContextProvider value={this.props}>
-                          <EditDashBoard filterString={Constants.editCircularFilterString} />
+                          <EditDashBoard
+                            stateKey={new Date().toString()}
+                            filterString={Constants.editCircularFilterString}
+                            
+                          />
                         </ContextProvider>
 
                       </>
@@ -199,7 +203,7 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
                     {
                       (isPendingCompliance) && <>
                         <ContextProvider value={this.props}>
-                          <EditDashBoard filterString={Constants.compliancePendingFilterString} />
+                          <EditDashBoard stateKey={new Date().toString()} filterString={Constants.compliancePendingFilterString} />
                         </ContextProvider></>
                     }
 
