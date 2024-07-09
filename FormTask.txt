@@ -14,53 +14,59 @@ Form Related Task
 13. Working on it Dialog 
 14. Success message Dialog
 ---- List of Task ----
-15. If no search criteria is added , do rest api call to get all items
+15. If no search criteria is added , do rest api call to get all items (Done)
 16. Supporting Documents with Pop up & selection functionality (Master --> Previous year & published & department circulars) (Circulars - All years ,published & related to department)
-17. FAQ
-18. Edit Circular Dashboard Screen / Edit Circular Form Draft & Returned 
+17. FAQ (Done)
+18. Edit Circular Dashboard Screen / Edit Circular Form Draft & Returned (Done)
 19. Delete Circular Screen/ Delete Circular Form in Draft Mode
-20. Annunal Year Updation flow
-21. Compliance Pending Request Dashboard
-22. Checker Pending Request Dashboard
-23. Create Circular 
-24. Graph api get EmployeeCode & Department
+20. Annunal Year Updation flow 
+21. Compliance Pending Request Dashboard (Done)
+22. Checker Pending Request Dashboard (Done)
+23. Create Circular Content File (Done) & Delete and Recreate with new template (Done)
+24. Graph api get EmployeeCode & Department (Done)
 25. Add Watermark text to the all published Documents with two different text
-26. Iframe docx file upload.(Naming convention according to circular number)
+26. Iframe docx file upload.(Naming convention according to circular number) (Done)
 27. Comments Compliance History
 28. Comments Checker History
 29. SOP upload maximum 5 MB file with File Name change & attachment added
-30. Circular Content delete with pop up & naming convention
-31. Department value fill up
-32. Auto increment ID to be added in circular
-33. Full Screen View
-34. Add Validation Field text below date picker field
+30. Circular Content delete with pop up & naming convention (Done)
+31. Department value fill up (Done)
+32. Auto increment ID to be added in circular (Done)
+33. Full Screen View (Pending)
+34. Add Validation Field text below date picker field (Done)
 35. Docx & PDF restriction in SOP Upload
 36. Error alert to be shown to the users
 37.CircularCreation Date logic
 38.Delete Circular List Item when in draft mode
+
+SOP File Naming convention
+Restrict File Limit to 5 SOP Files
+Edit Circular Screens (Done) & Pagination pending
+Add  one more condition for department of user in edit circular filter string (Pending)
+
+Maximum how many supporting documents can be attached? --> No limit, Certainly have to keep a limit of 20
+Compliance User Permission Mapping with Department
+Checker User Permission Mapping with Department
+Comments Section ,History Section
+
+Responsive SCSS changes
+Document Interaction preview 
+editFormItem Department Mapping
+Master Circular should be editable in 2nd quarter of the year
+
+After published PDF File Conversion
 
 Circular Number Duplicate Check (Done)
 Circular Number Alert on duplicate check (Done)
 Circular Number Disabled after saved as version draft (Done)
 Department field disabled with pre populated field (Done)
 Supporting Documents put department of respective users (Done)
-Show Supporting Documents in circular search dashboard
-SOP File Naming convention
+Show Supporting Documents in circular search dashboard (Done)
 Supporting Documents JSON format (Done)
-Restrict File Limit to 5 SOP Files
 Delete Circular List Item if in Draft Mode
 Circular Creation Date Change in Object (Done) 
 Supporting Documents Field Creation -->(done)
-Edit Circular Screens (Done) & Pagination pending
-View Circular Compliance & Checker
-Add  one more condition for department of user in edit circular filter string (Pending)
-Maximum how many supporting documents can be attached? --> No limit, Certainly have to keep a limit of 20
-Compliance User Permission Mapping with Department --
-Checker User Permission Mapping with Department
-Comments Section ,History Section
-Employee ID watermarking from Azure AD
-Responsive SCSS changes
-Document Interaction preview
-Master Circular should be editable in 2nd quarter of the year
-CircularCreation Date Issue on Display
-After published PDF File Conversion
+View Circular Compliance & Checker (Done)
+Employee ID watermarking from Azure AD (Done)
+CircularCreation Date Issue on Display (Done)
+

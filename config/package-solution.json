@@ -3,7 +3,7 @@
   "solution": {
     "name": "bob-circular-repository-client-side-solution",
     "id": "f5c83ced-f26d-4b11-ad22-a209937ed6f9",
-    "version": "1.0.0.5",
+    "version": "1.0.0.6",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,

@@ -6,9 +6,12 @@ export interface IEditDashBoardState {
     currentSelectedItemId?: any;
     currentSelectedItem?: ICircularListItem;
     editFormItem?: any;
-    isItemEdited?: boolean;
+    loadDashBoard?: boolean;
     isLoading?: boolean;
+    currentPageName?: string;
     openSupportingDoc?: boolean;
     supportingDocItem?: ICircularListItem;
-    
+    loadEditForm?: boolean;
+    loadViewForm?: boolean;
+
 }

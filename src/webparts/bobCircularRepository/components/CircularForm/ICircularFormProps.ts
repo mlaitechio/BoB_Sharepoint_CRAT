@@ -4,4 +4,5 @@ export interface ICircularFormProps {
     onGoBack?: (currentPage?: string) => void;
     displayMode?: string;
     editFormItem?: ICircularListItem;
+    
 }

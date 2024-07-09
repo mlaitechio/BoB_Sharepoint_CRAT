@@ -220,8 +220,8 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
         const { isPanelOpen, initialPreviewFileUrl, allFiles, fileContent, choiceGroup, selectedFile, isAllowedToUpdate, showLoading } = this.state;
         const { listItem } = this.props;
         let providerValue = this.context;
-        const { responsiveMode, context } = providerValue as IBobCircularRepositoryProps;
-        const waterMarkText = context.pageContext.user.displayName;
+        const { responsiveMode, context, userInformation } = providerValue as IBobCircularRepositoryProps;
+        const waterMarkText = userInformation?.employeeId ?? context.pageContext.user.displayName;  //context.pageContext.user.displayName;
         let isMobileMode = responsiveMode == 0 || responsiveMode == 1 || responsiveMode == 2;
         let informationColumn = isMobileMode ? `${styles.column12}` : `${styles.column12}`;
         let filePreviewColumn = isMobileMode ? `${styles.column12}` : `${styles.column12}`
@@ -237,7 +237,7 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
                     isLightDismiss={true}
                     onDismiss={this.onDismissPanel}
                     type={PanelType.custom}
-                    
+
                     closeButtonAriaLabel="Close"
                     headerText={`${this.props.listItem.Subject}`}
                     styles={{

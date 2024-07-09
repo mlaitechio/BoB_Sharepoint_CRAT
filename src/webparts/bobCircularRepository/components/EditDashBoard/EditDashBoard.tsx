@@ -5,7 +5,7 @@ import { Constants } from '../../Constants/Constants'
 import { Button, Dialog, DialogBody, DialogContent, DialogSurface, Divider, Label, Link, Spinner, Table, TableBody, TableCell, TableCellLayout, TableHeader, TableHeaderCell, TableRow } from '@fluentui/react-components';
 import styles1 from '../BobCircularRepository.module.scss';
 import { ICircularListItem } from '../../Models/IModel';
-import { ChevronDownRegular, ChevronUpRegular, Delete12Regular, Delete16Regular, DeleteRegular, Edit12Regular, Edit16Regular, EditRegular, OpenRegular } from '@fluentui/react-icons';
+import { ChevronDownRegular, ChevronUpRegular, Delete12Regular, Delete16Regular, DeleteRegular, Edit12Regular, Edit16Regular, EditRegular, EyeRegular, OpenRegular } from '@fluentui/react-icons';
 import { AnimationClassNames } from '@fluentui/react';
 import { IBobCircularRepositoryProps } from '../IBobCircularRepositoryProps';
 import { DataContext } from '../../DataContext/DataContext';
@@ -33,6 +33,9 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
             },
             isLoading: false,
             openSupportingDoc: false,
+            loadDashBoard: false,
+            loadEditForm: false,
+            loadViewForm: false,
             supportingDocItem: null // Current Selected Item Supporting Doc Item object not array, Object will be (result.ListData)
         }
     }
@@ -47,6 +50,56 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
         }
     }
 
+
+
+
+    render() {
+        const { isLoading, openSupportingDoc, supportingDocItem, loadDashBoard, loadEditForm, loadViewForm, editFormItem } = this.state;
+        let providerValue = this.context;
+        const { context } = providerValue as IBobCircularRepositoryProps;
+        return (
+            <>
+                {
+                    isLoading && this.workingOnIt()
+                }
+                {
+                    loadDashBoard && this.circularResults()
+                }
+
+                {
+                    openSupportingDoc && <FileViewer
+                        listItem={supportingDocItem}
+                        documentLoaded={() => { this.setState({ isLoading: false }) }}
+                        onClose={() => { this.setState({ openSupportingDoc: false }) }}
+                        context={context}
+                    />
+                }
+                {
+                    loadEditForm &&
+                    <CircularForm
+                        editFormItem={editFormItem}
+                        displayMode={Constants.lblEditCircular}
+                        onGoBack={() => {
+                            this.setState({ loadEditForm: false, loadViewForm: false }, () => {
+                                this.onEditDashBoardLoad()
+                            })
+                        }} />
+                }
+                {
+                    loadViewForm &&
+                    <CircularForm
+                        editFormItem={editFormItem}
+                        displayMode={Constants.lblViewCircular}
+                        onGoBack={() => {
+                            this.setState({ loadEditForm: false, loadViewForm: false }, () => {
+                                this.onEditDashBoardLoad()
+                            })
+                        }} />
+                }
+
+            </>
+        )
+    }
 
     private onEditDashBoardLoad = () => {
         let providerValue = this.context;
@@ -66,8 +119,11 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                 }))
                 this.setState({
                     listItems: allListItems.sort((a, b) => a.ID > b.ID ? -1 : 1),
-                    isItemEdited: false,
-                    isLoading: false
+                    loadDashBoard: true,
+                    loadEditForm: false,
+                    loadViewForm: false,
+                    isLoading: false,
+
                 })
             }).catch((error) => {
                 console.log(error);
@@ -76,50 +132,21 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
         })
     }
 
-    render() {
-        const { isLoading, openSupportingDoc, supportingDocItem, isItemEdited, editFormItem } = this.state;
-        let providerValue = this.context;
-        const { context } = providerValue as IBobCircularRepositoryProps;
-        return (
-            <>
-                {
-                    isLoading && this.workingOnIt()
-                }
-                {
-                    !isItemEdited && this.circularResults()
-                }
-                {
-                    openSupportingDoc && <FileViewer
-                        listItem={supportingDocItem}
-                        documentLoaded={() => { this.setState({ isLoading: false }) }}
-                        onClose={() => { this.setState({ openSupportingDoc: false }) }}
-                        context={context}
-                    />
-                }
-                {
-                    isItemEdited &&
-                    <CircularForm
-                        editFormItem={editFormItem}
-                        displayMode={Constants.lblEditCircular}
-                        onGoBack={() => {
-                            this.setState({ isItemEdited: false }, () => {
-                                this.onEditDashBoardLoad()
-                            })
-                        }} />
-                }
-
-            </>
-        )
-    }
-
     private circularResults = () => {
+
+        let providerValue = this.context;
+        const { isUserChecker, isUserCompliance, isUserMaker } = providerValue as IBobCircularRepositoryProps;
+
         const { listItems, accordionFields, currentSelectedItem, currentSelectedItemId } = this.state;
         const columns = [
             { columnKey: "Title", label: "Document Title" },
+            { coluumnKey: "ID", label: "ID" },
             { columnKey: "Date", label: "Created Date" },
             { columnKey: "Status", label: "Circular Status" },
             { columnKey: "Edit", label: "" },
         ];
+
+
         let circularResultJSX = <>
             <div className={`${styles1.row}`} >
                 <div className={`${styles1.column12} ${styles1.headerBackgroundColor}`} style={{ textAlign: "center" }} >
@@ -133,7 +160,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                             lineHeight: "var(--lineHeightBase500)",
                             color: "white",
 
-                        }}> {`EDIT CIRCULAR DASHBOARD`}
+                        }}> {`CIRCULAR DASHBOARD`}
                         </Label>}
 
                 </div>
@@ -167,15 +194,17 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {listItems && listItems.length > 0 && listItems.map((val: any, index) => {
+                            {listItems && listItems.length > 0 && listItems.map((val: ICircularListItem, index) => {
 
                                 let isFieldSelected = (accordionFields.isSummarySelected || accordionFields.isTypeSelected || accordionFields.isCategorySelected || accordionFields.isSupportingDocuments);
                                 let isCurrentItem = currentSelectedItemId == val.ID;
                                 let tableRowClass = isFieldSelected && isCurrentItem ? `${styles1.tableRow}` : ``;
+                                let isEditButtonVisible = val.CircularStatus == Constants.draft ||
+                                    val.CircularStatus == Constants.cmmtChecker
+                                    || val.CircularStatus == Constants.cmmtCompliance;
 
                                 return <>
                                     <TableRow className={`${styles1.tableRow}`}>
-
                                         <TableCell colSpan={6} >
                                             <TableCellLayout className={`${styles1.verticalSpacing}`} style={{ padding: 5 }}>
                                                 <div
@@ -204,6 +233,11 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                                         </TableCell>
                                         <TableCell>
                                             <TableCellLayout>
+                                                {val.ID != "" ? val.ID : ``}
+                                            </TableCellLayout>
+                                        </TableCell>
+                                        <TableCell>
+                                            <TableCellLayout>
                                                 {val.Created != "" ? this.formatDate(val.Created) : ``}
                                             </TableCellLayout>
                                         </TableCell>
@@ -214,15 +248,27 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                                         </TableCell>
                                         <TableCell colSpan={1}>
                                             <TableCellLayout className={`${styles1.verticalSpacing}`}>
-                                                <Button onClick={() => { this.editCircular(val) }}
-                                                    icon={<EditRegular />}
-                                                    style={{ marginRight: 5 }} />
-                                                {/* Delete icon to be visible only for draft status */}
-                                                {val.CircularStatus == Constants.draft && < Button icon={<DeleteRegular />} />}
+                                                {!isEditButtonVisible &&
+                                                    <Button onClick={() => { this.viewCircular(val) }}
+                                                        icon={<EyeRegular />}
+                                                        style={{ marginRight: 5 }} />
+                                                }
+
+                                                {isUserMaker && isEditButtonVisible && <>
+                                                    <Button onClick={() => { this.editCircular(val) }}
+                                                        icon={<EditRegular />}
+                                                        style={{ marginRight: 5 }} />
+
+                                                    {/* Delete icon to be visible only for draft status */}
+                                                    {val.CircularStatus == Constants.draft &&
+                                                        < Button icon={<DeleteRegular />} />
+                                                    }
+                                                </>}
+
                                             </TableCellLayout>
                                         </TableCell>
 
-                                    </TableRow>
+                                    </TableRow >
                                     <TableRow className={`${tableRowClass}`}>
 
                                         <TableCell colSpan={6}>
@@ -261,7 +307,8 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                                             </div>
                                         </TableCell>
                                     </TableRow>
-                                    {isFieldSelected && currentSelectedItemId == val.ID &&
+                                    {
+                                        isFieldSelected && currentSelectedItemId == val.ID &&
                                         <TableRow >
                                             <TableCell colSpan={6}>
                                                 <div className={`${styles1.row}`}>
@@ -302,7 +349,17 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
 
 
     private editCircular = (selectedItem) => {
-        this.setState({ isItemEdited: true, editFormItem: selectedItem });
+        this.setState({
+            loadDashBoard: false,
+            editFormItem: selectedItem, loadEditForm: true, loadViewForm: false
+        });
+    }
+
+    private viewCircular = (selectedItem) => {
+        this.setState({
+            loadDashBoard: false,
+            editFormItem: selectedItem, loadEditForm: false, loadViewForm: true
+        })
     }
 
     private supportingDocument = (supportingCirculars): JSX.Element => {

@@ -113,6 +113,7 @@ export interface ICircularListItem {
 export interface IADProperties {
     id: string;
     mail: string;
+    employeeId: any;
     employeeNumber: any;
     displayName: any;
     department: string;

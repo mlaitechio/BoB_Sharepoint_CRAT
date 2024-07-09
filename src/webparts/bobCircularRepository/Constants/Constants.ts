@@ -17,12 +17,12 @@ export class Constants {
 
   /**
   |--------------------------------------------------
-  | Edit Circular ,Pending Compliance & Pending Checker Filter string
+  | Edit Circular ,Pending Compliance & Pending Checker Filter string one more filter criteria department needs to be added
   |--------------------------------------------------
   */
   public static readonly editCircularFilterString = "CircularStatus eq 'Draft' or CircularStatus eq 'Comments from Compliance' or CircularStatus eq 'Comments from Checker'"
-  public static readonly compliancePendingFilterString = "(CircularStatus eq 'Submitted to Compliance' or CircularStatus eq 'Comments from Checker') and (Compliance eq 'Yes')";
-  public static readonly checkerPendingFilterString = "(CircularStatus eq 'Approved by Compliance' or CircularStatus eq 'Submitted to Checker') and (Compliance eq 'No')";
+  public static readonly compliancePendingFilterString = "(CircularStatus eq 'Submitted to Compliance') and (Compliance eq 'Yes')";
+  public static readonly checkerPendingFilterString = "(CircularStatus eq 'Approved by Compliance' or CircularStatus eq 'Submitted to Checker')";
 
   /**
   |--------------------------------------------------
@@ -33,6 +33,7 @@ export class Constants {
   public static readonly lblHome = "Home";
   public static readonly lblAddCircular = "Add Circular";
   public static readonly lblEditCircular = "Edit Circular";
+  public static readonly lblViewCircular = "View Circular";
   public static readonly lblPendingCompliance = "Pending Compliance Request";
   public static readonly lblPendingChecker = "Pending Checker Request";
 
@@ -63,9 +64,9 @@ export class Constants {
   public static readonly lblCompliance = "This circular will go to compliance department";
   public static readonly lblYes = "Yes";
   public static readonly lblNo = "No";
-  public static readonly commentsMaker = "Comments Maker";
-  public static readonly commentsChecker = "Comments Checker";
-  public static readonly commentsCompliance = "Comments Compliance";
+  public static readonly lblCommentsMaker = "Comments Maker";
+  public static readonly lblCommentsChecker = "Comments Checker";
+  public static readonly lblCommentsCompliance = "Comments Compliance";
   public static readonly goBack = `Go Back`;
   public static readonly delete = `Delete`;
   public static readonly publishedYear = "Published Year";

@@ -115,7 +115,7 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
             const page = pdfDoc.getPage(pageNum);
             const { width, height } = page.getSize();
             const textFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-            const fontSize = 50;
+            const fontSize = 100;
 
             const font = pdfDoc.embedStandardFont(StandardFonts.Helvetica);
             const headerHeight = 50;

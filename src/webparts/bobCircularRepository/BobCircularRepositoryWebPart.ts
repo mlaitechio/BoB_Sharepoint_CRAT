@@ -93,6 +93,8 @@ export default class BobCircularRepositoryWebPart extends BaseClientSideWebPart<
         console.log(error)
       })
 
+     // ${this.context.pageContext.user.email}
+
       await this._services.getCurrentUserInformation(`${this.context.pageContext.user.email}`, Constants.adSelectedColumns).then((userInfo) => {
         this._userInformation = userInfo[0];
       }).catch((error) => {

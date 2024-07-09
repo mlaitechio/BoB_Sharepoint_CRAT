@@ -96,8 +96,9 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
 
                         {isUserMaker && <Menu>
                             <MenuTrigger disableButtonEnhancement>
-                                <MenuButton className={`${styles.formBtn}`} appearance="transparent" icon={<TaskListLtrRegular />}>Circular</MenuButton>
-
+                                <MenuButton className={`${styles.formBtn}`} appearance="transparent" icon={<TaskListLtrRegular />}>
+                                    Maker
+                                </MenuButton>
                             </MenuTrigger>
                             <MenuPopover>
                                 <MenuList>
@@ -106,7 +107,7 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                                     <MenuItem className={`${styles.fontRoboto}`}
                                         icon={<EditRegular />}
                                         onClick={() => { onMenuSubMenuLinkClick(Constants.lblEditCircular) }}>
-                                        Edit Circular</MenuItem>
+                                        Maker Dashboard</MenuItem>
                                     {/* <MenuItem className={`${styles.fontRoboto}`}
                                         icon={<DeleteRegular />}
                                         onClick={() => { onMenuSubMenuLinkClick(Constants.lblEditCircular) }}>Delete Circular</MenuItem> */}

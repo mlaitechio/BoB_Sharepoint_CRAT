@@ -18,7 +18,8 @@ export const customLightTheme: Theme = {
   colorBrandForegroundOnLightPressed: "#f26522",
   colorNeutralForeground2BrandHover: "#f26522",
   colorSubtleBackgroundHover: "#ffff",
-  colorSubtleBackgroundPressed: "#ffff"
+  colorSubtleBackgroundPressed: "#ffff",
+  colorNeutralForegroundDisabled: "#514b4bc7"
 }
 
 export interface IBobCircularRepositoryState {
@@ -38,9 +39,9 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
     super(props)
 
     this.state = {
-      isHome: false,
+      isHome: true,
       isCreateCircular: false,
-      isEditCircular: true,
+      isEditCircular: false,
       isPendingChecker: false,
       isPendingCompliance: false
 
@@ -184,7 +185,12 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
                     {isCreateCircular && <>
                       <ContextProvider value={this.props}>
                         <CircularForm displayMode={Constants.lblNew}
-                          onGoBack={() => { this.setState({ isHome: true, isCreateCircular: false }) }} />
+                          onGoBack={() => {
+                            this.setState({
+                              isHome: true,
+                              isCreateCircular: false
+                            })
+                          }} />
                       </ContextProvider>
                     </>
                     }
@@ -194,7 +200,7 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
                           <EditDashBoard
                             stateKey={new Date().toString()}
                             filterString={Constants.editCircularFilterString}
-                            
+
                           />
                         </ContextProvider>
 
@@ -203,14 +209,16 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
                     {
                       (isPendingCompliance) && <>
                         <ContextProvider value={this.props}>
-                          <EditDashBoard stateKey={new Date().toString()} filterString={Constants.compliancePendingFilterString} />
+                          <EditDashBoard stateKey={new Date().toString()}
+                            filterString={Constants.compliancePendingFilterString} />
                         </ContextProvider></>
                     }
 
                     {
                       (isPendingChecker) && <>
                         <ContextProvider value={this.props}>
-                          <EditDashBoard filterString={Constants.checkerPendingFilterString} />
+                          <EditDashBoard stateKey={new Date().toString()}
+                            filterString={Constants.checkerPendingFilterString} />
                         </ContextProvider></>
                     }
 
