@@ -119,7 +119,7 @@ export class Services implements IServices {
         const deleteItem = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items.getById(itemId).delete().then((results) => {
             return Promise.resolve(true)
         }).catch((error) => {
-            return Promise.resolve(false);
+            return Promise.reject(error);
         });
 
         return deleteItem;
@@ -481,7 +481,7 @@ export class Services implements IServices {
 
         try {
             let searchItems: any[] = [];
-            let textQuery = queryText.trim() != "" ? `` + `${queryText?.trim().split(' ').join(' OR ')}` + `*` : `*`
+            let textQuery = `*`//queryText.trim() != "" ? `` + `${queryText}`:`*`; //`${queryText?.trim().split(' ').join(' OR ')}` + `*` : `*`
 
             let _searchQuerySettings: ISearchQuery = {
                 Querytext: `${textQuery}`,//`*`,//

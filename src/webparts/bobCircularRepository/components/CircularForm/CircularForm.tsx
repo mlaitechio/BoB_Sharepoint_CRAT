@@ -74,6 +74,9 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             },
             currentCircularListItemValue: undefined,
             selectedSupportingCirculars: [],
+            sopAttachmentColl: [],
+            showSubmitDialog: false,
+            submittedStatus: ``,
             alertTitle: `Validation Alert!`,
             alertMessage: `Please Input all fields marked as *`,
             lblCompliance: ``,
@@ -296,6 +299,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             documentPreviewURL, attachedFile,
             isFormInValid, openSupportingDocument,
             isDeleteCircularFile, isFileSizeAlert, isFileTypeAlert, isDuplicateCircular,
+            showSubmitDialog, submittedStatus,
             openSupportingCircularFile } = this.state;
 
         let showAlert = (isDelete || isBack);
@@ -378,6 +382,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 {showAlert &&
                     this.deleteBackDialogControl(showAlert)
                 }
+
                 {
                     (isFormInValid || isFileSizeAlert || isFileTypeAlert || isDuplicateCircular) &&
                     this.alertControl((isFormInValid || isFileSizeAlert || isFileTypeAlert || isDuplicateCircular),
@@ -392,6 +397,9 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 {openSupportingCircularFile && this.supportingDocumentFileViewerPanel()}
                 {
                     (isLoading || isSuccess) && this.workingOnIt()
+                }
+                {
+                    showSubmitDialog && this.submitDialog(showSubmitDialog, submittedStatus)
                 }
 
             </>
@@ -414,13 +422,29 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
             <div className={`${styles.column12}`}>
                 <div className={`${styles.row} ${styles.formRequestInfo}`}>
-                    <div className={`${styles.column4}`}>
-                        <Label className={`${styles.formLabel}`}>Requester : {requester}</Label>
-                    </div>
                     <div className={`${styles.column5}`}>
-                        <Label className={`${styles.formLabel}`}>Status : {circularListItem.CircularStatus}</Label>
+                        <Label className={`${styles.formLabel}`}
+                            title={requester}
+                            style={{
+                                maxWidth: 275,
+                                textOverflow: "ellipsis",
+                                overflow: "hidden",
+                                display: "inline-block"
+                            }}>
+                            Requester : {requester}
+                        </Label>
                     </div>
-                    <div className={`${styles.column3}`}>
+                    <div className={`${styles.column4}`}>
+                        <Label className={`${styles.formLabel}`}
+                            title={circularListItem.CircularStatus}
+                            style={{
+                                maxWidth: 210,
+                                textOverflow: "ellipsis",
+                                overflow: "hidden",
+                                display: "inline-block"
+                            }}>Status : {circularListItem.CircularStatus}</Label>
+                    </div>
+                    <div className={`${styles.column2}`}>
                         <Label className={`${styles.formLabel}`}>Creation Date : {circularCreationDate}</Label>
                     </div>
                 </div>
@@ -607,7 +631,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 <Divider appearance="subtle" ></Divider>
                 {
                     <div className={`${styles.row} ${styles.formFieldMarginTop}`}>
-                        <div className={`${styles.column6}`}>
+                        <div className={`${styles.column12}`}>
                             {this.fileUploadControl(`${Constants.sop}`, this.sopFileInput, disableControl)}
                         </div>
                         <div className={`${styles.column6}`} style={{ padding: 10 }}>
@@ -696,7 +720,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         let providerValue = this.context;
         const { isUserChecker, isUserMaker, isUserCompliance } = providerValue as IBobCircularRepositoryProps;
         const { displayMode } = this.props
-        const { circularListItem } = this.state
+        const { circularListItem, showSubmitDialog, submittedStatus } = this.state
         let displayButton = (displayMode == Constants.lblNew || displayMode == Constants.lblEditCircular);
 
         /**
@@ -724,6 +748,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
         let submtStatus = isUserMaker && circularListItem.Compliance == Constants.lblYes ? Constants.sbmtCompliance : Constants.sbmtChecker;
         let returnStatus = circularListItem.CircularStatus == Constants.sbmtCompliance ? Constants.cmmtCompliance : Constants.cmmtChecker;
+        let status = ""
 
 
         let saveCancelBtnJSX = <>
@@ -732,6 +757,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     onClick={this.clearAllFormFields}>Clear
                 </Button>
             } */}
+
             {showDraftClearSubmitBtn && displayButton &&
                 <Button appearance="primary"
                     className={`${styles.formBtn}`}
@@ -740,16 +766,23 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 </Button>
             }
             {showDraftClearSubmitBtn && displayButton &&
+
                 <Button appearance="primary"
                     className={`${styles.formBtn}`}
-                    onClick={this.saveForm.bind(this, submtStatus)}>
+                    onClick={() => {
+                        status = submtStatus;
+                        this.setState({ submittedStatus: status, showSubmitDialog: true })
+                    }}>
                     Submit
                 </Button>
             }
             {(isUserCompliance || isUserChecker) && showReturnToMakerBtn &&
                 <Button
                     appearance="primary"
-                    onClick={this.saveForm.bind(this, returnStatus)}
+                    onClick={() => {
+                        status = returnStatus;
+                        this.setState({ submittedStatus: status, showSubmitDialog: true })
+                    }}
                     className={`${styles.formBtn}`}>
                     Return to maker
                 </Button>
@@ -757,7 +790,10 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             {
                 isUserCompliance && showSbmtCheckerBtn &&
                 <Button appearance="primary"
-                    onClick={this.saveForm.bind(this, Constants.sbmtChecker)}
+                    onClick={() => {
+                        status = Constants.sbmtChecker;
+                        this.setState({ submittedStatus: status, showSubmitDialog: true })
+                    }}
                     className={`${styles.formBtn}`}>
                     Submit to Checker
                 </Button>
@@ -765,21 +801,72 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             }
             {isUserChecker && showPublishRejectButton &&
                 <Button appearance="primary"
-                    onClick={this.saveForm.bind(this, Constants.published)}
+                    onClick={() => {
+                        status = Constants.published;
+                        this.setState({ submittedStatus: status, showSubmitDialog: true })
+                    }}
                     className={`${styles.formBtn}`}>
                     Publish
                 </Button>
             }
             {isUserChecker && showPublishRejectButton &&
                 <Button appearance="primary"
-                    onClick={this.saveForm.bind(this, Constants.archived)}
+                    onClick={() => {
+                        status = Constants.archived;
+                        this.setState({ submittedStatus: status, showSubmitDialog: true })
+                    }}
                     className={`${styles.formBtn}`}>
                     Reject
                 </Button>
             }
+
+
         </>;
 
         return saveCancelBtnJSX;
+    }
+
+    private submitDialog = (showDialog, currentStatus): JSX.Element => {
+        let submitDialogJSX = <>
+            <>
+                <Dialog modalType="alert" defaultOpen={(showDialog)} >
+                    <DialogSurface style={{ maxWidth: 480 }}>
+                        <DialogBody style={{ display: "block" }}>
+                            <DialogTitle style={{ fontFamily: "Roboto", marginBottom: 10 }}>{`${`Save Circular` ?? ``}`}</DialogTitle>
+                            <DialogContent styles={{
+                                header: { display: "none" },
+                                inner: { padding: 0 },
+
+                                innerContent: { fontFamily: "Roboto", marginBottom: 15, textAlign: "center" }
+                            }}>
+                                {`${`Are you sure you want to change status to ${currentStatus}?`}`}
+                            </DialogContent>
+                            <DialogActions style={{ justifyContent: "center" }}>
+                                <div className={`${styles.row}`}>
+                                    <div className={`${styles.column6}`}>
+                                        <Button appearance="primary"
+                                            onClick={() => {
+                                                this.setState({ showSubmitDialog: false }, () => {
+                                                    this.saveForm(currentStatus);
+                                                })
+
+                                            }}>Yes</Button>
+                                    </div>
+                                    <div className={`${styles.column6}`}>
+                                        <Button appearance="secondary"
+                                            onClick={() => {
+                                                this.setState({ showSubmitDialog: false })
+                                            }}>No</Button>
+                                    </div>
+                                </div>
+                            </DialogActions>
+                        </DialogBody>
+                    </DialogSurface>
+                </Dialog>
+            </>
+        </>;
+
+        return submitDialogJSX
     }
 
     private onBtnClick = (labelName: string) => {
@@ -812,30 +899,58 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
     private onTextAreaChange = (labelName: string, ev: React.ChangeEvent<HTMLTextAreaElement>, data: TextareaOnChangeData) => {
         const { circularListItem } = this.state
+        let wordLength = this.getWords(data.value?.trim());
         switch (labelName) {
-            case Constants.subject: circularListItem.Subject = data.value;
-                this.setState({ circularListItem });
+            case Constants.subject:
+                if (wordLength <= 500 && data.value.length < 63999) {
+                    circularListItem.Subject = data.value?.replace(/[^a-zA-Z0-9&,() ]/g, '');
+                    this.setState({ circularListItem });
+                }
+
 
                 break;
-            case Constants.gist: circularListItem.Gist = data.value;
-                this.setState({ circularListItem })
+            case Constants.gist:
+
+                if (wordLength <= 500 && data.value.length < 63999) {
+                    circularListItem.Gist = data.value?.replace(/[^a-zA-Z0-9&,() ]/g, '');
+                    this.setState({ circularListItem })
+                }
                 break;
-            case Constants.faqs: circularListItem.CircularFAQ = data.value;
-                this.setState({ circularListItem });
+            case Constants.faqs:
+                if (wordLength <= 500 && data.value.length < 63999) {
+                    circularListItem.CircularFAQ = data.value?.replace(/[^a-zA-Z0-9&,() ]/g, '');
+                    this.setState({ circularListItem });
+                }
                 break;
-            case Constants.lblCommentsMaker: circularListItem.CommentsMaker = data.value;
-                this.setState({ circularListItem })
+            case Constants.lblCommentsMaker:
+                if (wordLength <= 500 && data.value.length < 63999) {
+                    circularListItem.CommentsMaker = data.value.replace(/[^a-zA-Z0-9&,() ]/g, '');
+                    this.setState({ circularListItem })
+                }
                 break;
-            case Constants.lblCommentsChecker: circularListItem.CommentsChecker = data.value;
-                this.setState({ circularListItem })
+            case Constants.lblCommentsChecker:
+                if (wordLength <= 500 && data.value.length < 63999) {
+                    circularListItem.CommentsChecker = data.value.replace(/[^a-zA-Z0-9&,() ]/g, '');
+                    this.setState({ circularListItem })
+                }
                 break;
-            case Constants.lblCommentsCompliance: circularListItem.CommentsCompliance = data.value;
+            case Constants.lblCommentsCompliance: if (wordLength <= 500 && data.value.length < 63999) {
+                circularListItem.CommentsCompliance = data.value.replace(/[^a-zA-Z0-9&,() ]/g, '');
                 this.setState({ circularListItem })
+            }
                 break;
 
             default:
                 break;
         }
+    }
+
+    private getWords = (text: string): number => {
+        text.replace(/(<([^>]+)>)/ig, "");
+        text.replace(/(^\s*)|(\s*$)/gi, "");
+        text.replace(/[ ]{2,}/gi, " ");
+        text.replace(/\n /, "\n");
+        return text.split(' ').length;
     }
 
     private textFieldControl = (labelName: string, isRequired: boolean, value: string, isDisabled?: boolean, errorMessage?: string, placeholder?: string): JSX.Element => {
@@ -877,13 +992,14 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
     private onInputChange = (labelName: string, ev: React.ChangeEvent<HTMLInputElement>, data: InputOnChangeData) => {
         const { circularListItem } = this.state
         switch (labelName) {
-            case Constants.circularNumber: circularListItem.CircularNumber = data.value;
+            case Constants.circularNumber:
+                circularListItem.CircularNumber = data?.value?.replace(/[^a-zA-Z0-9 ]/g, '');
                 this.setState({ circularListItem })
                 break;
-            case Constants.subFileNo: circularListItem.SubFileCode = data.value;
+            case Constants.subFileNo: circularListItem.SubFileCode = data.value?.replace(/[^a-zA-Z0-9 ]/g, '');
                 this.setState({ circularListItem });
                 break;
-            case Constants.keyWords: circularListItem.Keywords = data.value;
+            case Constants.keyWords: circularListItem.Keywords = data.value?.replace(/[^a-zA-Z0-9 ]/g, '');
                 this.setState({ circularListItem });
                 break;
         }
@@ -1035,6 +1151,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     formatDate={this.onFormatDate}
                     value={value}
                     disabled={isDisabled}
+                    minDate={new Date()}
                     contentAfter={
                         <>
                             <Button icon={<ArrowCounterclockwiseRegular />}
@@ -1178,7 +1295,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             </Button>
             <Field label={
                 <Label className={`${styles.formLabel} `}>
-                    {` (Maximum 5MB .pdf & .docx file allowed.)`}
+                    {` (Maximum 5MB .pdf & .docx file allowed. Up to 5 files.)`}
                 </Label>
             }
                 required={false}>
@@ -1190,24 +1307,28 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
     }
 
     private onFileUploadChange = (labelName: string, e: React.ChangeEvent<HTMLInputElement>) => {
+        const { sopAttachmentColl } = this.state
         const files = e.target.files;
         let invalidFileSize = [];
         let inValidFileType = [];
+        let invalidFileLimit = [];
+
+        let fileCount = files.length + sopAttachmentColl?.length;
 
         if (files) {
 
             for (let i = 0; i < files.length; i++) {
 
-                if (files[i].name.indexOf('.docx') > -1 || files[i].name.indexOf('.pdf') > -1) {
+                let fileExtension = files[i].name.split('.');
 
+                if (fileExtension.length < 3 && (files[i].name.indexOf('.docx') > -1 || files[i].name.indexOf('.pdf') > -1)) {
                     let sizeInMB = Math.round((files[i].size) / 1024);
                     if (sizeInMB <= 5120) {
-
-                        if ((this.sopFileAttachments.has(files[i].name))) {
+                        if ((this.sopFileAttachments.has(files[i].name)) || fileCount <= 5) {
                             this.sopFileAttachments.delete(files[i].name);
                             this.sopFileAttachments.set(files[i].name, files[i]);
                         }
-                        else {
+                        else if (fileCount <= 5) {
                             this.sopFileAttachments.set(files[i].name, files[i]);
                         }
                     }
@@ -1219,6 +1340,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 else {
                     inValidFileType.push(files[i].type)
                 }
+
             }
 
             if (invalidFileSize.length > 0) {
@@ -1268,16 +1390,23 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     const fileName = file.name;
 
                     return <div className={`${styles.column12}`} style={{ marginBottom: 5 }}>
-                        <Attach16Filled></Attach16Filled>
-                        <Link
-                            //onClick={this.openDocument.bind(this, file.ServerRelativeUrl)}
-                            style={{
-                                wordBreak: "break-all",
-                                padding: 5
-                            }}
-                        >{fileName}</Link>
-                        <Button disabled={isDisabled} icon={<Delete16Regular></Delete16Regular>} style={{ marginLeft: 5 }}
-                            onClick={() => { this.deleteSOPUploadedFiles(fileName) }}></Button>
+                        <div className={`${styles.row}`}>
+                            <div className={`${styles.column1}`}> <Attach16Filled></Attach16Filled></div>
+                            <div className={`${styles.column5}`}>
+
+                                <Link
+                                    //onClick={this.openDocument.bind(this, file.ServerRelativeUrl)}
+                                    style={{
+                                        wordBreak: "break-all",
+                                        padding: 5
+                                    }}
+                                >{fileName}</Link>
+                            </div>
+                            <div className={`${styles.column1}`}>
+                                <Button disabled={isDisabled} icon={<Delete16Regular></Delete16Regular>} style={{ marginLeft: 5 }}
+                                    onClick={() => { this.deleteSOPUploadedFiles(fileName) }}></Button>
+                            </div>
+                        </div>
                     </div>
                 })
 
@@ -1319,6 +1448,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
         }
     }
+
+
 
     private alertControl = (showAlert, headerTitle?: string, headerColor?: string, validationMessage?: string, buttonJSX?: any): JSX.Element => {
         let alertJSX = <>
@@ -1502,7 +1633,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         let isValid = true;
         if (circularStatus == Constants.lblNew || circularStatus == Constants.draft || circularStatus == Constants.cmmtCompliance || circularStatus == Constants.cmmtChecker) {
 
-            if (circularListItem.Subject == "" || circularListItem.CircularNumber == "" || circularListItem.IssuedFor == "" ||
+            if (circularListItem.Subject?.trim() == "" || circularListItem.CircularNumber?.trim() == "" || circularListItem.IssuedFor == "" ||
                 circularListItem.Category == "" || circularListItem.Classification == "") {
                 isValid = false
             }
@@ -1512,13 +1643,13 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         }
         else {
             if (circularStatus == Constants.sbmtCompliance && isUserCompliance) {
-                if (circularListItem.CommentsCompliance == "") {
+                if (circularListItem.CommentsCompliance?.trim() == "") {
                     isValid = false
                 }
             }
 
             if (circularStatus == Constants.sbmtChecker && isUserChecker) {
-                if (circularListItem.CommentsChecker == "") {
+                if (circularListItem.CommentsChecker?.trim() == "") {
                     isValid = false
                 }
             }
@@ -1635,6 +1766,10 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 circularListItem.CircularNumber = `${this.getCircularNumber()}` + `${circularNumberText}`;
             }
 
+            if (status == Constants.published) {
+                circularListItem.PublishedDate = new Date().toISOString().split('T')[0] + `T00:00:00Z`;
+            }
+
 
             //circularListItem.CircularCreationDate = new Date().toISOString();
 
@@ -1654,6 +1789,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
                     circularListItem.CircularStatus = status;
                     circularListItem.CircularCreationDate = new Date().toISOString().split('T')[0] + `T00:00:00Z`;
+
 
                     await services.createItem(serverRelativeUrl, Constants.circularList, circularListItem).then(async (value) => {
                         circularListItem.CircularNumber = circularNumberText.replace(`${this.getCircularNumber()}`, ``);

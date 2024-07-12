@@ -2,7 +2,12 @@ import * as React from 'react'
 import { IEditDashBoardProps } from './IEditDashBoardProps'
 import { IEditDashBoardState } from './IEditDashBoardState'
 import { Constants } from '../../Constants/Constants'
-import { Button, Dialog, DialogBody, DialogContent, DialogSurface, Divider, Label, Link, Spinner, Table, TableBody, TableCell, TableCellLayout, TableHeader, TableHeaderCell, TableRow } from '@fluentui/react-components';
+import {
+    Button, Dialog, DialogActions, DialogBody, DialogContent,
+    DialogSurface, DialogTitle, Divider, Label, Link, Spinner,
+    Table, TableBody, TableCell, TableCellLayout, TableHeader,
+    TableHeaderCell, TableRow
+} from '@fluentui/react-components';
 import styles1 from '../BobCircularRepository.module.scss';
 import { ICircularListItem } from '../../Models/IModel';
 import { ChevronDownRegular, ChevronUpRegular, Delete12Regular, Delete16Regular, DeleteRegular, Edit12Regular, Edit16Regular, EditRegular, EyeRegular, OpenRegular } from '@fluentui/react-icons';
@@ -36,6 +41,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
             loadDashBoard: false,
             loadEditForm: false,
             loadViewForm: false,
+            showDeleteDialog: false,
             supportingDocItem: null // Current Selected Item Supporting Doc Item object not array, Object will be (result.ListData)
         }
     }
@@ -54,7 +60,11 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
 
 
     render() {
-        const { isLoading, openSupportingDoc, supportingDocItem, loadDashBoard, loadEditForm, loadViewForm, editFormItem } = this.state;
+        const { isLoading,
+            openSupportingDoc,
+            supportingDocItem, loadDashBoard,
+            currentSelectedItem,
+            loadEditForm, loadViewForm, editFormItem, showDeleteDialog } = this.state;
         let providerValue = this.context;
         const { context } = providerValue as IBobCircularRepositoryProps;
         return (
@@ -97,13 +107,15 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                         }} />
                 }
 
+                {showDeleteDialog && this.deleteDialog(showDeleteDialog, currentSelectedItem)}
+
             </>
         )
     }
 
     private onEditDashBoardLoad = () => {
         let providerValue = this.context;
-        const { services, serverRelativeUrl, isUserMaker, isUserChecker, isUserCompliance } = providerValue as IBobCircularRepositoryProps;
+        const { services, serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
         const { filterString } = this.props
 
         this.setState({ isLoading: true }, async () => {
@@ -259,9 +271,13 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                                                         icon={<EditRegular />}
                                                         style={{ marginRight: 5 }} />
 
-                                                    {/* Delete icon to be visible only for draft status */}
+                                                    {/* Delete icon to be visible only for draft status | val.CircularStatus == Constants.draft && |*/}
                                                     {val.CircularStatus == Constants.draft &&
-                                                        < Button icon={<DeleteRegular />} />
+                                                        < Button icon={<DeleteRegular />}
+                                                            onClick={() => {
+                                                                this.setState({ showDeleteDialog: true, currentSelectedItem: val })
+                                                            }}
+                                                        />
                                                     }
                                                 </>}
 
@@ -480,6 +496,27 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
         })
     }
 
+
+    private deleteCircular = (selectedItem) => {
+        let providerValue = this.context;
+        const { services, serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
+
+
+
+        this.setState({ isLoading: true, showDeleteDialog: false }, async () => {
+            await services.deleteListItem(serverRelativeUrl, Constants.circularList, selectedItem.ID).then((val) => {
+
+                this.setState({ isLoading: false }, () => {
+                    this.onEditDashBoardLoad()
+                })
+
+            }).catch((error) => {
+                console.log(error);
+                this.setState({ isLoading: false })
+            })
+        })
+    }
+
     private workingOnIt = (): JSX.Element => {
 
         let submitDialogJSX = <>
@@ -496,6 +533,44 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
 
         </>;
         return submitDialogJSX;
+    }
+
+    private deleteDialog = (showDialog, selectedItem): JSX.Element => {
+        let submitDialogJSX = <>
+            <>
+                <Dialog modalType="alert" defaultOpen={(showDialog)} >
+                    <DialogSurface style={{ maxWidth: 330 }}>
+                        <DialogBody style={{ display: "block" }}>
+                            <DialogTitle style={{ fontFamily: "Roboto", marginBottom: 10, textAlign: "center" }}>{`${`Delete Circular` ?? ``}`}</DialogTitle>
+                            <DialogContent style={{ fontFamily: "Roboto", minHeight: 45 }}>
+                                {`${`Are you sure you want to delete the circular?`}`}
+                            </DialogContent>
+                            <DialogActions style={{ justifyContent: "center" }}>
+                                <div className={`${styles1.row}`}>
+                                    <div className={`${styles1.column6}`}>
+                                        <Button appearance="primary"
+                                            onClick={() => {
+                                                this.setState({ showDeleteDialog: false }, () => {
+                                                    this.deleteCircular(selectedItem)
+                                                })
+
+                                            }}>Yes</Button>
+                                    </div>
+                                    <div className={`${styles1.column6}`}>
+                                        <Button appearance="secondary"
+                                            onClick={() => {
+                                                this.setState({ showDeleteDialog: false })
+                                            }}>No</Button>
+                                    </div>
+                                </div>
+                            </DialogActions>
+                        </DialogBody>
+                    </DialogSurface>
+                </Dialog>
+            </>
+        </>;
+
+        return submitDialogJSX
     }
 
     private formatDate(dateStr: string): string {

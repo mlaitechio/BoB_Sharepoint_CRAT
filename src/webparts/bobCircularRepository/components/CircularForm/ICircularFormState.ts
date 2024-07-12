@@ -4,6 +4,8 @@ export interface ICircularFormState {
     circularListItem?: ICircularListItem;
     currentCircularListItemValue?: ICircularListItem;
     expiryDate?: any;
+    showSubmitDialog?: boolean;
+    submittedStatus?: string;
     isDuplicateCircular?: any;
     isExpiryDateDisabled?: boolean;
     openSupportingDocument?: boolean;

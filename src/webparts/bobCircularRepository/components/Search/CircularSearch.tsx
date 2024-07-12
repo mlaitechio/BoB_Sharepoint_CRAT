@@ -84,100 +84,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   constructor(props) {
     super(props)
 
-    const columns: IColumn[] = [{
-      key: 'Subject',
-      name: 'Subject',
-      fieldName: 'Subject',
-      minWidth: 200,
-      maxWidth: 450,
-      isMultiline: true,
-      isRowHeader: true,
-      isResizable: true,
-      data: 'string',
-      styles: { cellName: { width: "100%" } },
-      // isPadded: true,
-      isSorted: false,
-      isSortedDescending: true,
-      sortAscendingAriaLabel: 'Sorted A to Z',
-      sortDescendingAriaLabel: 'Sorted Z to A',
-      onColumnClick: this.handleSorting(`${Constants.colSubject}`),
-      headerClassName: styles.header,
-      onRender: this.createHyper.bind(this)
-    },
-    {
-      key: 'PublishedDate',
-      name: 'Published Date',
-      fieldName: 'PublishedDate',
-      minWidth: 150,
-      maxWidth: 200,
-      // isCollapsible: true,
-      isResizable: true,
-      data: 'string',
-      // isPadded: true,
-      headerClassName: styles.header,
-      styles: { cellName: { width: "100%", textAlign: "center" } },
-      isSorted: false,
-      isSortedDescending: true,
-      sortAscendingAriaLabel: 'Sorted A to Z',
-      sortDescendingAriaLabel: 'Sorted Z to A',
-      onColumnClick: this.handleSorting(`${Constants.colPublishedDate}`),
-      onRender: this.renderDate.bind(this)
-
-    },
-    {
-      key: 'Department',
-      name: 'Department',
-      fieldName: 'Department',
-      minWidth: 200,
-      maxWidth: 400,
-      isResizable: true,
-      data: 'string',
-      isSorted: false,
-      isSortedDescending: false,
-      sortAscendingAriaLabel: 'Sorted A to Z',
-      sortDescendingAriaLabel: 'Sorted Z to A',
-      styles: { cellName: { width: "100%" } },
-      headerClassName: styles.header,
-      onColumnClick: this.handleSorting(`${Constants.colCircularNumber}`)
-      // isPadded: true,
-      //onRender: this.renderCategory.bind(this)
-    },
-    {
-      key: 'CircularNumber',
-      name: 'Circular Number',
-      fieldName: 'CircularNumber',
-      minWidth: 100,
-      maxWidth: 150,
-      isResizable: true,
-      data: 'string',
-      isSorted: false,
-      isSortedDescending: false,
-      sortAscendingAriaLabel: 'Sorted A to Z',
-      sortDescendingAriaLabel: 'Sorted Z to A',
-      styles: { cellName: { width: "100%" } },
-      headerClassName: styles.header,
-      onColumnClick: this.handleSorting(`${Constants.colCircularNumber}`)
-      // isPadded: true,
-      //onRender: this.renderCategory.bind(this)
-    },
-    {
-      key: 'Classification',
-      name: 'Classification',
-      fieldName: 'Classification',
-      minWidth: 100,
-      maxWidth: 150,
-      isResizable: true,
-      data: 'string',
-      isSorted: false,
-      isSortedDescending: false,
-      sortAscendingAriaLabel: 'Sorted A to Z',
-      sortDescendingAriaLabel: 'Sorted Z to A',
-      styles: { cellName: { width: "100%" } },
-      headerClassName: styles.header,
-      onColumnClick: this.handleSorting(`${Constants.colClassification}`),
-      // isPadded: true,
-      //onRender: this.renderTextField.bind(this)
-    }]
+    const columns: IColumn[] = []
 
     this.state = {
       searchText: "",
@@ -1710,31 +1617,31 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
           refinableFilterQuery -> Department,CircularNumber,PublishedDate filters 
         |--------------------------------------------------
         */
-        await services.
-          getSearchResults(searchText.trim() == '' ? `` : searchText, searchProperties, queryTemplate, refinableFilterQuery, sortListProperty).
-          then(async (searchResults: any[]) => {
-            searchResults.map((val) => {
+        // await services.
+        //   getSearchResults(searchText.trim() == '' ? `` : searchText, searchProperties, queryTemplate, refinableFilterQuery, sortListProperty).
+        //   then(async (searchResults: any[]) => {
+        //     searchResults.map((val) => {
 
-              listItemData.push({
-                ID: parseInt(val.ListItemID),
-                Id: parseInt(val.ListItemID),
-                Created: val?.Created,
-                CircularNumber: val.RefinableString00,
-                Subject: val.RefinableString01,
-                MigratedDepartment: val.RefinableString02,
-                Department: val.RefinableString03,
-                Category: val.RefinableString04,
-                IsMigrated: val.RefinableString05,
-                Classification: val.RefinableString06,
-                PublishedDate: val.RefinableDate00,
-                IssuedFor: val.RefinableString08
-              })
+        //       listItemData.push({
+        //         ID: parseInt(val.ListItemID),
+        //         Id: parseInt(val.ListItemID),
+        //         Created: val?.Created,
+        //         CircularNumber: val.RefinableString00,
+        //         Subject: val.RefinableString01,
+        //         MigratedDepartment: val.RefinableString02,
+        //         Department: val.RefinableString03,
+        //         Category: val.RefinableString04,
+        //         IsMigrated: val.RefinableString05,
+        //         Classification: val.RefinableString06,
+        //         PublishedDate: val.RefinableDate00,
+        //         IssuedFor: val.RefinableString08
+        //       })
 
-            })
-          }).catch((error) => {
-            console.log(error);
-            this.setState({ isLoading: false })
-          });
+        //     })
+        //   }).catch((error) => {
+        //     console.log(error);
+        //     this.setState({ isLoading: false })
+        //   });
 
         /**
         |--------------------------------------------------
@@ -1809,7 +1716,9 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         queryTextFilters.map((word) => {
           queryText.push(`"${word}*"`)
         })
-        normalSearchString = `${subject}:or(` + queryText.join(',') + `)`;
+        //normalSearchString = `${subject}:string(` + queryText.join(',') + `,mode="phrase")`;
+
+        normalSearchString = `${subject}:string("` + searchText + `",mode="phrase")`;
 
         // refinmentString += `, ${department}: or(`
         // queryText = "";
