@@ -200,7 +200,7 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
                           <EditDashBoard
                             stateKey={new Date().toString()}
                             filterString={Constants.editCircularFilterString}
-
+                            currentPage={`${Constants.makerGroup}`}
                           />
                         </ContextProvider>
 
@@ -210,7 +210,9 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
                       (isPendingCompliance) && <>
                         <ContextProvider value={this.props}>
                           <EditDashBoard stateKey={new Date().toString()}
-                            filterString={Constants.compliancePendingFilterString} />
+                            filterString={Constants.compliancePendingFilterString}
+                            currentPage={`${Constants.complianceGroup}`}
+                          />
                         </ContextProvider></>
                     }
 
@@ -218,7 +220,9 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
                       (isPendingChecker) && <>
                         <ContextProvider value={this.props}>
                           <EditDashBoard stateKey={new Date().toString()}
-                            filterString={Constants.checkerPendingFilterString} />
+                            filterString={Constants.checkerPendingFilterString}
+                            currentPage={`${Constants.checkerGroup}`}
+                          />
                         </ContextProvider></>
                     }
 

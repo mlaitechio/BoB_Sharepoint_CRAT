@@ -107,6 +107,9 @@ export interface ICircularListItem {
     Subject?: string;
     SubmittedDate?: string;
     SupportingDocuments?: string;
+    MakerCommentsHistory?: string;
+    CheckerCommentsHistory?: string;
+    ComplianceCommentsHistory?: string;
 
 }
 

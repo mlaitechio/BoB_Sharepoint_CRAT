@@ -34,10 +34,10 @@ Form Related Task
 32. Auto increment ID to be added in circular (Done)
 33. Full Screen View (Pending)
 34. Add Validation Field text below date picker field (Done)
-35. Docx & PDF restriction in SOP Upload
+35. Docx & PDF restriction in SOP Upload (Done)
 36. Error alert to be shown to the users
-37.CircularCreation Date logic
-38.Delete Circular List Item when in draft mode
+37. CircularCreation Date logic (Done)
+38. Delete Circular List Item when in draft mode (Done)
 
 SOP File Naming convention
 Restrict File Limit to 5 SOP Files
@@ -48,6 +48,7 @@ Maximum how many supporting documents can be attached? --> No limit, Certainly h
 Compliance User Permission Mapping with Department
 Checker User Permission Mapping with Department
 Comments Section ,History Section
+PDF and docx check when clicking on Subject Title (Search Page)
 
 Responsive SCSS changes
 Document Interaction preview 

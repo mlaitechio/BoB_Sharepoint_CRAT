@@ -1058,7 +1058,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         label={
           <FluentLabel weight="regular"
             onClick={this.onCheckBoxLabelClick.bind(this, labelName, index, !currentCheck)}
-            style={{ fontFamily: "Roboto", cursor: "pointer", textTransform: "capitalize" }}>{checkBoxVal}</FluentLabel>
+            style={{ fontFamily: "Roboto", cursor: "pointer" }}>{checkBoxVal}</FluentLabel>
         }
         shape="square" size="medium" onChange={this.onCheckBoxChange.bind(this, labelName, index)} />
     </>
@@ -1610,38 +1610,6 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
           Direction: 1 //0 for asc & 1 for descending
         }]
 
-        /**
-        |--------------------------------------------------
-        | This is to search text inside List Metadata & attachments with below refinments
-        | It will search using Search Text in QueryText Search Properties & then use below
-          refinableFilterQuery -> Department,CircularNumber,PublishedDate filters 
-        |--------------------------------------------------
-        */
-        // await services.
-        //   getSearchResults(searchText.trim() == '' ? `` : searchText, searchProperties, queryTemplate, refinableFilterQuery, sortListProperty).
-        //   then(async (searchResults: any[]) => {
-        //     searchResults.map((val) => {
-
-        //       listItemData.push({
-        //         ID: parseInt(val.ListItemID),
-        //         Id: parseInt(val.ListItemID),
-        //         Created: val?.Created,
-        //         CircularNumber: val.RefinableString00,
-        //         Subject: val.RefinableString01,
-        //         MigratedDepartment: val.RefinableString02,
-        //         Department: val.RefinableString03,
-        //         Category: val.RefinableString04,
-        //         IsMigrated: val.RefinableString05,
-        //         Classification: val.RefinableString06,
-        //         PublishedDate: val.RefinableDate00,
-        //         IssuedFor: val.RefinableString08
-        //       })
-
-        //     })
-        //   }).catch((error) => {
-        //     console.log(error);
-        //     this.setState({ isLoading: false })
-        //   });
 
         /**
         |--------------------------------------------------
@@ -1682,6 +1650,40 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
               this.setState({ isLoading: false })
             });
         }
+
+
+        /**
+        |--------------------------------------------------
+        | This is to search text inside List Metadata & attachments with below refinments
+        | It will search using Search Text in QueryText Search Properties & then use below
+          refinableFilterQuery -> Department,CircularNumber,PublishedDate filters 
+        |--------------------------------------------------
+        */
+        await services.
+          getSearchResults(searchText.trim() == '' ? `` : searchText, searchProperties, queryTemplate, refinableFilterQuery, sortListProperty).
+          then(async (searchResults: any[]) => {
+            searchResults.map((val) => {
+
+              listItemData.push({
+                ID: parseInt(val.ListItemID),
+                Id: parseInt(val.ListItemID),
+                Created: val?.Created,
+                CircularNumber: val.RefinableString00,
+                Subject: val.RefinableString01,
+                MigratedDepartment: val.RefinableString02,
+                Department: val.RefinableString03,
+                Category: val.RefinableString04,
+                IsMigrated: val.RefinableString05,
+                Classification: val.RefinableString06,
+                PublishedDate: val.RefinableDate00,
+                IssuedFor: val.RefinableString08
+              })
+
+            })
+          }).catch((error) => {
+            console.log(error);
+            this.setState({ isLoading: false })
+          });
 
 
         let uniqueResults = advancedSearchTextAndFilterQuery != "" ? [...new Map(listItemData.map(item =>

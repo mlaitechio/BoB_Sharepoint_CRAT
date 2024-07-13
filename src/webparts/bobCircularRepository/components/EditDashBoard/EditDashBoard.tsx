@@ -67,6 +67,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
             loadEditForm, loadViewForm, editFormItem, showDeleteDialog } = this.state;
         let providerValue = this.context;
         const { context } = providerValue as IBobCircularRepositoryProps;
+        const { currentPage } = this.props
         return (
             <>
                 {
@@ -89,6 +90,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                     <CircularForm
                         editFormItem={editFormItem}
                         displayMode={Constants.lblEditCircular}
+                        currentPage={currentPage}
                         onGoBack={() => {
                             this.setState({ loadEditForm: false, loadViewForm: false }, () => {
                                 this.onEditDashBoardLoad()
@@ -100,6 +102,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                     <CircularForm
                         editFormItem={editFormItem}
                         displayMode={Constants.lblViewCircular}
+                        currentPage={currentPage}
                         onGoBack={() => {
                             this.setState({ loadEditForm: false, loadViewForm: false }, () => {
                                 this.onEditDashBoardLoad()
@@ -148,7 +151,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
 
         let providerValue = this.context;
         const { isUserChecker, isUserCompliance, isUserMaker } = providerValue as IBobCircularRepositoryProps;
-
+        const { currentPage } = this.props
         const { listItems, accordionFields, currentSelectedItem, currentSelectedItemId } = this.state;
         const columns = [
             { columnKey: "Title", label: "Document Title" },
@@ -162,7 +165,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
         let circularResultJSX = <>
             <div className={`${styles1.row}`} >
                 <div className={`${styles1.column12} ${styles1.headerBackgroundColor}`} style={{ textAlign: "center" }} >
-                    {listItems && listItems.length > 0 &&
+                    {
                         <Label style={{
                             fontFamily: "Roboto",
                             padding: 10,
@@ -172,7 +175,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                             lineHeight: "var(--lineHeightBase500)",
                             color: "white",
 
-                        }}> {`CIRCULAR DASHBOARD`}
+                        }}> {`${currentPage} Circular Dashboard`}
                         </Label>}
 
                 </div>

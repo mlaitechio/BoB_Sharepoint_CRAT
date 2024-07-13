@@ -481,7 +481,7 @@ export class Services implements IServices {
 
         try {
             let searchItems: any[] = [];
-            let textQuery = `*`//queryText.trim() != "" ? `` + `${queryText}`:`*`; //`${queryText?.trim().split(' ').join(' OR ')}` + `*` : `*`
+            let textQuery = queryText.trim() != "" ? `${queryText?.trim().split(' ').join(' OR ')}`:`*`; //`${queryText?.trim().split(' ').join(' OR ')}` + `*` : `*`
 
             let _searchQuerySettings: ISearchQuery = {
                 Querytext: `${textQuery}`,//`*`,//

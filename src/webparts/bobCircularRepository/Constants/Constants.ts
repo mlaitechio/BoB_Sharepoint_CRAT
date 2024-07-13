@@ -20,7 +20,7 @@ export class Constants {
   | Edit Circular ,Pending Compliance & Pending Checker Filter string one more filter criteria department needs to be added
   |--------------------------------------------------
   */
-  public static readonly editCircularFilterString = "CircularStatus eq 'Draft' or CircularStatus eq 'Comments from Compliance' or CircularStatus eq 'Comments from Checker'"
+  public static readonly editCircularFilterString = "CircularStatus eq 'Draft' or CircularStatus eq 'Submitted to Compliance' or CircularStatus eq 'Submitted to Checker' or CircularStatus eq 'Comments from Compliance' or CircularStatus eq 'Comments from Checker'"
   public static readonly compliancePendingFilterString = "(CircularStatus eq 'Submitted to Compliance') and (Compliance eq 'Yes')";
   public static readonly checkerPendingFilterString = "(CircularStatus eq 'Approved by Compliance' or CircularStatus eq 'Submitted to Checker')";
 
@@ -81,7 +81,7 @@ export class Constants {
   public static readonly searchSupportingCirculars = `Search Circulars`;
 
 
-  public static readonly colCircularRepository = "Id,Subject,PublishedDate,CircularStatus,Category,IssuedFor,MigratedDepartment,Department,IsMigrated,CircularNumber,Classification,MigratedOriginator,Author/Title,Author/Id,Author/EMail"
+  public static readonly colCircularRepository = "Id,Subject,PublishedDate,CircularStatus,Category,IssuedFor,MigratedDepartment,Department,MakerCommentsHistory,CheckerCommentsHistory,ComplianceCommentsHistory,IsMigrated,CircularNumber,Classification,MigratedOriginator,Author/Title,Author/Id,Author/EMail"
   public static readonly expandColCircularRepository = "Author";
   public static readonly adSelectedColumns = "id,mail,region,title,position,grade,zone,displayName,department,employeeId,extensions,businessPhones,title,employeeNumber";
 

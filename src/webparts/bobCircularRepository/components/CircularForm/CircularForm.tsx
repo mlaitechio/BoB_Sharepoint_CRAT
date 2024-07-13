@@ -23,10 +23,10 @@ import { Constants } from '../../Constants/Constants';
 import { Text } from '@microsoft/sp-core-library';
 import { DataContext } from '../../DataContext/DataContext';
 import { DatePicker } from '@fluentui/react-datepicker-compat';
-import { Add16Filled, ArrowCounterclockwiseRegular, ArrowLeftFilled, ArrowUpload16Regular, Attach16Filled, CalendarRegular, Delete16Regular, DeleteRegular, OpenRegular } from '@fluentui/react-icons';
+import { Add16Filled, ArrowCounterclockwiseRegular, ArrowLeftFilled, ArrowUpload16Regular, Attach16Filled, CalendarRegular, ChevronDownRegular, ChevronUpRegular, Delete16Regular, DeleteRegular, OpenRegular } from '@fluentui/react-icons';
 import { IBobCircularRepositoryProps } from '../IBobCircularRepositoryProps';
 import { Dialog } from '@fluentui/react-components';
-import { DialogContent } from '@fluentui/react';
+import { AnimationClassNames, DialogContent } from '@fluentui/react';
 import { IADProperties, IAttachmentsInfo, ICircularListItem } from '../../Models/IModel';
 import { IFileInfo } from '@pnp/sp/files';
 import SupportingDocument from './SupportingDocument/SupportingDocument';
@@ -72,6 +72,11 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 CircularCreationDate: null,
                 SupportingDocuments: ``
             },
+            selectedCommentSection: {
+                isMakerSelected: false,
+                isCheckerSelected: false,
+                isComplianceSelected: false
+            },
             currentCircularListItemValue: undefined,
             selectedSupportingCirculars: [],
             sopAttachmentColl: [],
@@ -104,7 +109,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             supportingDocLinkItem: undefined,
             isFileSizeAlert: false,
             isFileTypeAlert: false,
-            isDuplicateCircular: false
+            isDuplicateCircular: false,
+            comments: new Map<string, any[]>()
 
         }
 
@@ -217,15 +223,19 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             SupportingDocuments: editFormItem?.SupportingDocuments ?? ``,
             Gist: editFormItem?.Gist ?? ``,
             CircularFAQ: editFormItem?.CircularFAQ ?? ``,
-            CommentsMaker: editFormItem?.CommentsMaker ?? ``,
-            CommentsChecker: editFormItem?.CommentsChecker ?? ``,
-            CommentsCompliance: editFormItem?.CommentsCompliance ?? ``,
+            CommentsMaker: ``, //editFormItem?.CommentsMaker ?? 
+            CommentsChecker: ``,//editFormItem?.CommentsChecker ??
+            CommentsCompliance: ``,//editFormItem?.CommentsCompliance ??
+            MakerCommentsHistory: editFormItem?.MakerCommentsHistory ?? ``,
+            ComplianceCommentsHistory: editFormItem?.ComplianceCommentsHistory ?? ``,
+            CheckerCommentsHistory: editFormItem?.CheckerCommentsHistory ?? ``
 
         } as ICircularListItem
 
         this.setState({
             circularListItem: editCircularItem,
             currentCircularListItemValue: editFormItem,
+            currentItemID: editFormItem.ID,
             lblCompliance: editCircularItem.Compliance == Constants.lblComplianceYes ? Constants.lblCompliance : ``,
             isNewForm: false,
             //isEditForm: displayMode == Constants.lblEditCircular
@@ -250,6 +260,18 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 }
 
                 editCircularItem.CircularTemplate = attachedFile == null ? `` : editFormItem?.CircularTemplate;
+                let comments = [{
+                    FieldName: Constants.lblCommentsMaker,
+                    History: editFormItem.MakerCommentsHistory
+                }, {
+                    FieldName: Constants.lblCommentsCompliance,
+                    History: editFormItem.ComplianceCommentsHistory
+                }, {
+                    FieldName: Constants.lblCommentsChecker,
+                    History: editFormItem.CheckerCommentsHistory
+                }];
+
+                let commentHistory = this.commentsJSON(comments);
 
                 this.setState({
                     documentPreviewURL,
@@ -257,7 +279,9 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     circularListItem: editCircularItem,
                     expiryDate: editFormItem?.Expiry != null && editFormItem.Expiry != "" ?
                         new Date(editFormItem.Expiry) : null,
-                    isLoading: false
+                    comments: commentHistory,
+                    isLoading: false,
+
                 })
             })
 
@@ -273,6 +297,22 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 return val.FileName.indexOf(`_SOP`) < -1
             })
         }
+    }
+
+    private commentsJSON = (comments: any[]) => {
+        let commentsMap = new Map<string, any[]>();
+
+        comments.map((comment) => {
+            if (comment.History) {
+                commentsMap.set(comment.FieldName, JSON.parse(comment.History).reverse())
+            }
+            else {
+                commentsMap.set(comment.FieldName, [])
+            }
+
+        })
+
+        return commentsMap;
     }
 
 
@@ -460,10 +500,13 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
         const { circularListItem, expiryDate, lblCompliance,
             issuedFor, category, templates, selectedTemplate, attachedFile,
+            selectedCommentSection,
             classification, isNewForm, isEditForm, selectedSupportingCirculars } = this.state;
         let providerValue = this.context;
         const { context, isUserChecker, isUserMaker, isUserCompliance } = providerValue as IBobCircularRepositoryProps;
-        const { displayMode } = this.props
+        const { displayMode, currentPage } = this.props
+        let circularStatus = circularListItem.CircularStatus;
+        let showCommentHistory = circularStatus != Constants.lblNew && circularStatus != Constants.draft;
 
         /**
         |--------------------------------------------------
@@ -486,9 +529,9 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         | show Maker Checker Compliance Comment Box
         |--------------------------------------------------
         */
-        let showMakerCommentBox = circularListItem.CircularStatus == Constants.cmmtCompliance || circularListItem.CircularStatus == Constants.cmmtChecker;
-        let showComplianceCommentBox = circularListItem.CircularStatus == Constants.sbmtCompliance;
-        let showCheckerCommentBox = circularListItem.CircularStatus == Constants.sbmtChecker;
+        let showMakerCommentBox = (circularStatus == Constants.cmmtCompliance || circularStatus == Constants.cmmtChecker) && currentPage == Constants.makerGroup;
+        let showComplianceCommentBox = circularStatus == Constants.sbmtCompliance && currentPage == Constants.complianceGroup;
+        let showCheckerCommentBox = circularStatus == Constants.sbmtChecker && currentPage == Constants.checkerGroup;
 
 
 
@@ -640,6 +683,19 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     </div>
                 }
 
+                {
+                    showCommentHistory &&
+                    this.commentsSection(`${Constants.lblCommentsMaker}`, selectedCommentSection.isMakerSelected)
+                }
+
+                {
+                    circularListItem.Compliance == Constants.lblComplianceYes && showCommentHistory &&
+                    this.commentsSection(`${Constants.lblCommentsCompliance}`, selectedCommentSection.isComplianceSelected)
+                }
+
+                {
+                    showCommentHistory && this.commentsSection(`${Constants.lblCommentsChecker}`, selectedCommentSection.isCheckerSelected)
+                }
 
 
                 {isUserMaker && showMakerCommentBox && <>
@@ -669,6 +725,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                         </div>
                     </div>
                 </>}
+
+
 
 
             </div>
@@ -719,9 +777,10 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
     private saveCancelBtn = (): JSX.Element => {
         let providerValue = this.context;
         const { isUserChecker, isUserMaker, isUserCompliance } = providerValue as IBobCircularRepositoryProps;
-        const { displayMode } = this.props
+        const { displayMode, currentPage } = this.props
         const { circularListItem, showSubmitDialog, submittedStatus } = this.state
         let displayButton = (displayMode == Constants.lblNew || displayMode == Constants.lblEditCircular);
+        let circularStatus = circularListItem.CircularStatus;
 
         /**
         |--------------------------------------------------
@@ -732,12 +791,12 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         |--------------------------------------------------
         */
         let showDraftClearSubmitBtn = isUserMaker &&
-            (circularListItem.CircularStatus == Constants.lblNew || circularListItem.CircularStatus == Constants.draft ||
-                circularListItem.CircularStatus == Constants.cmmtCompliance || circularListItem.CircularStatus == Constants.cmmtChecker);
+            (circularStatus == Constants.lblNew || circularStatus == Constants.draft ||
+                circularStatus == Constants.cmmtCompliance || circularStatus == Constants.cmmtChecker);
 
-        let showReturnToMakerBtn = circularListItem.CircularStatus == Constants.sbmtCompliance || circularListItem.CircularStatus == Constants.sbmtChecker;
-        let showSbmtCheckerBtn = circularListItem.CircularStatus == Constants.sbmtCompliance;
-        let showPublishRejectButton = circularListItem.CircularStatus == Constants.sbmtChecker;
+        let showReturnToMakerBtn = circularStatus == Constants.sbmtCompliance || circularStatus == Constants.sbmtChecker;
+        let showSbmtCheckerBtn = circularStatus == Constants.sbmtCompliance;
+        let showPublishRejectButton = circularStatus == Constants.sbmtChecker;
 
 
         /**
@@ -769,6 +828,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
                 <Button appearance="primary"
                     className={`${styles.formBtn}`}
+                    disabled={showReturnToMakerBtn || showSbmtCheckerBtn}
                     onClick={() => {
                         status = submtStatus;
                         this.setState({ submittedStatus: status, showSubmitDialog: true })
@@ -776,9 +836,11 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     Submit
                 </Button>
             }
-            {(isUserCompliance || isUserChecker) && showReturnToMakerBtn &&
+            {(isUserCompliance || isUserChecker) && showReturnToMakerBtn
+                && (currentPage == Constants.complianceGroup || currentPage == Constants.checkerGroup) &&
                 <Button
                     appearance="primary"
+
                     onClick={() => {
                         status = returnStatus;
                         this.setState({ submittedStatus: status, showSubmitDialog: true })
@@ -788,7 +850,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 </Button>
             }
             {
-                isUserCompliance && showSbmtCheckerBtn &&
+                isUserCompliance && showSbmtCheckerBtn && currentPage == Constants.complianceGroup &&
                 <Button appearance="primary"
                     onClick={() => {
                         status = Constants.sbmtChecker;
@@ -799,7 +861,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 </Button>
 
             }
-            {isUserChecker && showPublishRejectButton &&
+            {isUserChecker && showPublishRejectButton && currentPage == Constants.checkerGroup &&
                 <Button appearance="primary"
                     onClick={() => {
                         status = Constants.published;
@@ -809,8 +871,9 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     Publish
                 </Button>
             }
-            {isUserChecker && showPublishRejectButton &&
+            {isUserChecker && showPublishRejectButton && currentPage == Constants.checkerGroup &&
                 <Button appearance="primary"
+
                     onClick={() => {
                         status = Constants.archived;
                         this.setState({ submittedStatus: status, showSubmitDialog: true })
@@ -906,11 +969,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     circularListItem.Subject = data.value?.replace(/[^a-zA-Z0-9&,() ]/g, '');
                     this.setState({ circularListItem });
                 }
-
-
                 break;
             case Constants.gist:
-
                 if (wordLength <= 500 && data.value.length < 63999) {
                     circularListItem.Gist = data.value?.replace(/[^a-zA-Z0-9&,() ]/g, '');
                     this.setState({ circularListItem })
@@ -923,27 +983,30 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 }
                 break;
             case Constants.lblCommentsMaker:
-                if (wordLength <= 500 && data.value.length < 63999) {
+                if (wordLength <= 50 && data.value.length < 63999) {
                     circularListItem.CommentsMaker = data.value.replace(/[^a-zA-Z0-9&,() ]/g, '');
                     this.setState({ circularListItem })
                 }
                 break;
             case Constants.lblCommentsChecker:
-                if (wordLength <= 500 && data.value.length < 63999) {
+                if (wordLength <= 50 && data.value.length < 63999) {
                     circularListItem.CommentsChecker = data.value.replace(/[^a-zA-Z0-9&,() ]/g, '');
                     this.setState({ circularListItem })
                 }
                 break;
-            case Constants.lblCommentsCompliance: if (wordLength <= 500 && data.value.length < 63999) {
-                circularListItem.CommentsCompliance = data.value.replace(/[^a-zA-Z0-9&,() ]/g, '');
-                this.setState({ circularListItem })
-            }
+            case Constants.lblCommentsCompliance:
+                if (wordLength <= 50 && data.value.length < 63999) {
+                    circularListItem.CommentsCompliance = data.value.replace(/[^a-zA-Z0-9&,() ]/g, '');
+                    this.setState({ circularListItem })
+                }
                 break;
 
             default:
                 break;
         }
     }
+
+
 
     private getWords = (text: string): number => {
         text.replace(/(<([^>]+)>)/ig, "");
@@ -1105,6 +1168,80 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         }
     }
 
+    private commentsSection = (labelName, isSelected) => {
+
+        const { comments } = this.state;
+        let history = comments.get(labelName);
+
+        let commentSectionJSX = <>
+            <div className={`${styles.row}`} >
+                <div className={`${styles.column12}`} style={{ paddingLeft: 0 }}>
+                    <Button
+                        appearance="transparent"
+                        iconPosition="before"
+                        onClick={() => {
+                            this.onCommentHistoryClick(labelName)
+                        }}
+                        icon={isSelected ? <ChevronDownRegular /> : <ChevronUpRegular />}>
+                        {labelName}
+                    </Button>
+                </div>
+            </div>
+
+            {
+                isSelected && history.length > 0 && history?.map((val) => {
+                    return <>
+                        <div className={`${styles.row} ${AnimationClassNames.slideDownIn20}`} style={{ paddingTop: 5 }}>
+                            {/* <div className={`${styles.column2}`} style={{ paddingLeft: 20 }}>
+                                {this.onFormatDate(new Date(val.commentDate))}
+                            </div>
+                            <div className={`${styles.column10}`} style={{ borderLeft: "1px solid lightgrey" }}>
+                                {val.comment}
+                            </div>
+                            <div className={`${styles.column2}`}>
+                            </div>
+                            <div className={`${styles.column10}`} style={{ borderLeft: "1px solid lightgrey" }}>
+                                <Label size="small">  {val?.user?.split('|')[0]}</Label>
+                            </div>*/}
+                            <div className={`${styles.column10}`} style={{ paddingLeft: 20 }}>
+                                <Persona primaryText={{ style: { fontFamily: "Roboto" } }} size="small" name={val?.user?.split('|')[0]}></Persona>
+                            </div>
+                            <div className={`${styles.column2}`} style={{ textAlign: "end" }}>
+                                {this.onFormatDate(new Date(val.commentDate))}
+                            </div>
+
+                        </div>
+                        <div className={`${styles.row} ${AnimationClassNames.slideDownIn20}`} style={{ paddingBottom: 10 }}>
+                            <div className={`${styles.column1}`}></div>
+                            <div className={`${styles.column11}`} style={{ paddingLeft: 0 }}>
+                                {val.comment}
+                            </div>
+                        </div>
+
+                        <Divider appearance="subtle"></Divider>
+
+                    </>
+                })
+            }
+        </>;
+
+        return commentSectionJSX;
+    }
+
+    private onCommentHistoryClick = (labelName) => {
+        const { selectedCommentSection } = this.state;
+        switch (labelName) {
+            case Constants.lblCommentsMaker: selectedCommentSection.isMakerSelected = !selectedCommentSection.isMakerSelected;
+                break;
+            case Constants.lblCommentsCompliance: selectedCommentSection.isComplianceSelected = !selectedCommentSection.isComplianceSelected;
+                break;
+            case Constants.lblCommentsChecker: selectedCommentSection.isCheckerSelected = !selectedCommentSection.isCheckerSelected;
+                break;
+        }
+
+        this.setState({ selectedCommentSection })
+
+    }
 
 
     /**
@@ -1523,8 +1660,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
     private deleteAttachment = () => {
         let providerValue = this.context;
-        const { currentCircularListItemValue, attachedFile } = this.state
         const { services, serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
+        const { currentCircularListItemValue, attachedFile } = this.state
 
         this.setState({ isFormInValid: false, isDeleteCircularFile: false, isLoading: true }, async () => {
             await services.deleteListItemAttachment(serverRelativeUrl, Constants.circularList,
@@ -1749,6 +1886,69 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
     }
 
+    private updateCommentsHistory = () => {
+        const { circularListItem, currentItemID } = this.state;
+        let providerValue = this.context;
+        const { context } = providerValue as IBobCircularRepositoryProps;
+        let listItemID = circularListItem.ID;
+
+        if (circularListItem.CommentsMaker != "") {
+
+            let makerCommentsHistory: any[] = [];
+            if (circularListItem?.MakerCommentsHistory) {
+                makerCommentsHistory = makerCommentsHistory.concat(JSON.parse(circularListItem?.MakerCommentsHistory));
+            }
+
+            let makerComment = [{
+                commentDate: new Date().toISOString(),
+                user: `${context.pageContext.user.displayName}|${context.pageContext.user.email}|${currentItemID}`,
+                comment: circularListItem.CommentsMaker
+            }]
+
+            makerCommentsHistory = makerCommentsHistory.concat(makerComment);
+            circularListItem.MakerCommentsHistory = JSON.stringify(makerCommentsHistory);
+            this.setState({ circularListItem });
+
+        }
+
+        if (circularListItem.CommentsCompliance != "") {
+
+            let complianceCommentsHistory: any[] = []
+            if (circularListItem?.ComplianceCommentsHistory) {
+                complianceCommentsHistory = complianceCommentsHistory.concat(JSON.parse(circularListItem?.ComplianceCommentsHistory))
+            }
+
+            let complianceComment = [{
+                commentDate: new Date().toISOString(),
+                user: `${context.pageContext.user.displayName}|${context.pageContext.user.email}|${currentItemID}`,
+                comment: circularListItem.CommentsCompliance
+            }];
+
+            complianceCommentsHistory = complianceCommentsHistory.concat(complianceComment);
+            circularListItem.ComplianceCommentsHistory = JSON.stringify(complianceCommentsHistory);
+            this.setState({ circularListItem })
+        }
+
+        if (circularListItem.CommentsChecker != "") {
+
+            let checkerCommentsHistory: any[] = [];
+
+            if (circularListItem?.CheckerCommentsHistory) {
+                checkerCommentsHistory = checkerCommentsHistory.concat(JSON.parse(circularListItem?.CheckerCommentsHistory))
+            }
+
+            let checkerComment = [{
+                commentDate: new Date().toISOString(),
+                user: `${context.pageContext.user.displayName}|${context.pageContext.user.email}|${currentItemID}`,
+                comment: circularListItem.CommentsChecker
+            }];
+
+            checkerCommentsHistory = checkerCommentsHistory.concat(checkerComment);
+            circularListItem.CheckerCommentsHistory = JSON.stringify(checkerCommentsHistory);
+            this.setState({ circularListItem });
+        }
+    }
+
 
     private saveForm = (status?: string) => {
         const { circularListItem, currentCircularListItemValue, isNewForm } = this.state;
@@ -1804,6 +2004,13 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     let ID = parseInt(currentCircularListItemValue.ID);
                     /**
                     |--------------------------------------------------
+                    | Update Comments History & Store in respective comments History Columns
+                    |--------------------------------------------------
+                    */
+                    this.updateCommentsHistory();
+
+                    /**
+                    |--------------------------------------------------
                     | 1. Current Circular Item Status is draft then keep it as draft 
                       2. if status(coming as parameter) from button call & is other than draft and 
                       when save as Draft is clicked then Current item status should stay as item Status 
@@ -1816,31 +2023,10 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                         circularListItem.CircularStatus = status;
                     }
 
-                    /**
-                    |--------------------------------------------------
-                    | If Circular Item Status is Comments Checker & comments compliance then submit only comments fields & status
-                    |--------------------------------------------------
-                    */
-                    // let isComplianceCheckerComments = circularListItem.CircularStatus == Constants.cmmtChecker || circularListItem.CircularStatus == Constants.cmmtCompliance;
-                    //let editCircularItem;
-
-
-                    // if (isComplianceCheckerComments) {
-                    //     editCircularItem = {
-                    //         CircularStatus: circularListItem.CircularStatus,
-                    //         CommentsMaker: circularListItem.CommentsMaker,
-                    //         CommentsCompliance: circularListItem.CommentsCompliance,
-                    //         CommentsChecker: circularListItem.CommentsChecker
-                    //     }
-                    // }
-                    // else {
-                    //  editCircularItem = circularListItem
-                    //}
-
-
-                    //In this if condition Circular Number is already in disabled state
 
                     if (circularListItem.CircularStatus != Constants.lblNew) {
+
+
 
                         await services.updateItem(serverRelativeUrl, Constants.circularList, ID, circularListItem).then((value) => {
                             circularListItem.CircularNumber = displayMode == Constants.lblNew ? circularNumberText.replace(`${this.getCircularNumber()}`, ``) : circularListItem.CircularNumber;
