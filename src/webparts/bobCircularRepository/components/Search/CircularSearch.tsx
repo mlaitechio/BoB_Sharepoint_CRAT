@@ -163,7 +163,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
           const uniquePublishedYear: any[] = [...new Set(listItems.map((item) => {
             return new Date(item.PublishedDate).getFullYear();
-          }))].sort((a, b) => a < b ? -1 : 1);
+          }))].sort((a, b) => a > b ? -1 : 1);
 
           this.setState({
             items: listItems,

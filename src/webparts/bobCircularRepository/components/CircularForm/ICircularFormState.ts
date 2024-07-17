@@ -23,6 +23,7 @@ export interface ICircularFormState {
     sopAttachmentColl?: any[];
     documentPreviewURL?: string;
     attachedFile?: any;
+    selectedFileName?: string;
     currentItemID?: any;
     lblCircularType?: string;
     lblCompliance?: string;

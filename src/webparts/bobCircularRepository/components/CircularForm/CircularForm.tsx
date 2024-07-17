@@ -40,9 +40,9 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
     static contextType = DataContext;
     context!: React.ContextType<typeof DataContext>;
-    private sopFileAttachments;
-    private editSOPFileAttachments;
-    private deleteSOPFileAttachments;
+    private sopFileAttachments: Map<string, any>;
+    private editSOPFileAttachments: Map<string, any>;
+    private deleteSOPFileAttachments: Map<string, any>;
     private sopFileInput;
 
     public constructor(props) {
@@ -104,6 +104,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             attachedFile: null,
             isFormInValid: false,
             documentPreviewURL: ``,
+            selectedFileName: ``,
             openSupportingDocument: false,
             currentItemID: -1,
             isExpiryDateDisabled: false,
@@ -308,6 +309,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 this.setState({
                     documentPreviewURL: this.circularContentPreviewURL(context),
                     selectedTemplate: attachedFile != null ? editCircularItem.CircularTemplate : ``,
+                    selectedFileName: attachedFile != null ? attachedFile.FileName : ``,
                     circularListItem: editCircularItem,
                     expiryDate: editFormItem?.Expiry != null && editFormItem.Expiry != "" ?
                         new Date(editFormItem.Expiry) : null,
@@ -354,8 +356,6 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         this.sopFileAttachments = fileAttachments;
         this.editSOPFileAttachments = fileAttachments;
 
-
-
         return fileAttachments;
     }
 
@@ -374,11 +374,15 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
     private deleteSOPUploadedFiles = (fileName) => {
         if (this.sopFileAttachments.has(fileName)) {
-            this.sopFileAttachments.delete(fileName);
 
             if (this.editSOPFileAttachments.has(fileName)) {
                 this.deleteSOPFileAttachments.set(fileName, this.editSOPFileAttachments.get(fileName))
             }
+
+
+            this.sopFileAttachments.delete(fileName);
+
+            
 
             this.setState({
                 sopUploads: this.sopFileAttachments
@@ -415,16 +419,16 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         let providerValue = this.context;
         const { context } = providerValue as IBobCircularRepositoryProps;
 
-        if (file.FileName.indexOf(`.pdf`) > -1) {
+        if (file.FileName.indexOf(`.pdf`) > -1 && file.UniqueId != ``) {
             documentPreviewURL = `${window.location.origin + context.pageContext.legacyPageContext.webServerRelativeUrl}/_layouts/15/WopiFrame.aspx?sourcedoc={${file.UniqueId}}&action=interactivepreview`;
         }
-        else if (file.FileName.indexOf(`.docx`) > -1) {
+        else if (file.FileName.indexOf(`.docx`) > -1 && file.UniqueId != ``) {
             documentPreviewURL = `${window.location.origin}/:w:/r${context.pageContext.legacyPageContext.webServerRelativeUrl}/_layouts/15/Doc.aspx?sourcedoc=`;
             documentPreviewURL += `{${file.UniqueId}}&file=${encodeURI(file.FileName)}&action=interactivepreview&mobileredirect=true`;
 
         }
 
-        this.setState({ documentPreviewURL: documentPreviewURL })
+        this.setState({ documentPreviewURL: documentPreviewURL, selectedFileName: file.FileName })
     }
 
     private commentsJSON = (comments: any[]) => {
@@ -467,7 +471,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             documentPreviewURL, attachedFile,
             isFormInValid, openSupportingDocument,
             isDeleteCircularFile, isFileSizeAlert, isFileTypeAlert, isDuplicateCircular,
-            showSubmitDialog, submittedStatus,
+            showSubmitDialog, submittedStatus, selectedFileName,
             openSupportingCircularFile } = this.state;
 
         let showAlert = (isDelete || isBack);
@@ -523,7 +527,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                         <div className={`${styles.row}`} style={{ padding: 15 }}>
                             <div className={`${styles.column12}`}>
                                 <Label className={`${styles.formLabel}`} >
-                                    {attachedFile != null && `${attachedFile.FileName}`}
+                                    {selectedFileName != `` && `${selectedFileName}`}
                                 </Label>
                             </div>
                             <div className={`${styles.column12}`} style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
@@ -532,7 +536,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                                     src={documentPreviewURL ?? ``}
                                     style={{
                                         minHeight: 800,
-                                        height: 180,
+                                        height: 1000,
                                         width: "100%",
                                         border: 0
                                     }} role="presentation" tabIndex={-1}></iframe>}
@@ -1388,7 +1392,14 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     onClick={() => {
                         let providerValue = this.context;
                         const { context, services } = providerValue as IBobCircularRepositoryProps;
-                        this.circularContentPreviewURL(context);
+                        const { attachedFile } = this.state
+                        this.setState({
+                            selectedFileName: attachedFile.FileName,
+                            documentPreviewURL: this.circularContentPreviewURL(context)
+                        }, () => {
+
+                        })
+
                     }}
                     style={{
                         wordBreak: "break-all",
@@ -1645,7 +1656,6 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     value.FileName = key;
                     value.ServerRelativeUrl = ``;
                     value.UniqueId = ``;
-                    value.size = ``
                     attachmentColl.push(value);
                     i++;
                 });
@@ -1688,7 +1698,11 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                             <div className={`${styles.column1}`}> <Attach16Filled></Attach16Filled></div>
                             <div className={`${styles.column10}`}>
                                 <Link
-                                    onClick={() => { this.createSOPPreviewURL(file) }}
+                                    onClick={() => {
+                                        this.setState({ selectedFileName: fileName }, () => {
+                                            this.createSOPPreviewURL(file)
+                                        })
+                                    }}
                                     style={{
                                         wordBreak: "break-all",
                                         padding: 5
@@ -2078,7 +2092,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
 
     private saveForm = (status?: string) => {
-        const { circularListItem, currentCircularListItemValue, isNewForm } = this.state;
+        const { circularListItem, currentCircularListItemValue, sopAttachmentColl } = this.state;
         let isFormValid = this.validateAllRequiredFields();
         const { displayMode } = this.props
         if (isFormValid) {
@@ -2164,18 +2178,46 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
 
 
+
                         await services.updateItem(serverRelativeUrl, Constants.circularList, ID, circularListItem).then(async (value) => {
                             circularListItem.CircularNumber = displayMode == Constants.lblNew ? circularNumberText.replace(`${this.getCircularNumber()}`, ``) : circularListItem.CircularNumber;
                             circularListItem.CircularCreationDate = value?.Created;
                             value.Author = currentCircularListItemValue.Author;
 
-                            if (this.sopFileAttachments.size > 0) {
-                                await services.addListItemAttachments(serverRelativeUrl, Constants.circularList, ID, this.sopFileAttachments).
-                                    then((attachment) => {
-                                        console.log(attachment)
+                            if (sopAttachmentColl.length > 0) {
+
+                                let updateNewAttachment = new Map<string, any[]>();
+                                sopAttachmentColl.map((val) => {
+                                    if (val.UniqueId == ``) {
+                                        updateNewAttachment.set(val.FileName, [val])
+                                    }
+                                })
+
+                                if (updateNewAttachment.size > 0) {
+                                    await services.addListItemAttachments(serverRelativeUrl, Constants.circularList, ID, updateNewAttachment).
+                                        then((attachment) => {
+                                            console.log(attachment)
+                                        }).catch((error) => {
+                                            console.log(error)
+                                        })
+                                }
+
+                            }
+
+                            if (this.deleteSOPFileAttachments && this.deleteSOPFileAttachments.size > 0) {
+
+                                await services.recycleListItemAttachments(serverRelativeUrl, Constants.circularList,
+                                    ID, this.deleteSOPFileAttachments).then((deleteResult) => {
+                                        console.log(deleteResult)
                                     }).catch((error) => {
                                         console.log(error)
                                     })
+
+                                // let deleteFileRelativeUrl: string[] = [];
+
+                                // this.deleteEditFileAttachments.forEach((value, key) => {
+                                //     deleteFileRelativeUrl.push(value.ServerRelativeUrl);
+                                // });
                             }
 
                             this.setState({
@@ -2304,8 +2346,6 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 await services.getFileContent(selectedTemplateFile[0].ServerRelativeUrl).then(async (fileContent) => {
 
                     let ID = parseInt(currentCircularListItemValue.ID);
-
-
                     await services.updateItem(serverRelativeUrl, Constants.circularList, ID, circularListItem).then(async (listItem) => {
                         listItem.Author = currentCircularListItemValue.Author;
                         circularListItem.CircularCreationDate = listItem?.Created;
@@ -2343,6 +2383,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
                     this.setState({
                         attachedFile: circularFileContent?.length > 0 ? circularFileContent[0] : null,
+                        selectedFileName: fileName,
                         currentCircularListItemValue: listItem,
                         ...circularListItem
                     }, () => {
