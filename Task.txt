@@ -36,15 +36,15 @@ Regulatory Search Query string
 Category Search Query string
 
 -------------------------------------Number of hours------------------------------------
-1. Search Dashboard  --> 110 hours
+1. Search Dashboard and Old + New Design  --> 110 hours
 2. Migration Script -> 60 hours
 3. Initial Consultation & Analysis -> 8 hours
 4. Download PDF with waterMark -> 25 hours
 5. View PDF with watermark -> 25 hours
-6. Compliance Dashboard 
-7. Maker Dashboard
-8. Checker Dashboard
-9. Circular Form 
+6. Compliance Dashboard -15 hours
+7. Maker Dashboard - 10 hours
+8. Checker Dashboard - 10 hours
+9. Circular Form -120 hours
 10. Responsive Design 
 
 Search Dashboard

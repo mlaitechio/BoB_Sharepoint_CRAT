@@ -143,6 +143,7 @@ export class IAttachmentFile {
     FileName: string;
     ServerRelativeUrl: string;
     name?: string;
+    UniqueId?: string;
 }
 
 export interface IPreviewImageCollection {

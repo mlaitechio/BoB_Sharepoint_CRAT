@@ -207,8 +207,8 @@ input * {
 
 .column11 {
   @include ms-Grid-col;
-  @include ms-sm11;
-  @include ms-md12;
+  @include ms-sm12;
+  @include ms-md10;
   @include ms-lg11;
   height: "inherit";
 }
@@ -230,7 +230,7 @@ input * {
 
 .tagClass {
   //max-width: 200px;
- // display: inline-block;
+  // display: inline-block;
   overflow: hidden;
   text-overflow: ellipsis;
   margin: 4px;

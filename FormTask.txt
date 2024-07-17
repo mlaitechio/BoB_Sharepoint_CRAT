@@ -13,7 +13,6 @@ Form Related Task
 12.Permission handling of item
 13. Working on it Dialog 
 14. Success message Dialog
----- List of Task ----
 15. If no search criteria is added , do rest api call to get all items (Done)
 16. Supporting Documents with Pop up & selection functionality (Master --> Previous year & published & department circulars) (Circulars - All years ,published & related to department)
 17. FAQ (Done)
@@ -40,7 +39,9 @@ Form Related Task
 38. Delete Circular List Item when in draft mode (Done)
 
 SOP File Naming convention
-Restrict File Limit to 5 SOP Files
+Restrict File Limit to 5 SOP Files (Done)
+Adding Multiple files as attachment for SOP File
+List of delete SOP Files and update
 Edit Circular Screens (Done) & Pagination pending
 Add  one more condition for department of user in edit circular filter string (Pending)
 
@@ -56,6 +57,8 @@ editFormItem Department Mapping
 Master Circular should be editable in 2nd quarter of the year
 
 After published PDF File Conversion
+
+Circular Number 
 
 Circular Number Duplicate Check (Done)
 Circular Number Alert on duplicate check (Done)

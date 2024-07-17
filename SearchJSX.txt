@@ -302,3 +302,108 @@
       //     </>
       //   })
       // }
+
+
+      //   largeItem.map(async (item) => {
+
+    //     // let currentItem = items.filter((val) => {
+    //     //   return item.ID == val.ID
+    //     // })
+
+
+
+
+    //     // let department = currentItem[0].MigratedDepartment ?? ``;
+    //     // let migratedDepartment = currentItem[0].Department ?? ``;
+
+    //     //if (migratedDepartment != department) {
+    //     // await services.updateItem(serverRelativeUrl, Constants.circularList, parseInt(currentItem.ID), {
+    //     //   Department: department,
+    //     //   MigratedDepartment: migratedDepartment
+    //     // }, `*`).then((updatedVal) => {
+    //     //   i++;
+    //     //   console.log(`Updated Department current Item ID:${currentItem.ID}`, i)
+    //     // }).catch((error) => {
+    //     //   console.log(error)
+    //     // })
+    //   })
+    // }).catch((error) => {
+
+    // })
+
+
+
+
+private updateMigratedDepartment = async () => {
+    const { items, departments } = this.state;
+
+    let providerValue = this.context;
+    const { services, serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
+
+    let i = 0;
+
+    let departmentMapping = [];
+
+    await services.getPagedListItems(serverRelativeUrl, `DepartmentMapping`, `*`, ``, ``, ``).then((val) => {
+      departmentMapping = val;
+    }).catch((error) => {
+
+    })
+
+    console.table(departmentMapping);
+
+    departmentMapping.map(async (department) => {
+
+      // let itemBasedonDepartment = items.filter((val) => {
+      //   return val.Department == department.Title
+      // })
+
+     // if (department.Title == `Corporate & Institutional Credit"`) {
+
+        // let itemBasedonDepartment = items.filter((val) => {
+        //   return val.MigratedDepartment == `Corporate & Institutional Credit"`
+        // })
+
+        let itemBasedonDepartment = items.filter((val) => {
+          return val.Department == department.Title
+        })
+
+        console.log(itemBasedonDepartment);
+        console.log(`Running for Department:`, itemBasedonDepartment?.length > 0 ? itemBasedonDepartment[0].Department : ``)
+
+        //itemBasedonDepartment[0].Department == itemBasedonDepartment[0].MigratedDepartment
+
+        if (itemBasedonDepartment.length > 0) {
+          await services.updateItemBatch(serverRelativeUrl, Constants.circularList, itemBasedonDepartment, items, department).then((val) => {
+            console.log(val.length)
+            console.log(`Update completed for department`, department?.Department)
+          }).catch((error) => {
+            console.log(error);
+          })
+
+        }
+     // }
+    })
+
+  }
+
+  ----------------------------------------------------
+
+
+    // let updateColl = await Promise.all(items.slice(101, 200).map(async (currentItem) => {
+
+    //   let department = currentItem?.MigratedDepartment ?? ``;
+    //   let migratedDepartment = currentItem?.Department ?? ``;
+
+    //   //if (migratedDepartment != department) {
+    //     await services.updateItem(serverRelativeUrl, Constants.circularList, parseInt(currentItem.ID), {
+    //       Department: department,
+    //       MigratedDepartment: migratedDepartment
+    //     }, `*`).then((updatedVal) => {
+    //       i++;
+    //       console.log(`Updated Department current Item ID:${currentItem.ID}`, i)
+    //     }).catch((error) => {
+    //       console.log(error)
+    //     })
+    //   //}
+    // }))

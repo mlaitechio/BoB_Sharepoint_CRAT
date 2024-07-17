@@ -68,6 +68,45 @@ export class Services implements IServices {
         }
     }
 
+    public async updateItemBatch(serverRelativeUrl, listName, itemIDs: any[], items: any[], departmentMapping: any): Promise<any[]> {
+
+        const [batchedSP, execute] = sp.batched();
+
+        const list = batchedSP.web.getList(`${serverRelativeUrl}/Lists/${listName}`);
+
+        const itemUpdated = [];
+
+        for (let i = 0; i < itemIDs.length; i++) {
+
+            let currentItem = items.filter((val) => {
+                return itemIDs[i].ID == val.ID
+            })
+
+            let department = departmentMapping?.Department ?? ``;
+            let migratedDepartment = departmentMapping?.Title ?? ``;
+
+            if (department != "" && migratedDepartment != "") {
+                let listUpdate = list.items.getById(itemIDs[i].ID).
+                    update({
+                        //Department: department,
+                        MigratedDepartment: department //migratedDepartment
+                    }, `*`).then(b => {
+                        console.log(`Item Updated:`, itemIDs[i].ID);
+                        itemUpdated.push(b)
+                    }).catch((error) => {
+                        console.log(error)
+                    })
+            }
+
+        }
+
+        await execute();
+
+        return Promise.resolve(itemUpdated);
+
+
+    }
+
     public async updateItem(serverRelativeUrl: string, listName: string, itemID: number, metadataValues: any, etag: any = "*"): Promise<any> {
 
         const updateItemResults = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items.
@@ -481,7 +520,7 @@ export class Services implements IServices {
 
         try {
             let searchItems: any[] = [];
-            let textQuery = queryText.trim() != "" ? `${queryText?.trim().split(' ').join(' OR ')}`:`*`; //`${queryText?.trim().split(' ').join(' OR ')}` + `*` : `*`
+            let textQuery = queryText.trim() != "" ? `(${queryText?.trim().split(' ').join(' OR ')}) XRANK(cb=100)` : `*`; //`${queryText?.trim().split(' ').join(' OR ')}` + `*` : `*`
 
             let _searchQuerySettings: ISearchQuery = {
                 Querytext: `${textQuery}`,//`*`,//

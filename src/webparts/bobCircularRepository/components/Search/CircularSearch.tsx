@@ -70,7 +70,7 @@ import { DataContext } from '../../DataContext/DataContext';
 import FileViewer from '../FileViewer/FileViewer';
 import { AddCircleRegular, ArrowClockwise24Regular, ArrowClockwiseRegular, ArrowCounterclockwiseRegular, ArrowDownloadRegular, ArrowDownRegular, ArrowResetRegular, ArrowUpRegular, Attach12Filled, CalendarRegular, ChevronDownRegular, ChevronUpRegular, Dismiss24Regular, DismissRegular, EyeRegular, Filter12Regular, Filter16Regular, FilterRegular, OpenRegular, Search24Regular, ShareAndroidRegular, TextAlignJustifyRegular } from '@fluentui/react-icons';
 import { ICheckBoxCollection, ICircularListItem } from '../../Models/IModel';
-import { PDFDocument, StandardFonts, degrees, rgb } from 'pdf-lib';
+import { PDFDocument, StandardFonts, degrees, error, rgb } from 'pdf-lib';
 import download from 'downloadjs'
 
 export default class CircularSearch extends React.Component<ICircularSearchProps, ICircularSearchState> {
@@ -172,8 +172,12 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
               return option != undefined
             }),
             publishedYear: uniquePublishedYear.map((val) => { return val.toString() })
-          }, () => {
+          }, async () => {
+
+            //this.updateMigratedDepartment()
+
             let checkBoxCollection = this.initializeCheckBoxFilter();
+
             this.setState({ checkBoxCollection: checkBoxCollection, isLoading: false }, () => {
               this.setState({ filterPanelCheckBoxCollection: checkBoxCollection })
             });
@@ -185,6 +189,8 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
     })
   }
+
+  
 
 
   private initializeCheckBoxFilter = (): Map<string, any[]> => {
@@ -786,7 +792,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         <TableHeader>
           <TableRow >
             {columns.map((column, index) => (
-              <TableHeaderCell key={column.columnKey} colSpan={index == 0 ? 7 : index == 2 ? 2 : 1} className={`${styles1.fontWeightBold}`}>
+              <TableHeaderCell key={column.columnKey} colSpan={index == 0 ? 4 : index == 2 ? 2 : 1} className={`${styles1.fontWeightBold}`}>
                 {column.label}
               </TableHeaderCell>
             ))}
@@ -801,7 +807,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
             return <>
               <TableRow className={`${styles1.tableRow}`}>
-                <TableCell colSpan={7} >
+                <TableCell colSpan={4} >
                   <TableCellLayout className={`${styles1.verticalSpacing}`} style={{ padding: 5 }}>
                     <div
                       className={`${styles1.colorLabel}`}
@@ -845,7 +851,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                 </TableCell> */}
               </TableRow>
               <TableRow className={`${tableRowClass}`}>
-                <TableCell colSpan={6}>
+                <TableCell colSpan={5}>
                   <div className={`${styles1.row}`}>
                     <div className={`${styles1.column2}`} style={{ paddingLeft: "0px" }}>
                       <Button icon={accordionFields.isSummarySelected && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
@@ -1606,7 +1612,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         let refinableFilterQuery = this.refinableQuery();
         let advancedSearchTextAndFilterQuery = this.searchQueryAndFilterQuery();
         let sortListProperty = [{
-          Property: Constants.managePropPublishedDate,
+          Property: `Rank`,//Constants.managePropPublishedDate,
           Direction: 1 //0 for asc & 1 for descending
         }]
 
@@ -1640,7 +1646,8 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                   IsMigrated: val.RefinableString05,
                   Classification: val.RefinableString06,
                   PublishedDate: val.RefinableDate00,
-                  IssuedFor: val.RefinableString08
+                  IssuedFor: val.RefinableString08,
+                  Rank:val.Rank
                 })
 
               })
@@ -1676,7 +1683,8 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                 IsMigrated: val.RefinableString05,
                 Classification: val.RefinableString06,
                 PublishedDate: val.RefinableDate00,
-                IssuedFor: val.RefinableString08
+                IssuedFor: val.RefinableString08,
+                Rank:val.Rank
               })
 
             })

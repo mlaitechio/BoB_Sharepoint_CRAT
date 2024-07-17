@@ -200,7 +200,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
 
                                 {columns.map((column, index) => (
                                     <TableHeaderCell
-                                        key={column.columnKey} colSpan={index == 0 ? 6 : 1}
+                                        key={column.columnKey} colSpan={index == 0 ? 5 : 1}
                                         style={index == 0 ? { paddingLeft: 15 } : {}}
                                         className={`${styles1.fontWeightBold}`}>
                                         {column.label}
@@ -220,7 +220,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
 
                                 return <>
                                     <TableRow className={`${styles1.tableRow}`}>
-                                        <TableCell colSpan={6} >
+                                        <TableCell colSpan={5} >
                                             <TableCellLayout className={`${styles1.verticalSpacing}`} style={{ padding: 5 }}>
                                                 <div
                                                     className={`${styles1.colorLabel}`}

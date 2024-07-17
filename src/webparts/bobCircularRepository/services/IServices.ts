@@ -4,6 +4,7 @@ export interface IServices {
     addListItemAttachments(serverRelativeUrl: string, listName: string, itemID: number, fileMetadata: Map<string, any>): Promise<any>
     recycleListItemAttachments: (serverRelativeUrl: string, listName: string, itemID: number, files: Map<string, any>) => Promise<any>;
     readListItemAttachment: (serverRelativeUrl: string, listName: string, itemId: number) => Promise<any[]>
+    updateItemBatch: (serverRelativeUrl, listName, itemIDs: any[], items: any[], departmentMapping: any) => Promise<any[]>
     updateItem: (serverRelativeUrl: string, listName: string, itemID: number, metadataValues: any, etag?: any) => Promise<any>;
     createItem: (serverRelativeUrl: string, listName: string, metadataValues: any) => Promise<boolean | any>;
     deleteListItem: (serverRelativeUrl: string, listName: string, itemId: number) => Promise<any>;
