@@ -32,6 +32,7 @@ import { IFileInfo } from '@pnp/sp/files';
 import SupportingDocument from './SupportingDocument/SupportingDocument';
 import FileViewer from '../FileViewer/FileViewer';
 import { error } from 'pdf-lib';
+import { IAttachmentAddResult } from '@pnp/sp/attachments';
 
 
 
@@ -382,7 +383,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
             this.sopFileAttachments.delete(fileName);
 
-            
+
 
             this.setState({
                 sopUploads: this.sopFileAttachments
@@ -765,13 +766,16 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                                 selectedSupportingCirculars.map((listItem) => {
 
                                     return <>
-                                        <div className={`${styles.column3}`}>
+                                        <div className={`${styles.column2}`}>
                                             <Link
                                                 className={`${styles.formLabel}`}
                                                 onClick={() => {
                                                     this.openSupportingCircularFile(listItem);
                                                 }}>{listItem.CircularNumber ?? ``}</Link>
                                             {/* <Label>{listItem.CircularNumber ?? ``}</Label> */}
+
+                                        </div>
+                                        <div className={`${styles.column1}`}>
                                             <Button
                                                 disabled={disableControl}
                                                 icon={<Delete16Regular />}
@@ -1654,8 +1658,12 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 sopUploads.forEach(async (value, key) => {
                     value.index = i;
                     value.FileName = key;
-                    value.ServerRelativeUrl = ``;
-                    value.UniqueId = ``;
+                    value.ServerRelativeUrl = value?.ServerRelativeUrl ?? ``;
+                    value.UniqueId = value?.UniqueId ?? ``;
+                    if (value.hasOwnProperty(`isFileEdit`)) {
+                        value.isFileEdit = value?.isFileEdit
+                    }
+
                     attachmentColl.push(value);
                     i++;
                 });
@@ -2177,8 +2185,6 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     if (circularListItem.CircularStatus != Constants.lblNew) {
 
 
-
-
                         await services.updateItem(serverRelativeUrl, Constants.circularList, ID, circularListItem).then(async (value) => {
                             circularListItem.CircularNumber = displayMode == Constants.lblNew ? circularNumberText.replace(`${this.getCircularNumber()}`, ``) : circularListItem.CircularNumber;
                             circularListItem.CircularCreationDate = value?.Created;
@@ -2188,15 +2194,22 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
                                 let updateNewAttachment = new Map<string, any[]>();
                                 sopAttachmentColl.map((val) => {
-                                    if (val.UniqueId == ``) {
+                                    if (!val.hasOwnProperty(`isFileEdit`)) {
                                         updateNewAttachment.set(val.FileName, [val])
                                     }
                                 })
 
                                 if (updateNewAttachment.size > 0) {
                                     await services.addListItemAttachments(serverRelativeUrl, Constants.circularList, ID, updateNewAttachment).
-                                        then((attachment) => {
-                                            console.log(attachment)
+                                        then(async (attachments: IAttachmentAddResult[]) => {
+                                            let addAttachmentPromise = await Promise.all(attachments.map(async (attach) => {
+                                                return await attach.file().then((val) => {
+                                                    return val;
+                                                })
+                                            }))
+
+                                            console.log(addAttachmentPromise);
+
                                         }).catch((error) => {
                                             console.log(error)
                                         })
@@ -2219,6 +2232,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                                 //     deleteFileRelativeUrl.push(value.ServerRelativeUrl);
                                 // });
                             }
+
+
 
                             this.setState({
                                 isSuccess: true,

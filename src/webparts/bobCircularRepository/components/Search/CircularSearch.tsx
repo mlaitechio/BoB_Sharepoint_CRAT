@@ -48,7 +48,13 @@ import {
   webLightTheme,
   Overflow,
   OverflowItem,
-  Caption1Strong
+  Caption1Strong,
+  Menu,
+  MenuTrigger,
+  MenuButton,
+  MenuPopover,
+  MenuList,
+  MenuItem
 } from "@fluentui/react-components";
 import { DatePicker } from "@fluentui/react-datepicker-compat";
 import { ICircularSearchProps } from './ICircularSearchProps';
@@ -68,7 +74,7 @@ import { IBobCircularRepositoryProps } from '../IBobCircularRepositoryProps';
 import Pagination from 'react-js-pagination';
 import { DataContext } from '../../DataContext/DataContext';
 import FileViewer from '../FileViewer/FileViewer';
-import { AddCircleRegular, ArrowClockwise24Regular, ArrowClockwiseRegular, ArrowCounterclockwiseRegular, ArrowDownloadRegular, ArrowDownRegular, ArrowResetRegular, ArrowUpRegular, Attach12Filled, CalendarRegular, ChevronDownRegular, ChevronUpRegular, Dismiss24Regular, DismissRegular, EyeRegular, Filter12Regular, Filter16Regular, FilterRegular, OpenRegular, Search24Regular, ShareAndroidRegular, TextAlignJustifyRegular } from '@fluentui/react-icons';
+import { AddCircleRegular, ArrowClockwise24Regular, ArrowClockwiseRegular, ArrowCounterclockwiseRegular, ArrowDownloadRegular, ArrowDownRegular, ArrowResetRegular, ArrowUpRegular, Attach12Filled, CalendarRegular, ChevronDownRegular, ChevronUpRegular, Dismiss24Regular, DismissRegular, EyeRegular, Filter12Regular, Filter16Regular, FilterRegular, MoreVerticalRegular, OpenRegular, Search24Regular, ShareAndroidRegular, TextAlignJustifyRegular } from '@fluentui/react-icons';
 import { ICheckBoxCollection, ICircularListItem } from '../../Models/IModel';
 import { PDFDocument, StandardFonts, degrees, error, rgb } from 'pdf-lib';
 import download from 'downloadjs'
@@ -92,7 +98,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       filteredItems: [],
       columns,
       currentPage: 1,
-      itemsPerPage: 9,
+      itemsPerPage: 11,
       isLoading: false,
       departments: [],
       selectedDepartment: [],
@@ -190,7 +196,64 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     })
   }
 
-  
+
+  private updateMigratedDepartment = async () => {
+    const { items, departments } = this.state;
+
+    let providerValue = this.context;
+    const { services, serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
+
+    let i = 0;
+
+    let departmentMapping = [];
+
+    await services.getPagedListItems(serverRelativeUrl, `DepartmentMapping`, `*`, ``, ``, ``).then((val) => {
+      departmentMapping = val;
+    }).catch((error) => {
+
+    })
+
+    console.table(departmentMapping);
+
+    //departmentMapping.map(async (department) => {
+
+      // let itemBasedonDepartment = items.filter((val) => {
+      //   return val.Department == department.Title
+      // })
+
+     // if (department.Title == `Corporate & Institutional Credit"`) {
+
+        // let itemBasedonDepartment = items.filter((val) => {
+        //   return val.MigratedDepartment == `Corporate & Institutional Credit"`
+        // })
+
+        let itemBasedonDepartment = items.filter((val) => {
+          return val.Department == "Mortgages and Other Retail Assets" //department.Title
+        })
+
+        let department={
+          Department:"Retail Asset"
+        }
+
+        console.log(itemBasedonDepartment);
+        console.log(`Running for Department:`, itemBasedonDepartment?.length > 0 ? itemBasedonDepartment[0].Department : ``)
+
+        //itemBasedonDepartment[0].Department == itemBasedonDepartment[0].MigratedDepartment
+
+        if (itemBasedonDepartment.length > 0) {
+          await services.updateItemBatch(serverRelativeUrl, Constants.circularList, itemBasedonDepartment.slice(0,800), items, department).then((val) => {
+            console.log(val.length)
+            console.log(`Update completed for department`, department?.Department)
+          }).catch((error) => {
+            console.log(error);
+          })
+
+        }
+     // }
+    //})
+
+  }
+
 
 
   private initializeCheckBoxFilter = (): Map<string, any[]> => {
@@ -780,19 +843,24 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     const { filteredItems, previewItems, currentSelectedItemId, accordionFields } = this.state
     let filteredPageItems = this.paginateFn(filteredItems);
     const columns = [
+      // { columnKey: "CircularNumber", label: "Circular No" },
       { columnKey: "Title", label: "Document Title" },
       { columnKey: "Date", label: "Date" },
       // { columnKey: "Classification", label: "Classification" },
       { columnKey: "Department", label: "Department" },
+      { columnKey: "Vertical Button", label: "" },
       // { columnKey: "IssuedFor", label: "Issued For" }
     ];
+    //: index == 2 ? 2
 
     let tableJSX = <>
       <Table arial-label="Default table">
         <TableHeader>
           <TableRow >
             {columns.map((column, index) => (
-              <TableHeaderCell key={column.columnKey} colSpan={index == 0 ? 4 : index == 2 ? 2 : 1} className={`${styles1.fontWeightBold}`}>
+              <TableHeaderCell key={column.columnKey} colSpan={index == 0 ? 3 : 1}
+                button={{ style: { paddingLeft: index == 0 ? 5 : 0 } }}
+                className={`${styles1.fontWeightBold}`}>
                 {column.label}
               </TableHeaderCell>
             ))}
@@ -807,14 +875,23 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
             return <>
               <TableRow className={`${styles1.tableRow}`}>
-                <TableCell colSpan={4} >
+                {/* <TableCell>
                   <TableCellLayout className={`${styles1.verticalSpacing}`} style={{ padding: 5 }}>
                     <div
                       className={`${styles1.colorLabel}`}
                       style={{
                         color: val.Classification == "Master" ? "#f26522" : "#162B75"
                       }}>{val.CircularNumber}</div>
-                    <div className={`${styles1.verticalSpacing}`}>
+                  </TableCellLayout>
+                </TableCell> */}
+                <TableCell colSpan={3} className={`${styles1.verticalSpacing}`} style={{ padding: 5 }}>
+                  <TableCellLayout >
+                    <div className={`${styles1.verticalSpacing}`} style={{ padding: 5 }}>
+                      <div
+                        className={`${styles1.colorLabel}`}
+                        style={{
+                          color: val.Classification == "Master" ? "#f26522" : "#162B75"
+                        }}>{val.CircularNumber}</div>
                       <Button
                         style={{ padding: 0, fontWeight: 400 }}
                         appearance="transparent"
@@ -839,35 +916,98 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                     {val.Classification}
                   </TableCellLayout>
                 </TableCell> */}
-                <TableCell colSpan={2}>
+                <TableCell >
                   <TableCellLayout className={`${styles1.verticalSpacing}`}>
                     {val.Department}
                   </TableCellLayout>
                 </TableCell>
+                <TableCell >
+                  <TableCellLayout className={`${styles1.verticalSpacing}`}>
+
+                  </TableCellLayout>
+                </TableCell>
+                {/* <TableCell >
+                  <TableCellLayout className={`${styles1.verticalSpacing}`}>
+                    <Menu>
+                      <MenuTrigger disableButtonEnhancement>
+                        <MenuButton icon={<MoreVerticalRegular />} appearance="transparent"></MenuButton>
+                      </MenuTrigger>
+                      <MenuPopover>
+                        <MenuList>
+                          <MenuItem style={{ fontFamily: "Roboto" }}>
+                            <Menu>
+                              <MenuTrigger disableButtonEnhancement>
+                                <MenuItem style={{ paddingLeft: 0, paddingRight: 0 }}>Summary</MenuItem>
+                              </MenuTrigger>
+                              <MenuPopover>
+                                <MenuList>
+                                  <MenuItem>
+
+                                  </MenuItem>
+                                </MenuList>
+                              </MenuPopover>
+                            </Menu>
+                          </MenuItem>
+                            <MenuItem style={{ fontFamily: "Roboto" }}>
+                              <Menu>
+                                <MenuTrigger disableButtonEnhancement>
+                                  <MenuItem >{`FAQs`} </MenuItem>
+                                </MenuTrigger>
+                                <MenuPopover>
+                                  <MenuList>
+                                    <MenuItem>
+
+                                    </MenuItem>
+                                  </MenuList>
+                                </MenuPopover>
+                              </Menu>
+                            </MenuItem>
+                          <MenuItem style={{ fontFamily: "Roboto" }}>
+                            <Menu>
+                              <MenuTrigger disableButtonEnhancement>
+                                <MenuItem>Supporting Documents</MenuItem>
+                              </MenuTrigger>
+                              <MenuPopover>
+                                <MenuList>
+                                  <MenuItem>
+
+                                  </MenuItem>
+                                </MenuList>
+                              </MenuPopover>
+                            </Menu>
+                          </MenuItem>
+                        </MenuList>
+                      </MenuPopover>
+                    </Menu>
+                  </TableCellLayout>
+                </TableCell> */}
                 {/* <TableCell>
                   <TableCellLayout>
                     {val.IssuedFor}
                   </TableCellLayout>
                 </TableCell> */}
               </TableRow>
+              {/* <TableRow>
+                <Divider appearance="subtle"></Divider>
+              </TableRow> */}
               <TableRow className={`${tableRowClass}`}>
-                <TableCell colSpan={5}>
-                  <div className={`${styles1.row}`}>
-                    <div className={`${styles1.column2}`} style={{ paddingLeft: "0px" }}>
+                <TableCell colSpan={4}>
+                  <div className={`${styles1.row}`} style={{ paddingLeft: 0 }}>
+                    <div className={`${styles1.column1}`} style={{ paddingLeft: "0px", marginRight: 32 }}>
                       <Button icon={accordionFields.isSummarySelected && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
                         iconPosition="after"
                         className={accordionFields.isSummarySelected && isCurrentItem ? styles1.colorLabel : ``}
                         appearance={accordionFields.isSummarySelected && isCurrentItem ? "outline" : "transparent"}
                         onClick={this.onDetailItemClick.bind(this, val, Constants.colSummary)}>Summary</Button>
                     </div>
-                    <div className={`${styles1.column2}`}>
+                    <div className={`${styles1.column1}`} style={{ marginRight: 25 }}>
                       <Button icon={accordionFields.isTypeSelected && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
                         iconPosition="after"
                         className={accordionFields.isTypeSelected && isCurrentItem ? styles1.colorLabel : ``}
                         appearance={accordionFields.isTypeSelected && isCurrentItem ? "outline" : "transparent"}
                         onClick={this.onDetailItemClick.bind(this, val, Constants.colType)}>Type</Button>
                     </div>
-                    <div className={`${styles1.column2}`}>
+                    <div className={`${styles1.column1}`} style={{ marginRight: 32 }}>
                       <Button
                         icon={accordionFields.isCategorySelected && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
                         iconPosition="after"
@@ -875,7 +1015,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                         appearance={accordionFields.isCategorySelected && isCurrentItem ? "outline" : "transparent"}
                         onClick={this.onDetailItemClick.bind(this, val, Constants.colCategory)}>Category</Button>
                     </div>
-                    <div className={`${styles1.column4}`}>
+                    <div className={`${styles1.column4}`} >
                       <Button
                         icon={accordionFields.isSupportingDocuments && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
                         iconPosition="after"
@@ -889,7 +1029,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
               </TableRow>
               {isFieldSelected && currentSelectedItemId == val.ID &&
                 <TableRow >
-                  <TableCell colSpan={6}>
+                  <TableCell colSpan={4}>
                     <div className={`${styles1.row}`}>
                       <div className={`${styles1.column12} ${AnimationClassNames.slideDownIn20}`}>
                         {accordionFields.isSummarySelected &&
@@ -1647,7 +1787,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                   Classification: val.RefinableString06,
                   PublishedDate: val.RefinableDate00,
                   IssuedFor: val.RefinableString08,
-                  Rank:val.Rank
+                  Rank: val.Rank
                 })
 
               })
@@ -1684,7 +1824,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                 Classification: val.RefinableString06,
                 PublishedDate: val.RefinableDate00,
                 IssuedFor: val.RefinableString08,
-                Rank:val.Rank
+                Rank: val.Rank
               })
 
             })

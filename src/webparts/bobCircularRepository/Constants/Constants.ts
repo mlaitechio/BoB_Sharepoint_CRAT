@@ -1,5 +1,5 @@
 export class Constants {
-  public static readonly headerText = "CRAT";
+  public static readonly headerText = "Circular Repository Access Tool";
   public static readonly searchText = "Search";
   //public static readonly documentCategoryList = "DocumentCategory";
   public static readonly circularList = "CircularRepository";

@@ -85,11 +85,12 @@ export class Services implements IServices {
             let department = departmentMapping?.Department ?? ``;
             let migratedDepartment = departmentMapping?.Title ?? ``;
 
-            if (department != "" && migratedDepartment != "") {
+            //&& migratedDepartment != ""
+            if (department != "" ) {
                 let listUpdate = list.items.getById(itemIDs[i].ID).
                     update({
-                        //Department: department,
-                        MigratedDepartment: department //migratedDepartment
+                        Department: department,
+                        //MigratedDepartment: department //migratedDepartment
                     }, `*`).then(b => {
                         console.log(`Item Updated:`, itemIDs[i].ID);
                         itemUpdated.push(b)

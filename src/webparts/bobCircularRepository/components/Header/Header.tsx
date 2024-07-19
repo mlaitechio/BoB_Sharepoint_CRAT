@@ -45,7 +45,7 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
         let tabletMode = (mode == 2);
         let desktopMode = (mode == 3 || mode == 4 || mode == 5);
 
-        let headerClass = mobileMode ? `${styles.column3}` : `${styles.column1}`;
+        let headerClass = mobileMode ? `${styles.column3}` : `${styles.column3}`;
         let headerClassTabletMode = `${styles.column6}`;
         let logoImg = context.pageContext.web.absoluteUrl + "/_api/siteiconmanager/getsitelogo";//require('../../assets/sidbilogo.png')
 
@@ -78,10 +78,10 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                     <div className={`${headerClass} 
                     ${styles.headerTextAlignLeft} 
                     ${styles.padding} ${styles.minHeight} `} style={{
-                            fontWeight: "var(--fontWeightBold)",
-                            fontSize: "var(--fontSizeHero700)",
-                            borderLeft: "1px solid lightgrey",
-                            borderRight: "1px solid lightgrey"
+                            fontWeight: "var(--fontWeightSemibold)",
+                            //fontSize: "var(--fontSizeHero700)",
+                            //borderLeft: "1px solid lightgrey",
+                            //borderRight: "1px solid lightgrey"
                         }}>
                         <>
                             {`${Constants.headerText}`}
@@ -90,7 +90,7 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                 }
                 {
                     (desktopMode) &&
-                    <div className={`${styles.column8}`} >
+                    <div className={`${styles.column6}`} >
 
                         <Button className={`${styles.formBtn}`}
                             appearance="transparent" icon={<HomeRegular />}
