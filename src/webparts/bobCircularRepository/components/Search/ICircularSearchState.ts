@@ -16,6 +16,7 @@ export interface ICircularSearchState {
     previewItems?: ICircularListItem;
     currentSelectedItemId?: any;
     currentSelectedItem?: ICircularListItem;
+    relevanceDepartment?: any[];
     sortingFields?: string;
     selectedSortFields?: string;
     sortDirection?: string;

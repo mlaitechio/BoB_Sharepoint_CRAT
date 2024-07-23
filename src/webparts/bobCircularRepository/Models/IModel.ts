@@ -113,6 +113,13 @@ export interface ICircularListItem {
 
 }
 
+export interface ISortTable {
+    tableColumns: any[];
+    listItems: ICircularListItem[];
+    sortColumn: any;
+    accordionFields: any;
+}
+
 export interface IADProperties {
     id: string;
     mail: string;

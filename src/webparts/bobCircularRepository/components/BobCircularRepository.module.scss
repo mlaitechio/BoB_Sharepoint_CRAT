@@ -330,6 +330,14 @@ input * {
   white-space: nowrap;
 }
 
+.fieldLabel {
+  font-family: Roboto !important;
+  font-weight: 400;
+  color: #162B75;
+  white-space: nowrap;
+  width: 0px;
+}
+
 .formBtn {
   margin: 5px;
 }

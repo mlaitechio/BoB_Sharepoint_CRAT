@@ -40,9 +40,10 @@ Form Related Task
 
 SOP File Naming convention
 Restrict File Limit to 5 SOP Files (Done)
-Adding Multiple files as attachment for SOP File
-List of delete SOP Files and update
-Edit Circular Screens (Done) & Pagination pending
+Adding Multiple files as attachment for SOP File(Done)
+List of delete SOP Files and update(Done)
+Edit Circular Screens (Done) & Pagination pending (Done)
+
 Add  one more condition for department of user in edit circular filter string (Pending)
 
 Permission Matrix 
@@ -77,4 +78,10 @@ Supporting Documents Field Creation -->(done)
 View Circular Compliance & Checker (Done)
 Employee ID watermarking from Azure AD (Done)
 CircularCreation Date Issue on Display (Done)
+
+
+Test Scenarios
+
+SOP upload can upload empty pdf. . Check should be there . ( No way to check empty file)
+How to view the list of rejected circulars (Rejected Circulars Dashboard)
 

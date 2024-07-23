@@ -59,17 +59,22 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                     <div className={`${styles.column1} ${styles.textColor} `} >
 
                         {/* <img alt="" src={require('../assets/TIAA.png')} /> */}
-                        <Image src={logoImg} styles={{
-                            root: { padding: 5 },
-                            image: {
-                                objectFit: "contain",
-                                verticalAlign: "-webkit-baseline-middle",
-                                // minHeight: 40,
-                                height: 50,
-                                width: "100%"
-                                //width: responsiveMode == 5 ? 250 : `100%`
-                            }
-                        }}></Image>
+                        <Link onClick={() => { window.open(`/sites/New_intranet`, `_blank`) }}>
+                            <Image src={logoImg}
+
+                                styles={{
+                                    root: { padding: 5 },
+
+                                    image: {
+                                        objectFit: "contain",
+                                        verticalAlign: "-webkit-baseline-middle",
+                                        // minHeight: 40,
+                                        height: 50,
+                                        width: "100%"
+                                        //width: responsiveMode == 5 ? 250 : `100%`
+                                    }
+                                }}></Image>
+                        </Link>
                     </div>
                 </>
                 }
@@ -213,7 +218,7 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                     </>
                 }
 
-            </div>
+            </div >
             <Divider appearance="subtle"></Divider>
         </>
         )

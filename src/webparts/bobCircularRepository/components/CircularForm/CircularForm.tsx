@@ -81,6 +81,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 isComplianceSelected: false
             },
             currentCircularListItemValue: undefined,
+            isRequesterMaker: false,
             selectedSupportingCirculars: [],
             sopAttachmentColl: [],
             showSubmitDialog: false,
@@ -211,6 +212,10 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         const { context, services } = providerValue as IBobCircularRepositoryProps;
         const { displayMode } = this.props
 
+        let requesterMail = editFormItem?.Author?.split('#')[4].replace(',', '');
+        let currentUserEmail = context.pageContext.user.email;
+        let isUserRequesterMaker = currentUserEmail == requesterMail;
+
         let editCircularItem = {
             CircularCreationDate: editFormItem.CircularCreationDate && editFormItem.CircularCreationDate != "" ? new Date(editFormItem?.CircularCreationDate)?.toISOString() : null,
             Subject: editFormItem?.Subject ?? ``,
@@ -244,6 +249,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             currentItemID: editFormItem.ID,
             lblCompliance: editCircularItem.Compliance == Constants.lblComplianceYes ? Constants.lblCompliance : ``,
             isNewForm: false,
+            isRequesterMaker: isUserRequesterMaker
             //isEditForm: displayMode == Constants.lblEditCircular
 
         }, async () => {
@@ -634,7 +640,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         const { circularListItem, expiryDate, lblCompliance,
             issuedFor, category, templates, selectedTemplate, attachedFile,
             selectedCommentSection,
-            classification, isNewForm, isEditForm, selectedSupportingCirculars } = this.state;
+            classification, isNewForm, isEditForm, selectedSupportingCirculars, isRequesterMaker } = this.state;
         let providerValue = this.context;
         const { context, isUserChecker, isUserMaker, isUserCompliance } = providerValue as IBobCircularRepositoryProps;
         const { displayMode, currentPage } = this.props
@@ -831,7 +837,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 }
 
 
-                {isUserMaker && showMakerCommentBox && <>
+                {isUserMaker && showMakerCommentBox && isRequesterMaker && <>
                     <div className={`${styles.row} ${styles.formFieldMarginTop}`}>
                         <div className={`${styles.column12}`}>
                             {this.textAreaControl(`${Constants.lblCommentsMaker}`, true, `${circularListItem.CommentsMaker}`)}
@@ -841,7 +847,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 </>
                 }
 
-                {isUserCompliance && showComplianceCommentBox && <>
+                {isUserCompliance && showComplianceCommentBox && !isRequesterMaker && <>
                     <div className={`${styles.row} ${styles.formFieldMarginTop}`}>
                         <div className={`${styles.column12}`}>
                             {this.textAreaControl(`${Constants.lblCommentsCompliance}`, true, `${circularListItem.CommentsCompliance}`)}
@@ -851,7 +857,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 </>
                 }
 
-                {isUserChecker && showCheckerCommentBox && <>
+                {isUserChecker && showCheckerCommentBox && !isRequesterMaker && <>
                     <div className={`${styles.row} ${styles.formFieldMarginTop}`}>
                         <div className={`${styles.column12}`}>
                             {this.textAreaControl(`${Constants.lblCommentsChecker}`, true, `${circularListItem.CommentsChecker}`)}
@@ -906,11 +912,13 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
     private saveCancelBtn = (): JSX.Element => {
         let providerValue = this.context;
-        const { isUserChecker, isUserMaker, isUserCompliance } = providerValue as IBobCircularRepositoryProps;
+        const { isUserMaker, isUserCompliance, isUserChecker } = providerValue as IBobCircularRepositoryProps;
         const { displayMode, currentPage } = this.props
-        const { circularListItem, showSubmitDialog, submittedStatus } = this.state
+        const { circularListItem, isRequesterMaker } = this.state
         let displayButton = (displayMode == Constants.lblNew || displayMode == Constants.lblEditCircular);
         let circularStatus = circularListItem.CircularStatus;
+
+
 
         /**
         |--------------------------------------------------
@@ -947,14 +955,14 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 </Button>
             } */}
 
-            {showDraftClearSubmitBtn && displayButton &&
+            {showDraftClearSubmitBtn && displayButton && isRequesterMaker &&
                 <Button appearance="primary"
                     className={`${styles.formBtn}`}
                     onClick={this.saveForm.bind(this, Constants.draft)}>
                     Save as Draft
                 </Button>
             }
-            {showDraftClearSubmitBtn && displayButton &&
+            {showDraftClearSubmitBtn && displayButton && isRequesterMaker &&
 
                 <Button appearance="primary"
                     className={`${styles.formBtn}`}
@@ -966,7 +974,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     Submit
                 </Button>
             }
-            {(isUserCompliance || isUserChecker) && showReturnToMakerBtn
+            {(isUserCompliance || isUserChecker) && showReturnToMakerBtn && !isRequesterMaker
                 && (currentPage == Constants.complianceGroup || currentPage == Constants.checkerGroup) &&
                 <Button
                     appearance="primary"
@@ -980,8 +988,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 </Button>
             }
             {
-                isUserCompliance && showSbmtCheckerBtn && currentPage == Constants.complianceGroup &&
-                <Button appearance="primary"
+                isUserCompliance && showSbmtCheckerBtn && currentPage == Constants.complianceGroup && !isRequesterMaker
+                && <Button appearance="primary"
                     onClick={() => {
                         status = Constants.sbmtChecker;
                         this.setState({ submittedStatus: status, showSubmitDialog: true })
@@ -991,8 +999,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 </Button>
 
             }
-            {isUserChecker && showPublishRejectButton && currentPage == Constants.checkerGroup &&
-                <Button appearance="primary"
+            {isUserChecker && showPublishRejectButton && currentPage == Constants.checkerGroup && !isRequesterMaker
+                && <Button appearance="primary"
                     onClick={() => {
                         status = Constants.published;
                         this.setState({ submittedStatus: status, showSubmitDialog: true })
@@ -1001,8 +1009,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     Publish
                 </Button>
             }
-            {isUserChecker && showPublishRejectButton && currentPage == Constants.checkerGroup &&
-                <Button appearance="primary"
+            {isUserChecker && showPublishRejectButton && currentPage == Constants.checkerGroup && !isRequesterMaker
+                && <Button appearance="primary"
 
                     onClick={() => {
                         status = Constants.archived;
@@ -1023,7 +1031,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         let submitDialogJSX = <>
             <>
                 <Dialog modalType="alert" defaultOpen={(showDialog)} >
-                    <DialogSurface style={{ maxWidth: 480 }}>
+                    <DialogSurface style={{ maxWidth: 480, padding: 14 }}>
                         <DialogBody style={{ display: "block" }}>
                             <DialogTitle style={{ fontFamily: "Roboto", marginBottom: 10 }}>{`${`Save Circular` ?? ``}`}</DialogTitle>
                             <DialogContent styles={{
@@ -1099,10 +1107,18 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     circularListItem.Subject = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '');
                     this.setState({ circularListItem });
                 }
+                else {
+                    circularListItem.Subject = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '').trim();
+                    this.setState({ circularListItem })
+                }
                 break;
             case Constants.gist:
                 if (wordLength <= 500 && data.value.length < 63999 && data?.value.trim() != "") {
                     circularListItem.Gist = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '');
+                    this.setState({ circularListItem })
+                }
+                else {
+                    circularListItem.Gist = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '').trim();
                     this.setState({ circularListItem })
                 }
                 break;
@@ -1111,10 +1127,18 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     circularListItem.CircularFAQ = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '');
                     this.setState({ circularListItem });
                 }
+                else {
+                    circularListItem.CircularFAQ = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '').trim();
+                    this.setState({ circularListItem });
+                }
                 break;
             case Constants.lblCommentsMaker:
                 if (wordLength <= 50 && data.value.length < 63999 && data?.value.trim() != "") {
                     circularListItem.CommentsMaker = data.value.replace(/[^a-zA-Z0-9.&,() ]/g, '');
+                    this.setState({ circularListItem })
+                }
+                else {
+                    circularListItem.CommentsMaker = data.value.replace(/[^a-zA-Z0-9.&,() ]/g, '').trim();
                     this.setState({ circularListItem })
                 }
                 break;
@@ -1123,10 +1147,18 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     circularListItem.CommentsChecker = data.value.replace(/[^a-zA-Z0-9.&,() ]/g, '');
                     this.setState({ circularListItem })
                 }
+                else {
+                    circularListItem.CommentsChecker = data.value.replace(/[^a-zA-Z0-9.&,() ]/g, '').trim();
+                    this.setState({ circularListItem })
+                }
                 break;
             case Constants.lblCommentsCompliance:
                 if (wordLength <= 50 && data.value.length < 63999 && data?.value.trim() != "") {
                     circularListItem.CommentsCompliance = data.value.replace(/[^a-zA-Z0-9.&,() ]/g, '');
+                    this.setState({ circularListItem })
+                }
+                else {
+                    circularListItem.CommentsCompliance = data.value.replace(/[^a-zA-Z0-9.&,() ]/g, '').trim();
                     this.setState({ circularListItem })
                 }
                 break;
@@ -1506,8 +1538,9 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
     private switchControl = (labelName, isRequired, switchLabel, orientation: any = "vertical", isChecked?: boolean, isDisabled?: boolean): JSX.Element => {
         let switchControlJSX = <>
             <Field
-                label={<Label className={`${styles.formLabel} ${styles.fieldTitle}`}>{labelName}</Label>}
+                label={{ children: <Label className={`${styles.fieldLabel} ${styles.fieldTitle}`}>{labelName}</Label>, style: { width: 0 } }}
                 orientation={orientation}
+                style={{ width: 0 }}
                 required={isRequired}>
                 <Switch required={isRequired}
                     checked={isChecked}

@@ -54,7 +54,8 @@ import {
   MenuButton,
   MenuPopover,
   MenuList,
-  MenuItem
+  MenuItem,
+  Link
 } from "@fluentui/react-components";
 import { DatePicker } from "@fluentui/react-datepicker-compat";
 import { ICircularSearchProps } from './ICircularSearchProps';
@@ -137,7 +138,8 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         isIssuedForSelected: false,
         isComplianceSelected: false,
         isCategorySelected: false
-      }
+      },
+
     }
 
 
@@ -180,12 +182,26 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
             publishedYear: uniquePublishedYear.map((val) => { return val.toString() })
           }, async () => {
 
-            //this.updateMigratedDepartment()
+            // this.updateMigratedDepartment()
 
             let checkBoxCollection = this.initializeCheckBoxFilter();
 
             this.setState({ checkBoxCollection: checkBoxCollection, isLoading: false }, () => {
-              this.setState({ filterPanelCheckBoxCollection: checkBoxCollection })
+              const { checkBoxCollection } = this.state
+              let departmentBox = checkBoxCollection.get(`${Constants.department}`);
+              let relevanceDepartment = ["Operations and Service", "Retail Asset", "Human Resources", "Retail Liability", "Digital Group"].
+                map((dept) => {
+                  if (departmentBox && departmentBox.length > 0) {
+                    let indexOfDept = departmentBox?.findIndex(val => val.value == dept)
+                    return {
+                      checked: false,
+                      value: dept,
+                      refinableString: "RefinableString03",
+                      indexValue: indexOfDept
+                    }
+                  }
+                });
+              this.setState({ filterPanelCheckBoxCollection: checkBoxCollection, relevanceDepartment: relevanceDepartment })
             });
           })
         }).catch((error) => {
@@ -217,39 +233,39 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
     //departmentMapping.map(async (department) => {
 
-      // let itemBasedonDepartment = items.filter((val) => {
-      //   return val.Department == department.Title
-      // })
+    // let itemBasedonDepartment = items.filter((val) => {
+    //   return val.Department == department.Title
+    // })
 
-     // if (department.Title == `Corporate & Institutional Credit"`) {
+    // if (department.Title == `Corporate & Institutional Credit"`) {
 
-        // let itemBasedonDepartment = items.filter((val) => {
-        //   return val.MigratedDepartment == `Corporate & Institutional Credit"`
-        // })
+    // let itemBasedonDepartment = items.filter((val) => {
+    //   return val.MigratedDepartment == `Corporate & Institutional Credit"`
+    // })
 
-        let itemBasedonDepartment = items.filter((val) => {
-          return val.Department == "Mortgages and Other Retail Assets" //department.Title
-        })
+    let itemBasedonDepartment = items.filter((val) => {
+      return val.Department == "Operations & Services & Cs" //department.Title
+    })
 
-        let department={
-          Department:"Retail Asset"
-        }
+    let department = {
+      Department: "Operations and Service"
+    }
 
-        console.log(itemBasedonDepartment);
-        console.log(`Running for Department:`, itemBasedonDepartment?.length > 0 ? itemBasedonDepartment[0].Department : ``)
+    console.log(itemBasedonDepartment);
+    console.log(`Running for Department:`, itemBasedonDepartment?.length > 0 ? itemBasedonDepartment[0].Department : ``)
 
-        //itemBasedonDepartment[0].Department == itemBasedonDepartment[0].MigratedDepartment
+    //itemBasedonDepartment[0].Department == itemBasedonDepartment[0].MigratedDepartment
 
-        if (itemBasedonDepartment.length > 0) {
-          await services.updateItemBatch(serverRelativeUrl, Constants.circularList, itemBasedonDepartment.slice(0,800), items, department).then((val) => {
-            console.log(val.length)
-            console.log(`Update completed for department`, department?.Department)
-          }).catch((error) => {
-            console.log(error);
-          })
+    if (itemBasedonDepartment.length > 0) {
+      await services.updateItemBatch(serverRelativeUrl, Constants.circularList, itemBasedonDepartment.slice(0, 900), items, department).then((val) => {
+        console.log(val.length)
+        console.log(`Update completed for department`, department?.Department)
+      }).catch((error) => {
+        console.log(error);
+      })
 
-        }
-     // }
+    }
+    // }
     //})
 
   }
@@ -437,7 +453,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   }
 
   private searchFilters = (): JSX.Element => {
-    const { circularNumber, checkBoxCollection, filterLabelName, filterAccordion } = this.state;
+    const { circularNumber, checkBoxCollection, filterLabelName, filterAccordion, relevanceDepartment } = this.state;
     let circularBox = checkBoxCollection.get(`${Constants.circularNumber}`);
     let departmentBox = checkBoxCollection.get(`${Constants.department}`);
     let publishedYearBox = checkBoxCollection.get(`${Constants.colPublishedDate}`);
@@ -445,6 +461,8 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     let regulatoryBox = checkBoxCollection.get(`${Constants.compliance}`);
     let issuedForBox = checkBoxCollection.get(`${Constants.issuedFor}`);
     let classificationBox = checkBoxCollection.get(`${Constants.classification}`);
+
+
     let searchFiltersJSX = <>
       {this.createFilterPanel(filterLabelName)}
       <div className={`${styles1.row}`}>
@@ -467,14 +485,15 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
             {
               filterAccordion.isDepartmentSelected && <>
                 <div className={`${styles1.column12} ${styles1.marginFilterTop} ${AnimationClassNames.slideDownIn20}`}>
-                  {/* {this.pickerControl()} */}
-                  {checkBoxCollection.size > 0 && departmentBox.length > 0 && departmentBox.slice(0, 5).map((val, index) => {
-                    return <div className={`${styles1.row}`}>
-                      <div className={`${styles1.column12}`} >
-                        {this.checkBoxControl(`${Constants.department}`, `${val.value}`, val.checked, index)}
+                  {/* {this.pickerControl()} departmentBox.slice(0, 5)*/}
+                  {checkBoxCollection.size > 0 && departmentBox.length > 0 && relevanceDepartment.length > 0 &&
+                    relevanceDepartment.map((val, index) => {
+                      return <div className={`${styles1.row}`}>
+                        <div className={`${styles1.column12}`} >
+                          {this.checkBoxControl(`${Constants.department}`, `${val.value}`, val.checked, val.indexValue)}
+                        </div>
                       </div>
-                    </div>
-                  })}
+                    })}
                 </div>
                 <div className={`${styles1.column12} ${styles1.marginFilterTop} ${AnimationClassNames.slideDownIn20}`} style={{ paddingLeft: 0 }}>
                   <Button icon={<OpenRegular />}
@@ -843,7 +862,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     const { filteredItems, previewItems, currentSelectedItemId, accordionFields } = this.state
     let filteredPageItems = this.paginateFn(filteredItems);
     const columns = [
-      // { columnKey: "CircularNumber", label: "Circular No" },
+      { columnKey: "CircularNumber", label: "Circular No" },
       { columnKey: "Title", label: "Document Title" },
       { columnKey: "Date", label: "Date" },
       // { columnKey: "Classification", label: "Classification" },
@@ -858,7 +877,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         <TableHeader>
           <TableRow >
             {columns.map((column, index) => (
-              <TableHeaderCell key={column.columnKey} colSpan={index == 0 ? 3 : 1}
+              <TableHeaderCell key={column.columnKey} colSpan={index == 1 ? 3 : 1}
                 button={{ style: { paddingLeft: index == 0 ? 5 : 0 } }}
                 className={`${styles1.fontWeightBold}`}>
                 {column.label}
@@ -875,7 +894,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
             return <>
               <TableRow className={`${styles1.tableRow}`}>
-                {/* <TableCell>
+                <TableCell>
                   <TableCellLayout className={`${styles1.verticalSpacing}`} style={{ padding: 5 }}>
                     <div
                       className={`${styles1.colorLabel}`}
@@ -883,15 +902,15 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                         color: val.Classification == "Master" ? "#f26522" : "#162B75"
                       }}>{val.CircularNumber}</div>
                   </TableCellLayout>
-                </TableCell> */}
+                </TableCell>
                 <TableCell colSpan={3} className={`${styles1.verticalSpacing}`} style={{ padding: 5 }}>
                   <TableCellLayout >
                     <div className={`${styles1.verticalSpacing}`} style={{ padding: 5 }}>
-                      <div
+                      {/* <div
                         className={`${styles1.colorLabel}`}
                         style={{
                           color: val.Classification == "Master" ? "#f26522" : "#162B75"
-                        }}>{val.CircularNumber}</div>
+                        }}>{val.CircularNumber}</div> */}
                       <Button
                         style={{ padding: 0, fontWeight: 400 }}
                         appearance="transparent"
@@ -921,12 +940,13 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                     {val.Department}
                   </TableCellLayout>
                 </TableCell>
-                <TableCell >
+                {/* <TableCell >
                   <TableCellLayout className={`${styles1.verticalSpacing}`}>
 
                   </TableCellLayout>
-                </TableCell>
-                {/* <TableCell >
+                </TableCell> */}
+                {/* {Showing Menu Items} */}
+                <TableCell >
                   <TableCellLayout className={`${styles1.verticalSpacing}`}>
                     <Menu>
                       <MenuTrigger disableButtonEnhancement>
@@ -937,7 +957,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                           <MenuItem style={{ fontFamily: "Roboto" }}>
                             <Menu>
                               <MenuTrigger disableButtonEnhancement>
-                                <MenuItem style={{ paddingLeft: 0, paddingRight: 0 }}>Summary</MenuItem>
+                                <MenuItem content={{ style: { textAlign: "center" } }}>Summary</MenuItem>
                               </MenuTrigger>
                               <MenuPopover>
                                 <MenuList>
@@ -948,24 +968,24 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                               </MenuPopover>
                             </Menu>
                           </MenuItem>
-                            <MenuItem style={{ fontFamily: "Roboto" }}>
-                              <Menu>
-                                <MenuTrigger disableButtonEnhancement>
-                                  <MenuItem >{`FAQs`} </MenuItem>
-                                </MenuTrigger>
-                                <MenuPopover>
-                                  <MenuList>
-                                    <MenuItem>
-
-                                    </MenuItem>
-                                  </MenuList>
-                                </MenuPopover>
-                              </Menu>
-                            </MenuItem>
                           <MenuItem style={{ fontFamily: "Roboto" }}>
                             <Menu>
-                              <MenuTrigger disableButtonEnhancement>
-                                <MenuItem>Supporting Documents</MenuItem>
+                              <MenuTrigger >
+                                <MenuItem content={{ style: { textAlign: "center" } }}>{`FAQs`} </MenuItem>
+                              </MenuTrigger>
+                              <MenuPopover>
+                                <MenuList>
+                                  <MenuItem>
+
+                                  </MenuItem>
+                                </MenuList>
+                              </MenuPopover>
+                            </Menu>
+                          </MenuItem>
+                          <MenuItem style={{ fontFamily: "Roboto" }}>
+                            <Menu>
+                              <MenuTrigger >
+                                <MenuItem content={{ style: { textAlign: "center" } }}>Supporting Documents</MenuItem>
                               </MenuTrigger>
                               <MenuPopover>
                                 <MenuList>
@@ -980,17 +1000,14 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                       </MenuPopover>
                     </Menu>
                   </TableCellLayout>
-                </TableCell> */}
-                {/* <TableCell>
-                  <TableCellLayout>
-                    {val.IssuedFor}
-                  </TableCellLayout>
-                </TableCell> */}
+                </TableCell>
+                {/* {End of Menu Items} */}
+
               </TableRow>
-              {/* <TableRow>
+              <TableRow>
                 <Divider appearance="subtle"></Divider>
-              </TableRow> */}
-              <TableRow className={`${tableRowClass}`}>
+              </TableRow>
+              {/* <TableRow className={`${tableRowClass}`}>
                 <TableCell colSpan={4}>
                   <div className={`${styles1.row}`} style={{ paddingLeft: 0 }}>
                     <div className={`${styles1.column1}`} style={{ paddingLeft: "0px", marginRight: 32 }}>
@@ -1026,8 +1043,8 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
                   </div>
                 </TableCell>
-              </TableRow>
-              {isFieldSelected && currentSelectedItemId == val.ID &&
+              </TableRow> */}
+              {/* {isFieldSelected && currentSelectedItemId == val.ID &&
                 <TableRow >
                   <TableCell colSpan={4}>
                     <div className={`${styles1.row}`}>
@@ -1043,7 +1060,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                     </div>
                   </TableCell>
                 </TableRow>
-              }
+              } */}
 
             </>
           })}
@@ -1193,8 +1210,8 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
   private checkBoxControl = (labelName, checkBoxVal, isChecked, index): JSX.Element => {
 
-    const { checkBoxCollection } = this.state
-    let currentCheck = checkBoxCollection.get(`${labelName}`)[index].checked;
+    const { checkBoxCollection, relevanceDepartment } = this.state
+    let currentCheck = checkBoxCollection.get(`${labelName}`)[index]?.checked ?? false;
 
     let checkBoxJSX = <>
       <Checkbox
@@ -1219,7 +1236,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   }
 
   private onCheckBoxLabelClick = (labelName, index, isChecked) => {
-    const { checkBoxCollection, isFilterPanel } = this.state;
+    const { checkBoxCollection, isFilterPanel, relevanceDepartment } = this.state;
     // const allBoxCollection = checkBoxCollection;
     // const boxColl = new Map<string, ICheckBoxCollection[]>();
     // allBoxCollection.forEach((val, key) => {
@@ -1253,8 +1270,15 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         break;
 
       case `${Constants.department}`:
-        checkBoxCollection.get(`${labelName}`)[index].checked = isChecked;
-        this.setState({ checkBoxCollection });
+        if (index != -1) {
+          if (relevanceDepartment.filter((val) => { return val.indexValue == index }).length > 0) {
+            relevanceDepartment.filter((val) => { return val.indexValue == index })[0].checked = isChecked;
+          }
+
+          checkBoxCollection.get(`${labelName}`)[index].checked = isChecked;
+          this.setState({ checkBoxCollection, relevanceDepartment });
+        }
+
         break;
       case `${Constants.colPublishedDate}`:
         checkBoxCollection.get(`${labelName}`)[index].checked = isChecked;

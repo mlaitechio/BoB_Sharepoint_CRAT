@@ -3,6 +3,7 @@ import { IAttachments, ICircularListItem } from "../../Models/IModel";
 export interface ICircularFormState {
     circularListItem?: ICircularListItem;
     currentCircularListItemValue?: ICircularListItem;
+    isRequesterMaker?: boolean;
     selectedCommentSection?: any;
     expiryDate?: any;
     showSubmitDialog?: boolean;

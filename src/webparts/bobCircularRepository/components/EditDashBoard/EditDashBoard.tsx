@@ -8,17 +8,21 @@ import {
     Table, TableBody, TableCell, TableCellLayout, TableHeader,
     TableHeaderCell, TableRow
 } from '@fluentui/react-components';
+
+
 import styles1 from '../BobCircularRepository.module.scss';
+import styles from '../Search/CircularSearch.module.scss';
 import { ICircularListItem } from '../../Models/IModel';
-import { ChevronDownRegular, ChevronUpRegular, Delete12Regular, Delete16Regular, DeleteRegular, Edit12Regular, Edit16Regular, EditRegular, EyeRegular, OpenRegular } from '@fluentui/react-icons';
-import { AnimationClassNames } from '@fluentui/react';
+import { ArrowUpRegular, ChevronDownRegular, ChevronUpRegular, Delete12Regular, Delete16Regular, DeleteRegular, Edit12Regular, Edit16Regular, EditRegular, EyeRegular, OpenRegular } from '@fluentui/react-icons';
+import { AnimationClassNames, Icon } from '@fluentui/react';
 import { IBobCircularRepositoryProps } from '../IBobCircularRepositoryProps';
 import { DataContext } from '../../DataContext/DataContext';
 import { error } from 'pdf-lib';
 import FileViewer from '../FileViewer/FileViewer';
 import { Text } from '@microsoft/sp-core-library';
 import CircularForm from '../CircularForm/CircularForm';
-
+import { SortControlled } from './SortTable';
+import Pagination from 'react-js-pagination';
 
 export default class EditDashBoard extends React.Component<IEditDashBoardProps, IEditDashBoardState> {
 
@@ -37,6 +41,10 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                 isSupportingDocuments: false
             },
             isLoading: false,
+            currentPage: 1,
+            itemsPerPage: 11,
+            items: [],
+            filteredItems: [],
             openSupportingDoc: false,
             loadDashBoard: false,
             loadEditForm: false,
@@ -56,6 +64,42 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
         }
     }
 
+    private onEditDashBoardLoad = () => {
+        let providerValue = this.context;
+        const { services, serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
+        const { filterString } = this.props
+
+        this.setState({ isLoading: true }, async () => {
+            await services.filterLargeListItem(serverRelativeUrl, Constants.circularList, `${filterString}`).
+                then(async (itemIDColl: any[]) => {
+                    let allListItems = await Promise.all(itemIDColl?.map(async (item) => {
+                        return await services.getListDataAsStream(serverRelativeUrl, Constants.circularList, item.ID).then((listItem) => {
+                            listItem.ListData.ID = item.ID;
+                            return listItem?.ListData ?? []
+                        }).catch((error) => {
+                            console.log("Error:" + error);
+                            return []
+                        })
+                    }))
+                    this.setState({
+                        listItems: allListItems.sort((a, b) => a.ID > b.ID ? -1 : 1)
+                    }, () => {
+                        const { listItems } = this.state;
+                        this.setState({
+                            filteredItems: listItems,
+                            items: listItems,
+                            loadDashBoard: true,
+                            loadEditForm: false,
+                            loadViewForm: false,
+                            isLoading: false,
+                        })
+                    })
+                }).catch((error) => {
+                    console.log(error);
+                    this.setState({ isLoading: false })
+                })
+        })
+    }
 
 
 
@@ -67,14 +111,18 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
             loadEditForm, loadViewForm, editFormItem, showDeleteDialog } = this.state;
         let providerValue = this.context;
         const { context } = providerValue as IBobCircularRepositoryProps;
-        const { currentPage } = this.props
+        const { currentPage } = this.props;
+
         return (
             <>
                 {
                     isLoading && this.workingOnIt()
                 }
                 {
-                    loadDashBoard && this.circularResults()
+                    loadDashBoard && <>
+                        {this.circularResults()}
+                        {this.createPagination()}
+                    </>
                 }
 
                 {
@@ -116,49 +164,23 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
         )
     }
 
-    private onEditDashBoardLoad = () => {
-        let providerValue = this.context;
-        const { services, serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
-        const { filterString } = this.props
 
-        this.setState({ isLoading: true }, async () => {
-            await services.filterLargeListItem(serverRelativeUrl, Constants.circularList, `${filterString}`).then(async (itemIDColl: any[]) => {
-                let allListItems = await Promise.all(itemIDColl?.map(async (item) => {
-                    return await services.getListDataAsStream(serverRelativeUrl, Constants.circularList, item.ID).then((listItem) => {
-                        listItem.ListData.ID = item.ID;
-                        return listItem?.ListData ?? []
-                    }).catch((error) => {
-                        console.log("Error:" + error);
-                        return []
-                    })
-                }))
-                this.setState({
-                    listItems: allListItems.sort((a, b) => a.ID > b.ID ? -1 : 1),
-                    loadDashBoard: true,
-                    loadEditForm: false,
-                    loadViewForm: false,
-                    isLoading: false,
-
-                })
-            }).catch((error) => {
-                console.log(error);
-                this.setState({ isLoading: false })
-            })
-        })
-    }
 
     private circularResults = () => {
 
         let providerValue = this.context;
-        const { isUserChecker, isUserCompliance, isUserMaker } = providerValue as IBobCircularRepositoryProps;
+        const { isUserChecker, isUserCompliance, isUserMaker, context } = providerValue as IBobCircularRepositoryProps;
+        let currentUserEmail = context.pageContext.user.email;
         const { currentPage } = this.props
-        const { listItems, accordionFields, currentSelectedItem, currentSelectedItemId } = this.state;
+        const { listItems, accordionFields, currentSelectedItem, currentSelectedItemId, filteredItems } = this.state;
+        let filteredPageItems = this.paginateFn(filteredItems);
         const columns = [
-            { columnKey: "Title", label: "Document Title" },
-            { coluumnKey: "ID", label: "ID" },
-            { columnKey: "Date", label: "Created Date" },
-            { columnKey: "Status", label: "Circular Status" },
-            { columnKey: "Edit", label: "" },
+            { columnKey: "Subject", label: "Document Title", columnType: "Text" },
+            { columnKey: "ID", label: "ID", columnType: "Number" },
+            { columnKey: "Created", label: "Created Date", columnType: "Date" },
+            { columnKey: "CircularStatus", label: "Circular Status", columnType: "Text" },
+            { columnKey: "Requester", label: "Requester", columnType: "Text" },
+            { columnKey: "Edit", label: "", columnType: "" },
         ];
 
 
@@ -179,6 +201,15 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                         </Label>}
 
                 </div>
+
+                {/* {columns && columns.length > 0 && listItems && listItems.length > 0 &&
+                    <SortControlled
+                        tableColumns={columns}
+                        sortColumn={columns[0].columnKey}
+                        accordionFields={accordionFields}
+                        listItems={listItems} />
+                } */}
+
                 {/* <div className={`${styles1.row}`}>
                     <div className={`${styles1.column12}`} style={{ paddingLeft: 20, paddingRight: 20 }}>
                         {listItems && listItems.length > 0 && <Label style={{
@@ -200,7 +231,8 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
 
                                 {columns.map((column, index) => (
                                     <TableHeaderCell
-                                        key={column.columnKey} colSpan={index == 0 ? 5 : 1}
+                                        key={column.columnKey}
+                                        colSpan={index == 0 ? 3 : 1}
                                         style={index == 0 ? { paddingLeft: 15 } : {}}
                                         className={`${styles1.fontWeightBold}`}>
                                         {column.label}
@@ -209,148 +241,166 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {listItems && listItems.length > 0 && listItems.map((val: ICircularListItem, index) => {
+                            {filteredPageItems && filteredPageItems.length > 0 &&
+                                filteredPageItems.map((val: ICircularListItem, index) => {
 
-                                let isFieldSelected = (accordionFields.isSummarySelected || accordionFields.isTypeSelected || accordionFields.isCategorySelected || accordionFields.isSupportingDocuments);
-                                let isCurrentItem = currentSelectedItemId == val.ID;
-                                let tableRowClass = isFieldSelected && isCurrentItem ? `${styles1.tableRow}` : ``;
-                                let isEditButtonVisible = val.CircularStatus == Constants.draft ||
-                                    val.CircularStatus == Constants.cmmtChecker
-                                    || val.CircularStatus == Constants.cmmtCompliance;
+                                    let isFieldSelected = (accordionFields.isSummarySelected || accordionFields.isTypeSelected || accordionFields.isCategorySelected || accordionFields.isSupportingDocuments);
+                                    let isCurrentItem = currentSelectedItemId == val.ID;
+                                    let tableRowClass = isFieldSelected && isCurrentItem ? `${styles1.tableRow}` : ``;
+                                    let requesterMail = val?.Author?.split('#')[4].replace(',', '');
+                                    let requesterName = val?.Author?.split('#')[1].replace(',', '');
+                                    let isEditButtonVisible = (val.CircularStatus == Constants.draft ||
+                                        val.CircularStatus == Constants.cmmtChecker
+                                        || val.CircularStatus == Constants.cmmtCompliance) && (requesterMail == currentUserEmail);
 
-                                return <>
-                                    <TableRow className={`${styles1.tableRow}`}>
-                                        <TableCell colSpan={5} >
-                                            <TableCellLayout className={`${styles1.verticalSpacing}`} style={{ padding: 5 }}>
-                                                <div
-                                                    className={`${styles1.colorLabel}`}
-                                                    style={{
-                                                        color: val.Classification == "Master" ? "#f26522" : "#162B75"
-                                                    }}>{val.CircularNumber}</div>
-                                                <div className={`${styles1.verticalSpacing}`}>
-                                                    <Button
+
+
+                                    return <>
+                                        <TableRow className={`${styles1.tableRow}`} >
+                                            <TableCell colSpan={3}>
+                                                <TableCellLayout className={`${styles1.verticalSpacing}`} style={{ padding: 5 }}>
+                                                    <div
+                                                        className={`${styles1.colorLabel}`}
                                                         style={{
-                                                            padding: 0, fontWeight: 400,
-                                                            justifyContent: "flex-start",
-                                                            alignItems: "flex-start"
-                                                        }}
-                                                        appearance="transparent"
-                                                        onClick={this.onDetailItemClick.bind(this, val, Constants.colSubject)}>
-                                                        <div style={{
-                                                            textAlign: "left",
-                                                            marginTop: 5,
                                                             color: val.Classification == "Master" ? "#f26522" : "#162B75"
-                                                        }}>{val.Subject} </div>
-                                                        {/* <OpenRegular /> */}
-                                                    </Button>
-                                                </div>
-                                            </TableCellLayout>
-                                        </TableCell>
-                                        <TableCell>
-                                            <TableCellLayout>
-                                                {val.ID != "" ? val.ID : ``}
-                                            </TableCellLayout>
-                                        </TableCell>
-                                        <TableCell>
-                                            <TableCellLayout>
-                                                {val.Created != "" ? this.formatDate(val.Created) : ``}
-                                            </TableCellLayout>
-                                        </TableCell>
-                                        <TableCell>
-                                            <TableCellLayout>
-                                                {val.CircularStatus ? val.CircularStatus : ``}
-                                            </TableCellLayout>
-                                        </TableCell>
-                                        <TableCell colSpan={1}>
-                                            <TableCellLayout className={`${styles1.verticalSpacing}`}>
-                                                {!isEditButtonVisible &&
-                                                    <Button onClick={() => { this.viewCircular(val) }}
-                                                        icon={<EyeRegular />}
-                                                        style={{ marginRight: 5 }} />
-                                                }
-
-                                                {isUserMaker && isEditButtonVisible && <>
-                                                    <Button onClick={() => { this.editCircular(val) }}
-                                                        icon={<EditRegular />}
-                                                        style={{ marginRight: 5 }} />
-
-                                                    {/* Delete icon to be visible only for draft status | val.CircularStatus == Constants.draft && |*/}
-                                                    {val.CircularStatus == Constants.draft &&
-                                                        < Button icon={<DeleteRegular />}
-                                                            onClick={() => {
-                                                                this.setState({ showDeleteDialog: true, currentSelectedItem: val })
+                                                        }}>{val.CircularNumber}</div>
+                                                    <div className={`${styles1.verticalSpacing}`}>
+                                                        <Button
+                                                            style={{
+                                                                padding: 0, fontWeight: 400,
+                                                                justifyContent: "flex-start",
+                                                                alignItems: "flex-start"
                                                             }}
-                                                        />
-                                                    }
-                                                </>}
-
-                                            </TableCellLayout>
-                                        </TableCell>
-
-                                    </TableRow >
-                                    <TableRow className={`${tableRowClass}`}>
-
-                                        <TableCell colSpan={6}>
-                                            <div className={`${styles1.row}`}>
-                                                <div className={`${styles1.column2}`} style={{ paddingLeft: "0px" }}>
-                                                    <Button icon={accordionFields.isSummarySelected && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
-                                                        iconPosition="after"
-                                                        className={accordionFields.isSummarySelected && isCurrentItem ? styles1.colorLabel : ``}
-                                                        appearance={accordionFields.isSummarySelected && isCurrentItem ? "outline" : "transparent"}
-                                                        onClick={this.onDetailItemClick.bind(this, val, Constants.colSummary)}>Summary</Button>
-                                                </div>
-                                                <div className={`${styles1.column2}`}>
-                                                    <Button icon={accordionFields.isTypeSelected && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
-                                                        iconPosition="after"
-                                                        className={accordionFields.isTypeSelected && isCurrentItem ? styles1.colorLabel : ``}
-                                                        appearance={accordionFields.isTypeSelected && isCurrentItem ? "outline" : "transparent"}
-                                                        onClick={this.onDetailItemClick.bind(this, val, Constants.colType)}>Type</Button>
-                                                </div>
-                                                <div className={`${styles1.column2}`}>
-                                                    <Button
-                                                        icon={accordionFields.isCategorySelected && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
-                                                        iconPosition="after"
-                                                        className={accordionFields.isCategorySelected && isCurrentItem ? styles1.colorLabel : ``}
-                                                        appearance={accordionFields.isCategorySelected && isCurrentItem ? "outline" : "transparent"}
-                                                        onClick={this.onDetailItemClick.bind(this, val, Constants.colCategory)}>Category</Button>
-                                                </div>
-                                                <div className={`${styles1.column4}`}>
-                                                    <Button
-                                                        icon={accordionFields.isSupportingDocuments && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
-                                                        iconPosition="after"
-                                                        className={accordionFields.isSupportingDocuments && isCurrentItem ? styles1.colorLabel : ``}
-                                                        appearance={accordionFields.isSupportingDocuments && isCurrentItem ? "outline" : "transparent"}
-                                                        onClick={this.onDetailItemClick.bind(this, val, Constants.colSupportingDoc)}>Supporting Documents</Button>
-                                                </div>
-
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                    {
-                                        isFieldSelected && currentSelectedItemId == val.ID &&
-                                        <TableRow >
-                                            <TableCell colSpan={6}>
-                                                <div className={`${styles1.row}`}>
-                                                    <div className={`${styles1.column12} ${AnimationClassNames.slideDownIn20}`} style={{ padding: 10 }}>
-                                                        {accordionFields.isSummarySelected &&
-                                                            <>{`${currentSelectedItem?.Gist ?? ``}`}</>
-                                                        }
-                                                        {accordionFields.isTypeSelected &&
-                                                            <>{currentSelectedItem?.CircularType ?? ``}</>}
-                                                        {accordionFields.isCategorySelected &&
-                                                            <>{currentSelectedItem?.Category ?? ``}</>}
-                                                        {accordionFields.isSupportingDocuments && <>
-                                                            {currentSelectedItem?.SupportingDocuments && currentSelectedItem?.SupportingDocuments != ""
-                                                                ? this.supportingDocument(currentSelectedItem.SupportingDocuments) : ``}
-                                                        </>}
+                                                            appearance="transparent"
+                                                            onClick={this.onDetailItemClick.bind(this, val, Constants.colSubject)}>
+                                                            <div style={{
+                                                                textAlign: "left",
+                                                                marginTop: 5,
+                                                                color: val.Classification == "Master" ? "#f26522" : "#162B75"
+                                                            }}>{val.Subject} </div>
+                                                            {/* <OpenRegular /> */}
+                                                        </Button>
                                                     </div>
+                                                </TableCellLayout>
+                                            </TableCell>
+                                            <TableCell as="div">
+                                                <TableCellLayout>
+                                                    {val.ID != "" ? val.ID : ``}
+                                                </TableCellLayout>
+                                            </TableCell>
+                                            <TableCell as="div">
+                                                <TableCellLayout>
+                                                    {val.Created != "" ? this.formatDate(val.Created) : ``}
+                                                </TableCellLayout>
+                                            </TableCell>
+                                            <TableCell as="div">
+                                                <TableCellLayout>
+                                                    {val.CircularStatus ? val.CircularStatus : ``}
+                                                </TableCellLayout>
+                                            </TableCell>
+                                            <TableCell as="div">
+                                                <TableCellLayout main={{
+                                                    style: {
+                                                        display: "block",
+                                                        maxWidth: 150,
+                                                        textOverflow: "ellipsis",
+                                                        overflow: "hidden"
+                                                    },
+                                                    title: requesterMail ?? ``
+                                                }}>
+                                                    {requesterName ?? ``}
+                                                </TableCellLayout>
+                                            </TableCell>
+                                            <TableCell as="div">
+                                                <TableCellLayout className={`${styles1.verticalSpacing}`} as="div">
+                                                    {!isEditButtonVisible &&
+                                                        <Button onClick={() => { this.viewCircular(val) }}
+                                                            icon={<EyeRegular />}
+                                                            style={{ marginRight: 5 }} />
+                                                    }
+
+                                                    {isUserMaker && isEditButtonVisible && <>
+                                                        <Button onClick={() => { this.editCircular(val) }}
+                                                            icon={<EditRegular />}
+                                                            style={{ marginRight: 5 }} />
+
+                                                        {/* Delete icon to be visible only for draft status | val.CircularStatus == Constants.draft && |*/}
+                                                        {val.CircularStatus == Constants.draft &&
+                                                            < Button icon={<DeleteRegular />}
+                                                                onClick={() => {
+                                                                    this.setState({ showDeleteDialog: true, currentSelectedItem: val })
+                                                                }}
+                                                            />
+                                                        }
+                                                    </>}
+
+                                                </TableCellLayout>
+                                            </TableCell>
+
+                                        </TableRow >
+                                        <TableRow className={`${tableRowClass}`}>
+
+                                            <TableCell colSpan={4}>
+                                                <div className={`${styles1.row}`}>
+                                                    <div className={`${styles1.column1}`} style={{ paddingLeft: "0px", marginRight: 25 }}>
+                                                        <Button icon={accordionFields.isSummarySelected && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
+                                                            iconPosition="after"
+                                                            className={accordionFields.isSummarySelected && isCurrentItem ? styles1.colorLabel : ``}
+                                                            appearance={accordionFields.isSummarySelected && isCurrentItem ? "outline" : "transparent"}
+                                                            onClick={this.onDetailItemClick.bind(this, val, Constants.colSummary)}>Summary</Button>
+                                                    </div>
+                                                    <div className={`${styles1.column1}`} style={{ marginRight: 20 }}>
+                                                        <Button icon={accordionFields.isTypeSelected && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
+                                                            iconPosition="after"
+                                                            className={accordionFields.isTypeSelected && isCurrentItem ? styles1.colorLabel : ``}
+                                                            appearance={accordionFields.isTypeSelected && isCurrentItem ? "outline" : "transparent"}
+                                                            onClick={this.onDetailItemClick.bind(this, val, Constants.colType)}>Type</Button>
+                                                    </div>
+                                                    <div className={`${styles1.column1}`} style={{ marginRight: 32 }}>
+                                                        <Button
+                                                            icon={accordionFields.isCategorySelected && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
+                                                            iconPosition="after"
+                                                            className={accordionFields.isCategorySelected && isCurrentItem ? styles1.colorLabel : ``}
+                                                            appearance={accordionFields.isCategorySelected && isCurrentItem ? "outline" : "transparent"}
+                                                            onClick={this.onDetailItemClick.bind(this, val, Constants.colCategory)}>Category</Button>
+                                                    </div>
+                                                    <div className={`${styles1.column4}`} >
+                                                        <Button
+                                                            icon={accordionFields.isSupportingDocuments && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
+                                                            iconPosition="after"
+                                                            className={accordionFields.isSupportingDocuments && isCurrentItem ? styles1.colorLabel : ``}
+                                                            appearance={accordionFields.isSupportingDocuments && isCurrentItem ? "outline" : "transparent"}
+                                                            onClick={this.onDetailItemClick.bind(this, val, Constants.colSupportingDoc)}>Supporting Documents</Button>
+                                                    </div>
+
                                                 </div>
                                             </TableCell>
                                         </TableRow>
-                                    }
+                                        {
+                                            isFieldSelected && currentSelectedItemId == val.ID &&
+                                            <TableRow >
+                                                <TableCell colSpan={4}>
+                                                    <div className={`${styles1.row}`}>
+                                                        <div className={`${styles1.column12} ${AnimationClassNames.slideDownIn20}`} style={{ padding: 10 }}>
+                                                            {accordionFields.isSummarySelected &&
+                                                                <>{`${currentSelectedItem?.Gist ?? ``}`}</>
+                                                            }
+                                                            {accordionFields.isTypeSelected &&
+                                                                <>{currentSelectedItem?.CircularType ?? ``}</>}
+                                                            {accordionFields.isCategorySelected &&
+                                                                <>{currentSelectedItem?.Category ?? ``}</>}
+                                                            {accordionFields.isSupportingDocuments && <>
+                                                                {currentSelectedItem?.SupportingDocuments && currentSelectedItem?.SupportingDocuments != ""
+                                                                    ? this.supportingDocument(currentSelectedItem.SupportingDocuments) : ``}
+                                                            </>}
+                                                        </div>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        }
 
-                                </>
-                            })}
+                                    </>
+                                })}
 
                         </TableBody>
                     </Table>
@@ -364,6 +414,15 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
         </>;
 
         return circularResultJSX;
+    }
+
+
+    private paginateFn = (filterItem: any[]) => {
+        let { itemsPerPage, currentPage } = this.state;
+        return (itemsPerPage > 0
+            ? filterItem ? filterItem.slice((currentPage - 1) * itemsPerPage, (currentPage - 1) * itemsPerPage + itemsPerPage) : filterItem
+            : filterItem
+        );
     }
 
 
@@ -597,5 +656,62 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
         const formattedDate = dateObject.toLocaleDateString("en-UK", { day: "numeric", month: "short", year: "numeric" });
 
         return `${formattedDate} `;
+    }
+
+    private createPagination = (): JSX.Element => {
+        const { items, currentPage, itemsPerPage, filteredItems } = this.state;
+        let providerContext = this.context;
+        const { responsiveMode } = providerContext as IBobCircularRepositoryProps;
+        const totalItems = filteredItems.length;
+        const _themeWindow: any = window;
+        const _theme = _themeWindow.__themeState__.theme;
+        let isMobileMode = responsiveMode == 0 || responsiveMode == 1 || responsiveMode == 2;
+        let lastItemCount = ((itemsPerPage * (currentPage - 1)) + itemsPerPage) > filteredItems.length ? filteredItems.length : ((itemsPerPage * (currentPage - 1)) + itemsPerPage)
+        let pagination: any =
+            <>
+                <div className={`${styles.paginationContainer} ${styles1.row} `}>
+
+                    <div className={`${styles1.column4} `} style={{ padding: isMobileMode ? 0 : `inherit` }}>
+                        {/* {<Label>{JSON.stringify(theme.palette)}</Label>} */}
+                        {/* {<Label>{JSON.stringify(_theme)}</Label>} */}
+                        {<Label style={{
+                            paddingTop: 20,
+                            textAlign: "left",
+                            fontSize: isMobileMode ? 11 : 14,
+                            display: "block",
+                            fontWeight: 700,
+                            paddingLeft: 20,
+                            fontFamily: 'Roboto'
+                        }}>
+                            {filteredItems.length > 0
+                                &&
+                                `Showing ${(itemsPerPage * (currentPage - 1) + 1)} to ${lastItemCount} of ${totalItems} `
+                            }
+                        </Label>}
+                    </div>
+                    <div className={`${styles.searchWp__paginationContainer__pagination} ${styles1.column8} `} style={{ padding: isMobileMode ? 0 : `inherit` }}>
+                        {filteredItems.length > 0 &&
+                            <Pagination
+                                activePage={currentPage}
+                                firstPageText={<Icon iconName="DoubleChevronLeftMed"
+                                    styles={{ root: { color: _theme.themePrimary, fontWeight: 600 } }}
+                                ></Icon>}
+                                lastPageText={<Icon iconName="DoubleChevronRight" styles={{ root: { color: _theme.themePrimary, fontWeight: 600 } }}></Icon>}
+                                prevPageText={<Icon iconName="ChevronLeft" styles={{ root: { color: _theme.themePrimary, fontWeight: 600 } }}></Icon>}
+                                nextPageText={<Icon iconName="ChevronRight" styles={{ root: { color: _theme.themePrimary, fontWeight: 600 } }} ></Icon>}
+                                activeLinkClass={`${styles.active} `}
+                                itemsCountPerPage={itemsPerPage}
+                                totalItemsCount={totalItems}
+                                pageRangeDisplayed={5}
+                                onChange={this.handlePageChange.bind(this)} />
+                        }
+                    </div>
+                </div>
+            </>;
+        return pagination
+    }
+
+    private handlePageChange(pageNo) {
+        this.setState({ currentPage: pageNo });
     }
 }
