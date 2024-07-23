@@ -81,7 +81,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 isComplianceSelected: false
             },
             currentCircularListItemValue: undefined,
-            isRequesterMaker: false,
+            isRequesterMaker: true, // Initially when form loads this will be true for new form & it will change in edit/view form load 
             selectedSupportingCirculars: [],
             sopAttachmentColl: [],
             showSubmitDialog: false,
@@ -205,6 +205,11 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
     }
 
+    /**
+    |--------------------------------------------------
+    | When form gets edited 
+    |--------------------------------------------------
+    */
 
     private onEditViewFormLoad = (editFormItem) => {
 
@@ -917,6 +922,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         const { circularListItem, isRequesterMaker } = this.state
         let displayButton = (displayMode == Constants.lblNew || displayMode == Constants.lblEditCircular);
         let circularStatus = circularListItem.CircularStatus;
+        
 
 
 
