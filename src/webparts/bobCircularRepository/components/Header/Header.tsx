@@ -69,7 +69,7 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                                         objectFit: "contain",
                                         verticalAlign: "-webkit-baseline-middle",
                                         // minHeight: 40,
-                                        height: 50,
+                                        height: 32,
                                         width: "100%"
                                         //width: responsiveMode == 5 ? 250 : `100%`
                                     }

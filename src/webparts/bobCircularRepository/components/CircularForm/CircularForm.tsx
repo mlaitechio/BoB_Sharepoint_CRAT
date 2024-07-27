@@ -4,6 +4,7 @@ import { ICircularFormProps } from './ICircularFormProps';
 import { ICircularFormState } from './ICircularFormState';
 import {
     Dropdown, Field, Image,
+    Tooltip,
     Input, Label, Persona, Option, SelectionEvents,
     OptionOnSelectData, Divider, Button, Switch,
     SwitchOnChangeData, Textarea, InputOnChangeData,
@@ -115,7 +116,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             isFileSizeAlert: false,
             isFileTypeAlert: false,
             isDuplicateCircular: false,
-            comments: new Map<string, any[]>()
+            comments: new Map<string, any[]>(),
+            configuration: []
 
         }
 
@@ -172,6 +174,12 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
             }).catch((error) => {
                 console.log(error);
+                this.setState({ isLoading: false })
+            });
+
+            await services.getPagedListItems(serverRelativeUrl, Constants.configurationList, Constants.configSelectColumns, ``, ``, `ID`).then((configVal) => {
+                this.setState({ configuration: configVal })
+            }).catch((error) => {
                 this.setState({ isLoading: false })
             })
 
@@ -548,7 +556,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                                     src={documentPreviewURL ?? ``}
                                     style={{
                                         minHeight: 800,
-                                        height: 1000,
+                                        height: 1080,
                                         width: "100%",
                                         border: 0
                                     }} role="presentation" tabIndex={-1}></iframe>}
@@ -776,16 +784,37 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                             {selectedSupportingCirculars && selectedSupportingCirculars.length > 0 &&
                                 selectedSupportingCirculars.map((listItem) => {
 
-                                    return <>
-                                        <div className={`${styles.column2}`}>
-                                            <Link
-                                                className={`${styles.formLabel}`}
-                                                onClick={() => {
-                                                    this.openSupportingCircularFile(listItem);
-                                                }}>{listItem.CircularNumber ?? ``}</Link>
-                                            {/* <Label>{listItem.CircularNumber ?? ``}</Label> */}
+                                    let supportingCircularNumber = listItem?.CircularNumber ?? ``;
 
-                                        </div>
+                                    return <>
+                                        {supportingCircularNumber.length > 15 &&
+                                            <Tooltip content={listItem.CircularNumber ?? ``} relationship="label" positioning={'after'} withArrow={true}>
+                                                <div className={`${styles.column2}`}>
+
+                                                    <Link
+                                                        className={`${styles.colorLabel}`}
+                                                        // title={listItem.CircularNumber ?? ``}
+                                                        onClick={() => {
+                                                            this.openSupportingCircularFile(listItem);
+                                                        }}>{supportingCircularNumber}</Link>
+
+                                                    {/* <Label>{listItem.CircularNumber ?? ``}</Label> */}
+
+                                                </div>
+                                            </Tooltip>
+                                        }
+                                        {supportingCircularNumber.length < 15 &&
+                                            <div className={`${styles.column2}`}>
+                                                <Link
+                                                    className={`${styles.colorLabel}`}
+                                                    // title={listItem.CircularNumber ?? ``}
+                                                    onClick={() => {
+                                                        this.openSupportingCircularFile(listItem);
+                                                    }}>{supportingCircularNumber}</Link>
+
+                                                {/* <Label>{listItem.CircularNumber ?? ``}</Label> */}
+
+                                            </div>}
                                         <div className={`${styles.column1}`}>
                                             <Button
                                                 disabled={disableControl}
@@ -922,7 +951,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         const { circularListItem, isRequesterMaker } = this.state
         let displayButton = (displayMode == Constants.lblNew || displayMode == Constants.lblEditCircular);
         let circularStatus = circularListItem.CircularStatus;
-        
+
 
 
 
@@ -1027,6 +1056,15 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 </Button>
             }
 
+            {
+                <Button
+                    className={`${styles.formBtn}`}
+                    onClick={this.onBtnClick.bind(this, Constants.goBack)}
+                    appearance="secondary">
+                    Cancel
+                </Button>
+            }
+
 
         </>;
 
@@ -1105,10 +1143,11 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
     }
 
     private onTextAreaChange = (labelName: string, ev: React.ChangeEvent<HTMLTextAreaElement>, data: TextareaOnChangeData) => {
-        const { circularListItem } = this.state
+        const { circularListItem, configuration } = this.state
         let wordLength = this.getWords(data.value?.trim());
         switch (labelName) {
             case Constants.subject:
+                let subjectMaxWord = configuration.filter(val => val.Title == "")
                 if (wordLength <= 500 && data.value.length < 63999 && data.value.trim() != "") {
                     circularListItem.Subject = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '');
                     this.setState({ circularListItem });
@@ -1373,7 +1412,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                                 <Label size="small">  {val?.user?.split('|')[0]}</Label>
                             </div>*/}
                             <div className={`${styles.column2}`} style={{ textAlign: "end" }}>
-                                {this.onFormatDate(new Date(val.commentDate))}
+                                {this.onFormatCommentsDate(val.commentDate)}
                             </div>
                             <div className={`${styles.column7}`} style={{
                                 borderLeft: "1px solid lightgrey",
@@ -1515,6 +1554,56 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             "/" +
             (date.getFullYear());
     };
+
+
+    private onFormatCommentsDate = (dateString?: Date | string): string => {
+
+        // if (date != null && date?.toString() != "Invalid Date") {
+        //     date.setHours(0, 0, 0)
+        //     return (
+        //         (date.getDate() < 10 ? `0${date.getDate()}` : date.getDate()) + "/" + ((date.getMonth() + 1) < 10 ? `0` + (date.getMonth() + 1) : date.getMonth() + 1) + "/" + date.getFullYear()
+        //     );
+        // }
+        // else {
+        //     return "";
+        // }
+
+        const date = new Date(dateString);
+
+        // Extract local date components
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+        const year = date.getFullYear();
+
+        let hours = date.getHours();
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+
+        // Determine AM or PM
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+
+        // Convert 24-hour time to 12-hour time
+        hours = hours % 12 || 12; // Convert 0 to 12 for midnight
+
+
+
+        // Format hours with leading zero if necessary
+        const formattedHours = String(hours).padStart(2, '0');
+
+        // Format the date as dd/MM/YYYY HH:MM:SS AM/PM
+        const formattedDate = `${day}/${month}/${year} ${formattedHours}:${minutes} ${ampm}`;
+
+        return formattedDate;
+
+        // return !date
+        //     ? ""
+        //     : (date.getDate() < 9 ? (`0` + date.getDate()) : date.getDate()) +
+        //     "/" +
+        //     ((date.getMonth() + 1 < 9 ? (`0${date.getMonth() + 1}`) : date.getMonth() + 1)) +
+        //     "/" +
+        //     (date.getFullYear());
+    };
+
 
     private onSelectDate = (labelName: string, date: Date | null) => {
         const { circularListItem } = this.state;

@@ -269,11 +269,15 @@ input * {
 }
 
 .marginTop {
-  margin-top: 15px;
+  margin-top: 5px;
 }
 
 .marginFilterTop {
   margin-top: 5px;
+}
+
+.tableCellHeight {
+  height: auto !important;
 }
 
 .alignMiddle {
@@ -330,6 +334,19 @@ input * {
   white-space: nowrap;
 }
 
+.link {
+  font-family: Roboto !important;
+  font-weight: 400;
+  color: #162B75;
+  white-space: nowrap;
+  padding-left: 5px;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration-line: none !important;
+  }
+}
+
 .fieldLabel {
   font-family: Roboto !important;
   font-weight: 400;
@@ -352,6 +369,9 @@ input * {
 
 .colorLabel {
   color: var(--colorBrandBackground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 125px;
 }
 
 .tableRow {

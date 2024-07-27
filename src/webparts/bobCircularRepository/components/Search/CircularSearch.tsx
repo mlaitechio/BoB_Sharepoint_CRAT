@@ -99,7 +99,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       filteredItems: [],
       columns,
       currentPage: 1,
-      itemsPerPage: 11,
+      itemsPerPage: 10,
       isLoading: false,
       departments: [],
       selectedDepartment: [],
@@ -189,18 +189,8 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
             this.setState({ checkBoxCollection: checkBoxCollection, isLoading: false }, () => {
               const { checkBoxCollection } = this.state
               let departmentBox = checkBoxCollection.get(`${Constants.department}`);
-              let relevanceDepartment = ["Operations and Service", "Retail Asset", "Human Resources", "Retail Liability", "Digital Group"].
-                map((dept) => {
-                  if (departmentBox && departmentBox.length > 0) {
-                    let indexOfDept = departmentBox?.findIndex(val => val.value == dept)
-                    return {
-                      checked: false,
-                      value: dept,
-                      refinableString: "RefinableString03",
-                      indexValue: indexOfDept
-                    }
-                  }
-                });
+              let relevanceDepartment = this.initializeRelevanceDept(departmentBox);
+
               this.setState({ filterPanelCheckBoxCollection: checkBoxCollection, relevanceDepartment: relevanceDepartment })
             });
           })
@@ -376,6 +366,25 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
   }
 
+  private initializeRelevanceDept = (departmentBox): any[] => {
+
+    let relevanceDepartment = ["Operations and Service", "Retail Asset", "Human Resources", "Retail Liability", "Digital Group"].
+      map((dept) => {
+        if (departmentBox && departmentBox.length > 0) {
+          let indexOfDept = departmentBox?.findIndex(val => val.value == dept)
+          return {
+            checked: false,
+            value: dept,
+            refinableString: "RefinableString03",
+            indexValue: indexOfDept
+          }
+        }
+      });
+
+    return relevanceDepartment;
+
+  }
+
   public render() {
 
     let providerValue = this.context;
@@ -412,7 +421,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         }
         {isSearchNavOpen &&
           <Drawer type="inline" style={{ maxHeight: "200vh" }} separator open={isSearchNavOpen} className={`${styles1.column2}`}>
-            <DrawerHeader style={{ padding: 16 }}>
+            <DrawerHeader style={{ padding: 5 }}>
               <DrawerHeaderTitle
                 heading={{ className: `${styles1.fontRoboto}` }}
                 className={`${styles1.formLabel}`}
@@ -877,7 +886,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         <TableHeader>
           <TableRow >
             {columns.map((column, index) => (
-              <TableHeaderCell key={column.columnKey} colSpan={index == 1 ? 3 : 1}
+              <TableHeaderCell key={column.columnKey} colSpan={index == 1 ? 5 : index == 3 ? 2 : 1}
                 button={{ style: { paddingLeft: index == 0 ? 5 : 0 } }}
                 className={`${styles1.fontWeightBold}`}>
                 {column.label}
@@ -891,11 +900,16 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
             let isFieldSelected = (accordionFields.isSummarySelected || accordionFields.isTypeSelected || accordionFields.isCategorySelected || accordionFields.isSupportingDocuments);
             let isCurrentItem = currentSelectedItemId == val.ID;
             let tableRowClass = isFieldSelected && isCurrentItem ? `${styles1.tableRow}` : ``;
+            let supportingDocuments = previewItems?.SupportingDocuments ? JSON.parse(previewItems?.SupportingDocuments) : ``;
+            let summary = previewItems?.Gist ?? ``;
+            let faq = previewItems?.CircularFAQ ?? ``;
+            let isVerticalDotsVisible = summary != "" || supportingDocuments != "" || faq != "";
 
             return <>
               <TableRow className={`${styles1.tableRow}`}>
-                <TableCell>
-                  <TableCellLayout className={`${styles1.verticalSpacing}`} style={{ padding: 5 }}>
+                <TableCell className={`${styles1.tableCellHeight}`}>
+                  {/* {className={`${styles1.verticalSpacing}`}} */}
+                  <TableCellLayout style={{ padding: 5 }}>
                     <div
                       className={`${styles1.colorLabel}`}
                       style={{
@@ -903,107 +917,153 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                       }}>{val.CircularNumber}</div>
                   </TableCellLayout>
                 </TableCell>
-                <TableCell colSpan={3} className={`${styles1.verticalSpacing}`} style={{ padding: 5 }}>
+                {/* {${styles1.verticalSpacing}} */}
+                <TableCell colSpan={5} className={` ${styles1.tableCellHeight}`} style={{ padding: 5 }}>
                   <TableCellLayout >
-                    <div className={`${styles1.verticalSpacing}`} style={{ padding: 5 }}>
-                      {/* <div
-                        className={`${styles1.colorLabel}`}
-                        style={{
-                          color: val.Classification == "Master" ? "#f26522" : "#162B75"
-                        }}>{val.CircularNumber}</div> */}
+                    {/* {className={`${styles1.verticalSpacing}`}} */}
+                    <div style={{ paddingLeft: 5 }}>
+
                       <Button
                         style={{ padding: 0, fontWeight: 400 }}
                         appearance="transparent"
                         onClick={this.onDetailItemClick.bind(this, val, Constants.colSubject)}>
                         <div style={{
                           textAlign: "left",
-                          marginTop: 5,
                           color: val.Classification == "Master" ? "#f26522" : "#162B75"
                         }}>{val.Subject} <OpenRegular /></div>
                       </Button>
                     </div>
                   </TableCellLayout>
                 </TableCell>
-                <TableCell>
+                <TableCell className={`${styles1.tableCellHeight}`}>
                   <TableCellLayout>
                     {this.formatDate(val.PublishedDate)}
                   </TableCellLayout>
                 </TableCell>
-                {/* <TableCell>
-                  <TableCellLayout content={{ style: { width: "100%" } }}
-                    className={val.Classification == "Master" ? `${styles1.master}` : `${styles1.circular}`}>
-                    {val.Classification}
-                  </TableCellLayout>
-                </TableCell> */}
-                <TableCell >
-                  <TableCellLayout className={`${styles1.verticalSpacing}`}>
+
+                <TableCell colSpan={2} className={`${styles1.tableCellHeight}`}>
+                  {/* {className={`${styles1.verticalSpacing}`}} */}
+                  <TableCellLayout>
                     {val.Department}
                   </TableCellLayout>
                 </TableCell>
-                {/* <TableCell >
-                  <TableCellLayout className={`${styles1.verticalSpacing}`}>
 
-                  </TableCellLayout>
-                </TableCell> */}
                 {/* {Showing Menu Items} */}
-                <TableCell >
-                  <TableCellLayout className={`${styles1.verticalSpacing}`}>
-                    <Menu>
-                      <MenuTrigger disableButtonEnhancement>
-                        <MenuButton icon={<MoreVerticalRegular />} appearance="transparent"></MenuButton>
-                      </MenuTrigger>
-                      <MenuPopover>
-                        <MenuList>
-                          <MenuItem style={{ fontFamily: "Roboto" }}>
-                            <Menu>
-                              <MenuTrigger disableButtonEnhancement>
-                                <MenuItem content={{ style: { textAlign: "center" } }}>Summary</MenuItem>
-                              </MenuTrigger>
-                              <MenuPopover>
-                                <MenuList>
-                                  <MenuItem>
+                <TableCell className={`${styles1.tableCellHeight}`}>
+                  {/* {className={`${styles1.verticalSpacing}`}} */}
+                  <TableCellLayout >
+                    {
+                      <Menu>
+                        <MenuTrigger >
+                          <MenuButton icon={
+                            <MoreVerticalRegular
+                              color={val.Classification == "Master" ? "#f26522" : "#162B75"} />
+                          }
+                            appearance="transparent" onClick={() => {
+                              this.setState({ currentSelectedItem: val, currentSelectedItemId: val.ID }, () => {
+                                this.readItemsAsStream(val);
+                              })
 
-                                  </MenuItem>
-                                </MenuList>
-                              </MenuPopover>
-                            </Menu>
-                          </MenuItem>
-                          <MenuItem style={{ fontFamily: "Roboto" }}>
-                            <Menu>
-                              <MenuTrigger >
-                                <MenuItem content={{ style: { textAlign: "center" } }}>{`FAQs`} </MenuItem>
-                              </MenuTrigger>
-                              <MenuPopover>
-                                <MenuList>
-                                  <MenuItem>
+                            }}></MenuButton>
+                        </MenuTrigger>
+                        <MenuPopover>
+                          <MenuList>
+                            <MenuItem style={{ fontFamily: "Roboto" }}>
+                              <Menu>
+                                <MenuTrigger disableButtonEnhancement>
+                                  <MenuItem content={{ style: { textAlign: "center" } }}>Summary</MenuItem>
+                                </MenuTrigger>
+                                {previewItems?.Gist &&
+                                  < MenuPopover >
+                                    <MenuList>
+                                      <MenuItem>
+                                        <div className={`${styles1.row}`}>
+                                          <div className={`${styles1.column12}`} color='#f26522'>
+                                            Summary
+                                          </div>
+                                          <Divider appearance="subtle" style={{ marginBottom: 10 }}></Divider>
+                                          <div className={`${styles1.column12}`}>
+                                            {previewItems?.Gist ?? ``}
+                                          </div>
+                                        </div>
+                                      </MenuItem>
+                                    </MenuList>
+                                  </MenuPopover>
+                                }
+                              </Menu>
+                            </MenuItem>
+                            <MenuItem style={{ fontFamily: "Roboto" }}>
+                              <Menu>
+                                <MenuTrigger >
+                                  <MenuItem content={{ style: { textAlign: "center" } }}>{`FAQs`} </MenuItem>
+                                </MenuTrigger>
+                                {previewItems?.CircularFAQ &&
+                                  <MenuPopover>
+                                    <MenuList>
+                                      <MenuItem>
+                                        <div className={`${styles1.row}`}>
+                                          <div className={`${styles1.column12}`} color='#f26522'>
+                                            FAQs
+                                          </div>
+                                          <Divider appearance="subtle" style={{ marginBottom: 10 }}></Divider>
+                                          <div className={`${styles1.column12}`}>
+                                            {previewItems?.CircularFAQ ?? ``}
+                                          </div>
+                                        </div>
+                                      </MenuItem>
+                                    </MenuList>
+                                  </MenuPopover>
+                                }
+                              </Menu>
+                            </MenuItem>
+                            <MenuItem style={{ fontFamily: "Roboto" }}>
+                              <Menu>
+                                <MenuTrigger >
+                                  <MenuItem content={{ style: { textAlign: "center" } }}>Supporting Documents</MenuItem>
+                                </MenuTrigger>
+                                {supportingDocuments &&
+                                  <MenuPopover>
+                                    <MenuList >
+                                      <MenuItem>
+                                        <div className={`${styles1.row}`}>
+                                          <div className={`${styles1.column12}`} color='#f26522'>
+                                            Supporting Documents
+                                          </div>
+                                        </div>
+                                        <Divider appearance="subtle" style={{ marginBottom: 10 }}></Divider>
 
-                                  </MenuItem>
-                                </MenuList>
-                              </MenuPopover>
-                            </Menu>
-                          </MenuItem>
-                          <MenuItem style={{ fontFamily: "Roboto" }}>
-                            <Menu>
-                              <MenuTrigger >
-                                <MenuItem content={{ style: { textAlign: "center" } }}>Supporting Documents</MenuItem>
-                              </MenuTrigger>
-                              <MenuPopover>
-                                <MenuList>
-                                  <MenuItem>
+                                        {supportingDocuments != "" && supportingDocuments.length > 0 &&
+                                          supportingDocuments.map((document) => {
+                                            return <>
+                                              <Link
+                                                className={`${styles1.link}`}
 
-                                  </MenuItem>
-                                </MenuList>
-                              </MenuPopover>
-                            </Menu>
-                          </MenuItem>
-                        </MenuList>
-                      </MenuPopover>
-                    </Menu>
+                                              //</>onClick={() => {
+                                              //this.openSupportingCircularFile(listItem);
+                                              //}}
+                                              >
+                                                {document.CircularNumber ?? ``}
+                                              </Link>
+
+                                            </>
+                                          })}
+
+
+                                      </MenuItem>
+                                    </MenuList>
+                                  </MenuPopover>
+                                }
+                              </Menu>
+                            </MenuItem>
+                          </MenuList>
+                        </MenuPopover>
+                      </Menu>
+                    }
                   </TableCellLayout>
                 </TableCell>
                 {/* {End of Menu Items} */}
 
-              </TableRow>
+              </TableRow >
               <TableRow>
                 <Divider appearance="subtle"></Divider>
               </TableRow>
@@ -1776,7 +1836,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         let refinableFilterQuery = this.refinableQuery();
         let advancedSearchTextAndFilterQuery = this.searchQueryAndFilterQuery();
         let sortListProperty = [{
-          Property: `Rank`,//Constants.managePropPublishedDate,
+          Property: Constants.managePropPublishedDate,
           Direction: 1 //0 for asc & 1 for descending
         }]
 
@@ -1879,6 +1939,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   private normalSearchQuery = (searchText): string => {
 
     let subject = Constants.managePropSubject;
+    let department = Constants.managePropDepartment;
     let queryTextFilters = [];
     let normalSearchString = "";
 
@@ -1887,21 +1948,23 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       if (queryTextFilters.length > 1) {
 
         let queryText = [];
+        let queryString = "";
         queryTextFilters.map((word) => {
           queryText.push(`"${word}*"`)
         })
         //normalSearchString = `${subject}:string(` + queryText.join(',') + `,mode="phrase")`;
 
-        normalSearchString = `${subject}:string("` + searchText + `",mode="phrase")`;
+        normalSearchString += `${subject}:string("` + searchText + `",mode="phrase")`;
+        normalSearchString += `,${department}:string("` + searchText + `",mode="phrase") `;
 
-        // refinmentString += `, ${department}: or(`
-        // queryText = "";
+        // normalSearchString += `, ${department}: or(`
+
 
         // queryTextFilters.map((word) => {
-        //   queryText += `"${word}*", `
+        //   queryString += `"${word}*", `
         // })
 
-        //  refinmentString += queryText.substring(0, queryText.length - 1) + `)`;
+        // normalSearchString += queryString.substring(0, queryText.length - 1) + `)`;
 
         // refinmentString += `, ${ circularNumber }: or(`;
         // queryText = "";
@@ -1913,7 +1976,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       }
 
       else {
-        normalSearchString += `${subject}:"${queryTextFilters[0]}*"`; //,${documentNo}:"${queryTextFilters[0]}*",${keywords}:"${queryTextFilters[0]}*"
+        normalSearchString += `${subject}:"${queryTextFilters[0]}*",${department}:"${queryTextFilters[0]}*"`; //,${documentNo}:"${queryTextFilters[0]}*",${keywords}:"${queryTextFilters[0]}*"
       }
     }
 
@@ -1990,9 +2053,6 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       if (publishedStartYear != null && publishedEndYear != null) {
         filterArray.push(`${filterProperties[4]}: range(${publishedStartYear}T23:59:59Z, ${publishedEndYear}T23:59:59Z)`)
       }
-
-
-
 
       if (checkBoxCollection.size > 0) {
         checkBoxCollection.forEach((checkMap) => {
@@ -2526,7 +2586,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     const dateObject = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
 
     // format the date as a string using the desired format
-    const formattedDate = dateObject.toLocaleDateString("en-UK", { day: "numeric", month: "short", year: "numeric" });
+    const formattedDate = dateObject.toLocaleDateString("en-UK", { day: "2-digit", month: "short", year: "numeric" });
 
     return `${formattedDate} `;
   }
@@ -2592,7 +2652,6 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
             filePreviewItem: result.ListData ?? null,
             isLoading: openFileViewer,
             openFileViewer: openFileViewer
-
           })
 
         }).catch((error) => {
@@ -2640,13 +2699,17 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
   private clearFilters = () => {
 
+    const { checkBoxCollection } = this.state
+    let departmentBox = checkBoxCollection.get(`${Constants.department}`);
+
     this.setState({
       searchText: ``,
       selectedDepartment: [],
       circularNumber: ``,
       publishedStartDate: null,
       publishedEndDate: null,
-      checkBoxCollection: this.initializeCheckBoxFilter()
+      checkBoxCollection: this.initializeCheckBoxFilter(),
+      relevanceDepartment: this.initializeRelevanceDept(departmentBox)
     })
 
   }

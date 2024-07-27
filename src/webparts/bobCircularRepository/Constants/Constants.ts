@@ -84,7 +84,10 @@ export class Constants {
   public static readonly colCircularRepository = "Id,Subject,PublishedDate,CircularStatus,Category,IssuedFor,MigratedDepartment,Department,MakerCommentsHistory,CheckerCommentsHistory,ComplianceCommentsHistory,IsMigrated,CircularNumber,Classification,MigratedOriginator,Author/Title,Author/Id,Author/EMail"
   public static readonly expandColCircularRepository = "Author";
   public static readonly adSelectedColumns = "id,mail,region,title,position,grade,zone,displayName,department,employeeId,extensions,businessPhones,title,employeeNumber";
-
+  public static readonly configSelectColumns = `Title,Limit,ID`;
+  public static readonly configEnum = {
+    
+  }
 
   public static readonly hindiBarodaPedia = "बड़ौदापीडिया";
   public static readonly hindiSearchHeader = "परिपत्र का विवरण दर्ज करें";

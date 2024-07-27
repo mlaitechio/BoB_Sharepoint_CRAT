@@ -77,6 +77,8 @@ Checker User Permission Mapping with Department
 Comments Section ,History Section in Edit Dashboard
 PDF and docx check when clicking on Subject Title (Search Page)
 
+Logging in to another list for comments.
+
 Responsive SCSS changes
 Document Interaction preview (For New & Edit& View Form Done ) For Newly uploaded file remaining 
 editFormItem Department Mapping
@@ -85,4 +87,6 @@ Master Circular should be editable in 2nd quarter of the year
 After published PDF File Conversion
 
 Circular Number 0000 check
+
+Iframe file edit section to be hidden 
 

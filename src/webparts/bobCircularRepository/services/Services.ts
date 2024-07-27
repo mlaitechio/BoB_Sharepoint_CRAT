@@ -52,8 +52,8 @@ export class Services implements IServices {
 
             let items: PagedItemCollection<any[]> = undefined;
             do {
-                if (!items) items = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items.select(selectColumns)
-                    .expand(expandColumns).top(4000).getPaged();
+                if (!items) items = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items.select(selectColumns).
+                    orderBy(`${orderByColum}`, false).expand(expandColumns).top(4000).getPaged();
                 else {
                     items = await items.getNext();
                 }
@@ -86,7 +86,7 @@ export class Services implements IServices {
             let migratedDepartment = departmentMapping?.Title ?? ``;
 
             //&& migratedDepartment != ""
-            if (department != "" ) {
+            if (department != "") {
                 let listUpdate = list.items.getById(itemIDs[i].ID).
                     update({
                         Department: department,

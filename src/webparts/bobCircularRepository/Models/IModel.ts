@@ -120,6 +120,12 @@ export interface ISortTable {
     accordionFields: any;
 }
 
+export interface ICircularConfig {
+    Title: string;
+    Limit: number;
+    ID: number;
+}
+
 export interface IADProperties {
     id: string;
     mail: string;

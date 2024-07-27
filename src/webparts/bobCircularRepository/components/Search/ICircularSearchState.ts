@@ -44,18 +44,10 @@ export interface ICircularSearchState {
     filterAccordion?: any;
     openPanelCheckedValues?: ICheckBoxCollection[];
     filterPanelCheckBoxCollection?: Map<string, ICheckBoxCollection[]>;
-    // selectedFinancialYear: string;
-    // selectedVertical: string;
-    // selectedFinanicalPicker: ITag[];
-    // selectedVerticalPicker: ITag[];
+   
     showHideFilters?: boolean;
-    // documentCreator: any[];
-    // documentCategoryDD: any[];
-    // selectedDocCategory: ITag[];
     publishedStartDate?: Date;
     publishedEndDate?: Date | null;
-    // modifiedStartDate?: Date;
-    // modifiedEndDate?: Date | null;
     createdBy?: string;
 
 }
