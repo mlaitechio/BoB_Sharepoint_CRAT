@@ -60,6 +60,9 @@ Supporting Documents Field Creation -->(done)
 View Circular Compliance & Checker (Done)
 Employee ID watermarking from Azure AD (Done)
 CircularCreation Date Issue on Display (Done)
+Maker Checker & Compliance User should not be same when approving circulars (Done)
+Maximum how many supporting documents can be attached? --> No limit, Certainly have to keep a limit of 20 (Done)
+Document Interaction preview (For New & Edit& View Form Done ) For Newly uploaded file remaining 
 
 
 -----------------------------------Test Scenarios
@@ -69,24 +72,16 @@ How to view the list of rejected circulars (Rejected Circulars Dashboard)
 Add  one more condition for department of user in edit circular filter string (Pending)
 
 Permission Matrix 
-Maker Checker & Compliance User should not be same when approving circulars
-
-Maximum how many supporting documents can be attached? --> No limit, Certainly have to keep a limit of 20
 Compliance User Permission Mapping with Department
 Checker User Permission Mapping with Department
 Comments Section ,History Section in Edit Dashboard
 PDF and docx check when clicking on Subject Title (Search Page)
-
 Logging in to another list for comments.
-
 Responsive SCSS changes
-Document Interaction preview (For New & Edit& View Form Done ) For Newly uploaded file remaining 
 editFormItem Department Mapping
 Master Circular should be editable in 2nd quarter of the year
 
 After published PDF File Conversion
-
 Circular Number 0000 check
-
 Iframe file edit section to be hidden 
 

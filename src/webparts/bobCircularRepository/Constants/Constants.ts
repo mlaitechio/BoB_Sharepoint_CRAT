@@ -85,10 +85,17 @@ export class Constants {
   public static readonly expandColCircularRepository = "Author";
   public static readonly adSelectedColumns = "id,mail,region,title,position,grade,zone,displayName,department,employeeId,extensions,businessPhones,title,employeeNumber";
   public static readonly configSelectColumns = `Title,Limit,ID`;
-  public static readonly configEnum = {
-    
+  public static readonly configVal = {
+    SupportingDocuments: "SupportingDocuments",
+    SOPFileUpload: "SOPFileUpload",
+    SOPFileMaxSizeinMB: "SOPFileMaxSizeinMB",
+    SubjectMaxWord: "SubjectMaxWord",
+    GistMaxWord: "GistMaxWord",
+    FAQMaxWord: "FAQMaxWord",
+    MakerCommentsMaxWord: "MakerCommentsMaxWord",
+    ComplianceCommentsMaxWord: "ComplianceCommentsMaxWord",
+    CheckerCommentsMaxWord: "CheckerCommentsMaxWord"
   }
-
   public static readonly hindiBarodaPedia = "बड़ौदापीडिया";
   public static readonly hindiSearchHeader = "परिपत्र का विवरण दर्ज करें";
   public static readonly engSearchHeader = "Enter details of circular";

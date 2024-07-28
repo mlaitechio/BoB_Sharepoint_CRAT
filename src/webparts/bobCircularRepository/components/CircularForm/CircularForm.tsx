@@ -399,10 +399,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 this.deleteSOPFileAttachments.set(fileName, this.editSOPFileAttachments.get(fileName))
             }
 
-
             this.sopFileAttachments.delete(fileName);
-
-
 
             this.setState({
                 sopUploads: this.sopFileAttachments
@@ -562,6 +559,16 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                                     }} role="presentation" tabIndex={-1}></iframe>}
                             </div>
                         </div>
+                        {documentPreviewURL != "" &&
+                            <div className={`${styles.row}`}>
+                                <div className={`${styles.column10}`}></div>
+
+                                <div className={`${styles.column2}`}
+                                    style={{ marginTop: -32, background: "white", minHeight: 21, opacity: 1, marginLeft: -11 }}>
+
+                                </div>
+                            </div>
+                        }
                     </div>
                 </div>
                 <div className={`${styles.row} ${styles.formFieldMarginTop} ${styles['text-center']}`} style={{ borderTop: "1px solid lightgoldenrodyellow" }}>
@@ -653,12 +660,15 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         const { circularListItem, expiryDate, lblCompliance,
             issuedFor, category, templates, selectedTemplate, attachedFile,
             selectedCommentSection,
-            classification, isNewForm, isEditForm, selectedSupportingCirculars, isRequesterMaker } = this.state;
+            classification, configuration, selectedSupportingCirculars, isRequesterMaker } = this.state;
         let providerValue = this.context;
         const { context, isUserChecker, isUserMaker, isUserCompliance } = providerValue as IBobCircularRepositoryProps;
         const { displayMode, currentPage } = this.props
         let circularStatus = circularListItem.CircularStatus;
         let showCommentHistory = circularStatus != Constants.lblNew && circularStatus != Constants.draft;
+        const { configVal } = Constants;
+        let maxSupportingDocument = configuration.filter(val => val.Title == configVal.SupportingDocuments)[0]?.Limit ?? 20;
+        let maxGistWord = configuration.filter(val => val.Title == configVal.GistMaxWord)[0]?.Limit ?? 5;
 
         /**
         |--------------------------------------------------
@@ -768,14 +778,16 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                         <Label className={`${styles.formLabel} ${styles.fieldTitle}`}>{`${Constants.supportingDocument}`}</Label>
                     </div>
                     <div className={`${styles.column6}`}>
-
-                        <Button appearance="primary" icon={<Add16Filled />}
-                            disabled={disableControl}
-                            style={{ width: "100%", padding: 5, cursor: "pointer" }}
-                            onClick={() => {
-                                this.setState({ openSupportingDocument: true, isLoading: true })
-                            }}
-                            iconPosition="before">Click here to add supporting documents</Button>
+                        <Tooltip content={`Maximum ${maxSupportingDocument} supporting documents can be attached`}
+                            relationship="description" positioning={"after"} withArrow={true}>
+                            <Button appearance="primary" icon={<Add16Filled />}
+                                disabled={disableControl}
+                                style={{ width: "100%", padding: 5, cursor: "pointer" }}
+                                onClick={() => {
+                                    this.setState({ openSupportingDocument: true, isLoading: true })
+                                }}
+                                iconPosition="before">Click here to add supporting documents</Button>
+                        </Tooltip>
                     </div>
                 </div>
                 <div className={`${styles.row} ${styles.formFieldMarginTop}`}>
@@ -827,12 +839,20 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                                 })}
                         </div>
                     </div>
+                    <div className={`${styles.column12}`}>
+                        {/* <Label className={`${styles.formLabel}`}>{`(Max ${maxSupportingDocument} supporting documents can be attached)`}</Label> */}
+                        {/* {this.messageBarControl("warning",`(Max ${maxSupportingDocument} supporting documents can be attached)`)} */}
+                    </div>
+                    <div>
+
+                    </div>
                 </div>
                 <Divider appearance="subtle" ></Divider>
 
                 <div className={`${styles.row} ${styles.formFieldMarginTop}`}>
                     <div className={`${styles.column12}`}>
-                        {this.textAreaControl(`${Constants.gist}`, false, `${circularListItem.Gist}`, disableControl, ``, `Maximum 500 words are allowed`)}
+                        {this.textAreaControl(`${Constants.gist}`, false, `${circularListItem.Gist}`, disableControl, ``,
+                            `Maximum ${maxGistWord} words are allowed`)}
                     </div>
                 </div>
 
@@ -1143,12 +1163,14 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
     }
 
     private onTextAreaChange = (labelName: string, ev: React.ChangeEvent<HTMLTextAreaElement>, data: TextareaOnChangeData) => {
-        const { circularListItem, configuration } = this.state
+
+        const { circularListItem, configuration } = this.state;
+        const { configVal } = Constants;
         let wordLength = this.getWords(data.value?.trim());
         switch (labelName) {
             case Constants.subject:
-                let subjectMaxWord = configuration.filter(val => val.Title == "")
-                if (wordLength <= 500 && data.value.length < 63999 && data.value.trim() != "") {
+                let subjectMaxWord = configuration.filter(val => val.Title == configVal.SubjectMaxWord)[0]?.Limit ?? 500;
+                if (wordLength <= subjectMaxWord && data.value.length < 63999 && data.value.trim() != "") {
                     circularListItem.Subject = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '');
                     this.setState({ circularListItem });
                 }
@@ -1158,7 +1180,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 }
                 break;
             case Constants.gist:
-                if (wordLength <= 500 && data.value.length < 63999 && data?.value.trim() != "") {
+                let gistMaxWord = configuration.filter(val => val.Title == configVal.GistMaxWord)[0]?.Limit ?? 500;
+                if (wordLength <= gistMaxWord && data.value.length < 63999 && data?.value.trim() != "") {
                     circularListItem.Gist = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '');
                     this.setState({ circularListItem })
                 }
@@ -1168,7 +1191,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 }
                 break;
             case Constants.faqs:
-                if (wordLength <= 500 && data.value.length < 63999 && data?.value.trim() != "") {
+                let faqMaxWord = configuration.filter(val => val.Title == configVal.FAQMaxWord)[0]?.Limit ?? 500;
+                if (wordLength <= faqMaxWord && data.value.length < 63999 && data?.value.trim() != "") {
                     circularListItem.CircularFAQ = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '');
                     this.setState({ circularListItem });
                 }
@@ -1178,7 +1202,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 }
                 break;
             case Constants.lblCommentsMaker:
-                if (wordLength <= 50 && data.value.length < 63999 && data?.value.trim() != "") {
+                let commentsMakerMaxWord = configuration.filter(val => val.Title == configVal.MakerCommentsMaxWord)[0]?.Limit ?? 50;
+                if (wordLength <= commentsMakerMaxWord && data.value.length < 63999 && data?.value.trim() != "") {
                     circularListItem.CommentsMaker = data.value.replace(/[^a-zA-Z0-9.&,() ]/g, '');
                     this.setState({ circularListItem })
                 }
@@ -1188,7 +1213,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 }
                 break;
             case Constants.lblCommentsChecker:
-                if (wordLength <= 50 && data.value.length < 63999 && data?.value.trim() != "") {
+                let checkerMaxWord = configuration.filter(val => val.Title == configVal.CheckerCommentsMaxWord)[0]?.Limit ?? 50;
+                if (wordLength <= checkerMaxWord && data.value.length < 63999 && data?.value.trim() != "") {
                     circularListItem.CommentsChecker = data.value.replace(/[^a-zA-Z0-9.&,() ]/g, '');
                     this.setState({ circularListItem })
                 }
@@ -1198,7 +1224,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 }
                 break;
             case Constants.lblCommentsCompliance:
-                if (wordLength <= 50 && data.value.length < 63999 && data?.value.trim() != "") {
+                let complianceMaxWord = configuration.filter(val => val.Title == configVal.ComplianceCommentsMaxWord)[0]?.Limit ?? 50;
+                if (wordLength <= complianceMaxWord && data.value.length < 63999 && data?.value.trim() != "") {
                     circularListItem.CommentsCompliance = data.value.replace(/[^a-zA-Z0-9.&,() ]/g, '');
                     this.setState({ circularListItem })
                 }
@@ -1690,6 +1717,10 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
     */
 
     private fileUploadControl = (labelName: string, filePickerRef: any, isDisabled?: boolean): JSX.Element => {
+        const { configuration } = this.state;
+        const { configVal } = Constants;
+        let maxFileSizeMB = configuration.filter(val => val.Title == configVal.SOPFileMaxSizeinMB)[0]?.Limit ?? 5;
+        let sopFileLimit = configuration.filter(val => val.Title == configVal.SOPFileUpload)[0]?.Limit ?? 5;
         let fileUploadJSX = <>
             <input
                 id={`file-picker_${labelName}`}
@@ -1708,7 +1739,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             </Button>
             <Field label={
                 <Label className={`${styles.formLabel} `}>
-                    {` (Maximum 5MB .pdf & .docx file allowed. Up to 5 files.)`}
+                    {` (Maximum ${maxFileSizeMB}MB .pdf & .docx file allowed. Up to ${sopFileLimit} files.)`}
                 </Label>
             }
                 required={false}>
@@ -1720,7 +1751,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
     }
 
     private onFileUploadChange = (labelName: string, e: React.ChangeEvent<HTMLInputElement>) => {
-        const { sopAttachmentColl, circularListItem } = this.state
+        const { sopAttachmentColl, circularListItem, configuration } = this.state
+        const { configVal } = Constants;
         const files = e.target.files;
         let invalidFileSize = [];
         let inValidFileType = [];
@@ -1728,6 +1760,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
         let fileCount = files.length + sopAttachmentColl?.length;
         let isFormValid = this.validateAllRequiredFields();
+        let maxFileSizeMB = configuration.filter(val => val.Title == configVal.SOPFileMaxSizeinMB)[0]?.Limit ?? 5120;
+        let uploadLimit = configuration.filter(val => val.Title == configVal.SOPFileUpload)[0]?.Limit ?? 5;
 
         if (files && isFormValid) {
 
@@ -1751,12 +1785,12 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
                 if (fileExtension.length < 3 && !isCircularFile && (files[i].name.indexOf('.docx') > -1 || files[i].name.indexOf('.pdf') > -1)) {
                     let sizeInMB = Math.round((files[i].size) / 1024);
-                    if (sizeInMB <= 5120) {
+                    if (sizeInMB <= (maxFileSizeMB * 1024)) {
                         if ((this.sopFileAttachments.has(files[i].name)) || fileCount <= 5) {
                             this.sopFileAttachments.delete(files[i].name);
                             this.sopFileAttachments.set(files[i].name, files[i]);
                         }
-                        else if (fileCount <= 5) {
+                        else if (fileCount <= uploadLimit) {
                             this.sopFileAttachments.set(files[i].name, files[i]);
                         }
                     }
@@ -2026,11 +2060,11 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         return workingJSX;
     }
 
-    private messageBarControl = (intent): JSX.Element => {
+    private messageBarControl = (intent, message): JSX.Element => {
         let messageBarJSX = <>
             <MessageBar key={intent} intent={intent}>
                 <MessageBarBody>
-                    <Label className={`${styles.formLabel} ${styles.fieldTitle}`}>Please input all fields mark as <b>*</b></Label>
+                    <Label className={`${styles.formLabel} ${styles.fieldTitle}`}>{message}</Label>
                 </MessageBarBody>
             </MessageBar>
         </>;
@@ -2075,8 +2109,10 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
     private filterPanelSupportingDocument = (): JSX.Element => {
 
-        const { selectedSupportingCirculars, circularListItem } = this.state
+        const { selectedSupportingCirculars, circularListItem, configuration } = this.state
         let providerValue = this.context as IBobCircularRepositoryProps;
+        const { configVal } = Constants;
+        let maxSupportingDocument = configuration.filter(val => val.Title == configVal.SupportingDocuments)[0].Limit;
 
         let panelSupportingDocumentsJSX = <>
             <SupportingDocument department={`${circularListItem.Department}`}
@@ -2085,11 +2121,15 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 onDismiss={(supportingCirculars) => {
                     this.setState({
                         openSupportingDocument: false,
-                        selectedSupportingCirculars: supportingCirculars
+                        selectedSupportingCirculars: supportingCirculars.slice(0, maxSupportingDocument)
                     }, () => {
-                        const { circularListItem } = this.state;
+
+                        const { circularListItem, selectedSupportingCirculars } = this.state;
+                        console.log(selectedSupportingCirculars.length);
+                        console.log(maxSupportingDocument)
 
                         if (supportingCirculars.length > 0) {
+
                             let supportingDoc = supportingCirculars.map((val: ICircularListItem) => {
                                 return {
                                     ID: val.ID,

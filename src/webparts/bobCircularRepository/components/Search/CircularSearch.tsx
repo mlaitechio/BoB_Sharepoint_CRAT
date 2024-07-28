@@ -903,7 +903,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
             let supportingDocuments = previewItems?.SupportingDocuments ? JSON.parse(previewItems?.SupportingDocuments) : ``;
             let summary = previewItems?.Gist ?? ``;
             let faq = previewItems?.CircularFAQ ?? ``;
-            let isVerticalDotsVisible = summary != "" || supportingDocuments != "" || faq != "";
+           // let isVerticalDotsVisible = summary != "" || supportingDocuments != "" || faq != "";
 
             return <>
               <TableRow className={`${styles1.tableRow}`}>
@@ -973,7 +973,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                                 <MenuTrigger disableButtonEnhancement>
                                   <MenuItem content={{ style: { textAlign: "center" } }}>Summary</MenuItem>
                                 </MenuTrigger>
-                                {previewItems?.Gist &&
+                                {
                                   < MenuPopover >
                                     <MenuList>
                                       <MenuItem>
@@ -983,13 +983,14 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                                           </div>
                                           <Divider appearance="subtle" style={{ marginBottom: 10 }}></Divider>
                                           <div className={`${styles1.column12}`}>
-                                            {previewItems?.Gist ?? ``}
+                                            {summary != "" ? summary : `No Summary Available`}
                                           </div>
                                         </div>
                                       </MenuItem>
                                     </MenuList>
                                   </MenuPopover>
                                 }
+
                               </Menu>
                             </MenuItem>
                             <MenuItem style={{ fontFamily: "Roboto" }}>
@@ -997,7 +998,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                                 <MenuTrigger >
                                   <MenuItem content={{ style: { textAlign: "center" } }}>{`FAQs`} </MenuItem>
                                 </MenuTrigger>
-                                {previewItems?.CircularFAQ &&
+                                {
                                   <MenuPopover>
                                     <MenuList>
                                       <MenuItem>
@@ -1007,7 +1008,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                                           </div>
                                           <Divider appearance="subtle" style={{ marginBottom: 10 }}></Divider>
                                           <div className={`${styles1.column12}`}>
-                                            {previewItems?.CircularFAQ ?? ``}
+                                            {faq != "" ? previewItems?.CircularFAQ : `No FAQ Available`}
                                           </div>
                                         </div>
                                       </MenuItem>
@@ -1021,7 +1022,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                                 <MenuTrigger >
                                   <MenuItem content={{ style: { textAlign: "center" } }}>Supporting Documents</MenuItem>
                                 </MenuTrigger>
-                                {supportingDocuments &&
+                                {
                                   <MenuPopover>
                                     <MenuList >
                                       <MenuItem>
@@ -1047,6 +1048,11 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
                                             </>
                                           })}
+                                        {supportingDocuments = "" &&
+                                          <div className={`${styles1.column12}`}>
+                                            <Label>No Supporting Documents Available </Label>
+                                          </div>
+                                        }
 
 
                                       </MenuItem>

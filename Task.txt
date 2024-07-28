@@ -46,8 +46,9 @@ Category Search Query string
 8. Checker Dashboard - 10 hours
 9. Circular Form -120 hours
 10.Relevance Department Changes - 4 hours
-11.New UI Changes with Vertical buttons & Pop over Menu - 6 hours
+11.New UI Changes with Vertical buttons & Pop over Menu with FAQ, Supporting Documents & Summary binding - 8 hours
 12.Search criteria Changes for Subject & Department with other UI changes- 6 hours 
+13.Configuration List Implemented - 4 hours
 12.Responsive Design 
 
 Search Dashboard
