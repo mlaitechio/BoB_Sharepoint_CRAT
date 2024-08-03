@@ -82,7 +82,7 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
             <div>
                 {/* {blobFile != null && <iframe src={blobFile} width={"100%"} height={"700px"} />} */}
                 {/* {blobFile == null && this.workingOnIt()} */}
-                {blobFile != null && <object data={blobFile} width={"100%"} height={"800px"}></object>}
+                {blobFile != null && <object data={blobFile} width={"100%"} height={"800px"} style={{ marginTop: -35 }}></object>}
 
             </div>
         )

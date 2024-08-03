@@ -94,7 +94,7 @@ export interface ICircularListItem {
     IsMigrated?: string;
     Attachments?: IAttachments;
     MasterCircularMapping?: string;
-    Author?: string;
+    Author?: string | any;
     MigratedDepartment?: string;
     MigratedDocPath?: string;
     MigratedIssuedFor?: string;
@@ -111,6 +111,14 @@ export interface ICircularListItem {
     CheckerCommentsHistory?: string;
     ComplianceCommentsHistory?: string;
 
+}
+
+
+export interface SharePointFile {
+    serverRelativeUrl: string;
+    pdfUrl: string;
+    fileType: string;
+    pdfFileName: string;
 }
 
 export interface ISortTable {

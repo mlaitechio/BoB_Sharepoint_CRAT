@@ -23,6 +23,7 @@ import { Text } from '@microsoft/sp-core-library';
 import CircularForm from '../CircularForm/CircularForm';
 import { SortControlled } from './SortTable';
 import Pagination from 'react-js-pagination';
+import { IRenderListDataAsStreamResult } from '@pnp/sp/lists';
 
 export default class EditDashBoard extends React.Component<IEditDashBoardProps, IEditDashBoardState> {
 
@@ -72,17 +73,26 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
         this.setState({ isLoading: true }, async () => {
             await services.filterLargeListItem(serverRelativeUrl, Constants.circularList, `${filterString}`).
                 then(async (itemIDColl: any[]) => {
-                    let allListItems = await Promise.all(itemIDColl?.map(async (item) => {
-                        return await services.getListDataAsStream(serverRelativeUrl, Constants.circularList, item.ID).then((listItem) => {
-                            listItem.ListData.ID = item.ID;
-                            return listItem?.ListData ?? []
-                        }).catch((error) => {
-                            console.log("Error:" + error);
-                            return []
-                        })
-                    }))
+                    let allListItems: any[] = [];
+
+
+                    await services.renderListDataStream(serverRelativeUrl, Constants.circularList, itemIDColl).then((listItems: IRenderListDataAsStreamResult) => {
+                        allListItems = listItems?.Row ?? []
+
+                    }).catch((error) => {
+                        console.log(error)
+                    })
+                    // await Promise.all(itemIDColl?.map(async (item) => {
+                    //     return await services.getListDataAsStream(serverRelativeUrl, Constants.circularList, item.ID).then((listItem) => {
+                    //         listItem.ListData.ID = item.ID;
+                    //         return listItem?.ListData ?? []
+                    //     }).catch((error) => {
+                    //         console.log("Error:" + error);
+                    //         return []
+                    //     })
+                    // }))
                     this.setState({
-                        listItems: allListItems.sort((a, b) => a.ID > b.ID ? -1 : 1)
+                        listItems: allListItems.sort((a, b) => parseInt(a.ID) > parseInt(b.ID) ? -1 : 1)
                     }, () => {
                         const { listItems } = this.state;
                         this.setState({
@@ -247,8 +257,9 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                                     let isFieldSelected = (accordionFields.isSummarySelected || accordionFields.isTypeSelected || accordionFields.isCategorySelected || accordionFields.isSupportingDocuments);
                                     let isCurrentItem = currentSelectedItemId == val.ID;
                                     let tableRowClass = isFieldSelected && isCurrentItem ? `${styles1.tableRow}` : ``;
-                                    let requesterMail = val?.Author?.split('#')[4].replace(',', '');
-                                    let requesterName = val?.Author?.split('#')[1].replace(',', '');
+                                    let createdBy = val.Author
+                                    let requesterMail = createdBy[0].email ?? ``; //val?.Author?.split('#')[4].replace(',', '');
+                                    let requesterName = val?.Author[0].title ?? `` //val?.Author?.split('#')[1].replace(',', '');
                                     let isEditButtonVisible = (val.CircularStatus == Constants.draft ||
                                         val.CircularStatus == Constants.cmmtChecker
                                         || val.CircularStatus == Constants.cmmtCompliance) && (requesterMail == currentUserEmail);

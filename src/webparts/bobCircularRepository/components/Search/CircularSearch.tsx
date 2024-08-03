@@ -55,7 +55,8 @@ import {
   MenuPopover,
   MenuList,
   MenuItem,
-  Link
+  Link,
+  Tooltip
 } from "@fluentui/react-components";
 import { DatePicker } from "@fluentui/react-datepicker-compat";
 import { ICircularSearchProps } from './ICircularSearchProps';
@@ -829,10 +830,20 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   }
 
   private onTagDismiss = (labelName, selectedVal) => {
-    const { checkBoxCollection } = this.state;
+    const { checkBoxCollection, relevanceDepartment } = this.state;
     let index = checkBoxCollection.get(labelName).indexOf(selectedVal);
     checkBoxCollection.get(labelName)[index].checked = false;
-    this.setState({ checkBoxCollection });
+
+    let filterRelevanceDept = relevanceDepartment.filter((val) => {
+      return val.indexValue == index
+    });
+    if (filterRelevanceDept && filterRelevanceDept.length > 0) {
+      relevanceDepartment.filter((val) => {
+        return val.indexValue == index
+      })[0].checked = false;
+    }
+
+    this.setState({ checkBoxCollection, relevanceDepartment });
   }
 
   private onFilterAccordionClick = (labelName) => {
@@ -887,7 +898,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
           <TableRow >
             {columns.map((column, index) => (
               <TableHeaderCell key={column.columnKey} colSpan={index == 1 ? 5 : index == 3 ? 2 : 1}
-                button={{ style: { paddingLeft: index == 0 ? 5 : 0 } }}
+                button={{ style: { paddingLeft: index == 0 ? 2 : 0 } }}
                 className={`${styles1.fontWeightBold}`}>
                 {column.label}
               </TableHeaderCell>
@@ -903,18 +914,31 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
             let supportingDocuments = previewItems?.SupportingDocuments ? JSON.parse(previewItems?.SupportingDocuments) : ``;
             let summary = previewItems?.Gist ?? ``;
             let faq = previewItems?.CircularFAQ ?? ``;
-           // let isVerticalDotsVisible = summary != "" || supportingDocuments != "" || faq != "";
+            // let isVerticalDotsVisible = summary != "" || supportingDocuments != "" || faq != "";
 
             return <>
               <TableRow className={`${styles1.tableRow}`}>
                 <TableCell className={`${styles1.tableCellHeight}`}>
                   {/* {className={`${styles1.verticalSpacing}`}} */}
-                  <TableCellLayout style={{ padding: 5 }}>
-                    <div
-                      className={`${styles1.colorLabel}`}
-                      style={{
-                        color: val.Classification == "Master" ? "#f26522" : "#162B75"
-                      }}>{val.CircularNumber}</div>
+                  <TableCellLayout style={{ padding: 2 }}>
+                    {val.CircularNumber.length > 12 &&
+                      <Tooltip content={`${val.CircularNumber}`} relationship="label" positioning={"after"} withArrow={true}>
+                        <div
+                          className={`${styles1.colorLabel}`}
+                          style={{
+                            color: val.Classification == "Master" ? "#f26522" : "#162B75"
+                          }}>{val.CircularNumber}</div>
+                      </Tooltip>
+                    }
+                    {
+                      val.CircularNumber.length <= 12 &&
+                      <div
+                        className={`${styles1.colorLabel}`}
+                        style={{
+                          color: val.Classification == "Master" ? "#f26522" : "#162B75"
+                        }}>{val.CircularNumber}
+                      </div>
+                    }
                   </TableCellLayout>
                 </TableCell>
                 {/* {${styles1.verticalSpacing}} */}
@@ -1955,22 +1979,21 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
         let queryText = [];
         let queryString = "";
-        queryTextFilters.map((word) => {
-          queryText.push(`"${word}*"`)
-        })
+        // queryTextFilters.map((word) => {
+        //   queryText.push(`"${word}*"`)
+        // })
         //normalSearchString = `${subject}:string(` + queryText.join(',') + `,mode="phrase")`;
 
-        normalSearchString += `${subject}:string("` + searchText + `",mode="phrase")`;
-        normalSearchString += `,${department}:string("` + searchText + `",mode="phrase") `;
+        normalSearchString += `filter(or(${subject}:string("` + searchText + `",mode="phrase")`;
+        normalSearchString += `,${department}:string("` + searchText + `",mode="phrase")))`;
 
-        // normalSearchString += `, ${department}: or(`
+        //  normalSearchString += `, ${department}: or(`
 
+        //  queryTextFilters.map((word) => {
+        //    queryString += `"${word}*", `
+        //  })
 
-        // queryTextFilters.map((word) => {
-        //   queryString += `"${word}*", `
-        // })
-
-        // normalSearchString += queryString.substring(0, queryText.length - 1) + `)`;
+        //  normalSearchString += queryString.substring(0, queryText.length - 1) + `)`;
 
         // refinmentString += `, ${ circularNumber }: or(`;
         // queryText = "";

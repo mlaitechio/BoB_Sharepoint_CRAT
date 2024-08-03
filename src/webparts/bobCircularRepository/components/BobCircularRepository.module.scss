@@ -334,6 +334,12 @@ input * {
   white-space: nowrap;
 }
 
+.toolTipLabel {
+  font-family: Roboto !important;
+  font-weight: 400;
+  white-space: break-spaces;
+}
+
 .link {
   font-family: Roboto !important;
   font-weight: 400;
@@ -373,7 +379,7 @@ input * {
   color: var(--colorBrandBackground);
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 125px;
+  max-width: 112px;
 }
 
 .tableRow {
@@ -403,7 +409,11 @@ input * {
   text-align: center;
 }
 
-
+.hidePDFToolBar {
+  height: 27px;
+  top: 4px;
+  background: white;
+}
 
 
 .formInput {

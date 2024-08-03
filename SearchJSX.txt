@@ -1,3 +1,77 @@
+var values = listItemIds.map(i => { return `<Value Type='Counter'>${i}</Value>`; });
+
+        const viewXml: string = `
+        <View Scope='RecursiveAll'>
+            <Query>
+                <Where>
+                    <In>
+                        <FieldRef Name='ID' />
+                        <Values>
+                            ${values.join("")}
+                        </Values>
+                    </In>
+                </Where>
+            </Query>
+            <RowLimit>${listItemIds.length}</RowLimit>
+        </View>`;
+
+
+
+private allListItemAttachments = async () => {
+        let providerValue = this.context;
+        const { context, services, serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
+
+        await services.getAllListItemAttachments(serverRelativeUrl, Constants.circularList, 3152).then(async (val) => {
+
+            console.log(val);
+            let fileBuffer = val.get(`BOB_BR_116_3152.docx`);
+            await this.bufferToBase64(fileBuffer).then((val) => {
+                const base64WithoutPrefix = val.substring('data:application/octet-stream;base64,'.length);
+
+                const bytes = atob(base64WithoutPrefix);
+                const byteNumbers = new Array(bytes.length);
+                for (let i = 0; i < bytes.length; i++) {
+                    byteNumbers[i] = bytes.charCodeAt(i);
+                }
+
+                const byteArray = new Uint8Array(byteNumbers);
+
+                const blob = new Blob([byteArray], { type: "application/pdf" });
+
+                let objectURL = URL.createObjectURL(blob);
+
+                console.log(objectURL);
+                // let length = pdfBytes.length;
+                // let out = new Uint8Array(length);
+
+                // while (length--) {
+                //     out[length] = bytes.charCodeAt(length);
+                // }
+                // let blobFile = new Blob([out], { type: "application/pdf" });
+            }).catch((error) => {
+                console.log(error)
+            })
+            // let fileName = `BOB_BR_116_3150.pdf`;
+
+        }).catch((error) => {
+            console.log(error);
+        })
+
+
+
+    }
+
+    private bufferToBase64 = async (buffer): Promise<any> => {
+        // use a FileReader to generate a base64 data URI:
+        const base64url = await new Promise(r => {
+            const reader = new FileReader()
+            reader.onload = () => r(reader.result)
+            reader.readAsDataURL(new Blob([buffer]))
+        });
+
+        // remove the `data:...;base64,` part from the start
+        return Promise.resolve(base64url);
+    }
 
       //context.pageContext.user.email
             // await services.getCurrentUserInformation(`Aditya.Pal@bankofbaroda.com`, Constants.adSelectedColumns).then((val: IADProperties[]) => {

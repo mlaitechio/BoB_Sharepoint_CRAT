@@ -10,13 +10,16 @@ import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/security/web";
 import "@pnp/sp/site-users/web";
-import { IList } from "@pnp/sp/lists";
+import { IList, RenderListDataOptions } from "@pnp/sp/lists";
 import { Constants } from "../Constants/Constants";
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 
 import { SPHttpClient, SPHttpClientResponse, MSGraphClientV3 } from '@microsoft/sp-http'
 import { GraphBrowser, GraphFI, graphfi, SPFx as graphSPFx } from "@pnp/graph/presets/all";
 import { error } from "pdf-lib";
+import { forEach } from "jszip";
+import { HttpClient } from '@microsoft/sp-http';
+import { SharePointFile } from "../Models/IModel";
 
 let sp: SPFI;
 
@@ -191,21 +194,9 @@ export class Services implements IServices {
     }
 
     public async addListItemAttachments(serverRelativeUrl: string, listName: string, itemID: number,
-        fileMetadata: Map<string, any>): Promise<any> {
+        fileArray: any[]): Promise<any> {
 
         let isFileAdded = false;
-        let fileArray = [];
-
-        const [batchedSP, execute] = sp.web.batched();
-
-        fileMetadata.forEach(async (value, key) => {
-            fileArray.push({
-                "name": key,
-                "content": value
-            });
-
-
-        });
 
         /**
          * This recursive call is working
@@ -220,16 +211,23 @@ export class Services implements IServices {
 
         for (let i = 0; i < fileArray.length; i++) {
             const file = fileArray[i];
-            const fileName = file.name;
+            const fileName = encodeURI(fileArray[i].name);
 
             attachmentsPromise.push(
                 await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items
                     .getById(itemID)
-                    .attachmentFiles.add(fileName, file.content).then((result) => {
+                    .attachmentFiles.add(fileName, file).then((result) => {
                         return Promise.resolve(result)
                     }).catch((error) => {
                         Promise.reject(error);
                     })
+
+                // await sp.web.getFolderByServerRelativePath(`${serverRelativeUrl}/Lists/${listName}/Attachments/${itemID}`).
+                //     files.addUsingPath(fileName, file).then((val) => {
+                //         return Promise.resolve(val)
+                //     }).catch((error) => {
+                //         return Promise.reject(error)
+                //     })
             );
 
 
@@ -281,6 +279,32 @@ export class Services implements IServices {
         }
 
 
+    }
+
+    public async addFileToListItem(serverRelativeUrl: string, listName: string, itemID: number, fileArray: any[]): Promise<any> {
+
+        const [batchedSP, execute] = sp.batched();
+
+        const list = batchedSP.web.getList(`${serverRelativeUrl}/Lists/${listName}`);
+
+        const listAttachmentUpdated = [];
+
+        for (let index = 0; index < fileArray.length; index++) {
+            const fileName = fileArray[index].name;
+            const fileContent = fileArray[index];
+
+            list.items.getById(itemID).attachmentFiles.
+                add(fileName, fileContent).then((val) => {
+                    listAttachmentUpdated.push(val)
+                }).catch((error) => {
+                    console.log(error)
+                })
+
+        }
+
+        await execute();
+
+        return Promise.resolve(listAttachmentUpdated);
     }
 
     public async deleteListItemAttachment(serverRelativeUrl: string, listName: string, itemID: number, fileName: string): Promise<any> {
@@ -351,12 +375,13 @@ export class Services implements IServices {
 
     }
 
-    public async getAllListItemAttachments(serverRelativeUrl: string, listName: string, itemID: number,): Promise<Map<string, any>> {
+    public async getAllListItemAttachments(serverRelativeUrl: string, listName: string, itemID: number): Promise<Map<string, any>> {
 
         let allFiles = new Map<string, any>();
         const attachmentsPromise = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items.getById(itemID).
             attachmentFiles.select()().then(async (attachments) => {
                 await Promise.all(attachments.map(async (val) => {
+                    //getBuffer
                     const fileBufferPromise = await sp.web.getFileByServerRelativePath(val.ServerRelativeUrl).getBuffer().then((bufferVal) => {
                         allFiles.set(val.FileName, bufferVal);
                     });
@@ -455,6 +480,27 @@ export class Services implements IServices {
     }
 
     public async getListDataAsStream(serverRelativeUrl: string, listName: string, itemID): Promise<any> {
+
+
+        let options: RenderListDataOptions = RenderListDataOptions.EnableMediaTAUrls | RenderListDataOptions.ContextInfo | RenderListDataOptions.ListData | RenderListDataOptions.ListSchema;
+
+        let values = `<Value Type='Counter'>${itemID}</Value>`;
+
+        const viewXML: string = `
+        <View Scope='RecursiveAll'>
+            <Query>
+                <Where>
+                    <In>
+                        <FieldRef Name='ID' />
+                        <Values>
+                            ${values}
+                        </Values>
+                    </In>
+                </Where>
+            </Query>
+            <RowLimit>1</RowLimit>
+        </View>`;
+
         const listDataAsStream = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).
             renderListFormData(itemID, 'editform', ControlMode.Edit).then((data) => {
                 return Promise.resolve(data)
@@ -462,15 +508,64 @@ export class Services implements IServices {
                 return Promise.reject(error);
             })
 
+        // const listDataStream = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).
+        //     renderListDataAsStream({ RenderOptions: options, ViewXml: viewXML }).then((val) => {
+        //         console.log(val)
+        //     }).catch((error) => {
+        //         console.log(error)
+        //     })
+
+
         return listDataAsStream
     }
 
-    public async renderListDataStream(serverRelativeUrl: string, listName: string, viewXML: string, query?: any): Promise<any> {
+    public async renderListDataStream(serverRelativeUrl: string, listName: string, listItemIDs: any[], query?: any): Promise<any> {
+
+        //let options: RenderListDataOptions = RenderListDataOptions.EnableMediaTAUrls | RenderListDataOptions.ContextInfo | RenderListDataOptions.ListData | RenderListDataOptions.ListSchema;
+        let values = listItemIDs.map(i => { return `<Value Type='Counter'>${i.ID}</Value>`; });
+        const viewXML: string = `
+        <View Scope='RecursiveAll'>
+            <Query>
+                <Where>
+                    <In>
+                        <FieldRef Name='ID' />
+                        <Values>
+                            ${values.join("")}
+                        </Values>
+                    </In>
+                </Where>
+            </Query>
+            <RowLimit>${listItemIDs.length}</RowLimit>
+        </View>`;
+
+
+
+
+
+        // const getAllFiles = await sp.web.getFolderByServerRelativePath(`${serverRelativeUrl}/Lists/${listName}/Attachments/3153`).
+        //     files().then((val) => {
+        //         console.log(val)
+        //     }).catch((error) => {
+        //         console.log(error)
+        //     })
+
+        // const pdfURLs = await this.generatePdfUrls(["37"]).then((val) => {
+        //     console.log(val)
+        // }).catch((error) => {
+        //     console.log(error)
+        // })
+
 
         const listDataDataPromise = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).renderListDataAsStream({
+            //RenderOptions: options,
             ViewXml: viewXML
-        }, null, query)
+        }, null, query).then((val) => {
+            return Promise.resolve(val);
+        }).catch((error) => {
+            return Promise.reject(error);
+        })
 
+        return listDataDataPromise;
 
 
     }
@@ -686,5 +781,166 @@ export class Services implements IServices {
                 });
         });
     }
+
+    public async convertDocxToPDF(serverRelativeUrl: string, listName: string, itemID: number, fileName: string): Promise<any> {
+
+        let fileItemId = [];
+
+        await sp.web.getFileByServerRelativePath(`${serverRelativeUrl}/Lists/${listName}/Attachments/${itemID}/${fileName}`).
+            copyTo(`${serverRelativeUrl}/${Constants.sharedDocuments}/${fileName}`, true).then(async (metadata) => {
+                console.log(metadata)
+
+                await sp.web.getFileByServerRelativePath(`${serverRelativeUrl}/${Constants.sharedDocuments}/${fileName}`).getItem().then(async (item) => {
+                    await item().then(async (item) => {
+                        if (item) {
+                            fileItemId.push(`${item.ID}`)
+                        }
+
+                        if (fileItemId.length > 0) {
+                            await this.generatePdfUrls(fileItemId, serverRelativeUrl, listName).then(async (files) => {
+                                await this.saveAsPDF(files).then(async (isOk) => {
+
+                                    let pdfFileName = fileName.replace(".docx", ".pdf");
+                                    
+                                    //add file as attachment
+                                    if (files.length > 0) {
+                                        await sp.web.getFileByServerRelativePath(`${serverRelativeUrl}/${Constants.sharedDocuments}/${pdfFileName}`).getBlob().
+                                            then(async (blobVal) => {
+
+                                                await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items.getById(itemID).
+                                                    attachmentFiles.add(pdfFileName, blobVal).then((attachResult) => {
+                                                        return Promise.resolve(attachResult)
+                                                    }).catch((error) => {
+                                                        return Promise.reject(error)
+                                                    })
+
+                                            }).catch((error) => {
+                                                console.log(error)
+                                            })
+                                    }
+
+                                }).catch((error) => {
+                                    console.log(error)
+                                    return Promise.reject(error)
+                                })
+                            }).catch((error) => {
+                                console.log(error)
+                                return Promise.reject(error)
+                            });
+                        }
+                    })
+                }).catch((error) => {
+                    console.log(error);
+                    return Promise.reject(error)
+                });
+
+            }).catch((error) => {
+                console.log(error)
+                return Promise.reject(error)
+            })
+
+    }
+
+    private async saveAsPDF(files: SharePointFile[]): Promise<boolean> {
+        let isOk = true;
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            let pdfUrl = file.serverRelativeUrl.replace("." + file.fileType, ".pdf");
+            let exists = true;
+            try {
+                await sp.web.getFileByServerRelativePath(pdfUrl)();
+                isOk = false;
+            }
+            catch (error) {
+                exists = false;
+            }
+
+            if (!exists) {
+                let response = await this.context.httpClient.get(file.pdfUrl, HttpClient.configurations.v1);
+
+                if (response.ok) {
+                    let blob = await response.blob();
+                    await sp.web.getFileByServerRelativePath(file.serverRelativeUrl).copyTo(pdfUrl);
+                    await sp.web.getFileByServerRelativePath(pdfUrl).setContentChunked(blob);
+                    const item = await sp.web.getFileByServerRelativePath(pdfUrl).getItem("File_x0020_Type");
+                    // Potential fix for edge cases where file type is not set correctly 
+
+                    if (item["File_x0020_Type"] !== "pdf") {
+
+                        await item.update({
+                            "File_x0020_Type": "pdf"
+                        });
+                    }
+                }
+
+                else {
+                    const error = await response.json();
+                    console.log(error)
+                }
+
+            }
+
+        }
+        return isOk;
+
+    }
+
+
+    private async generatePdfUrls(listItemIds: string[], serverRelativeUrl: string, listName: string): Promise<SharePointFile[]> {
+
+        //let web = Web(context.pageContext.web.absoluteUrl); 
+
+        let options: RenderListDataOptions = RenderListDataOptions.EnableMediaTAUrls | RenderListDataOptions.ContextInfo | RenderListDataOptions.ListData | RenderListDataOptions.ListSchema;
+
+        var values = listItemIds.map(i => { return `<Value Type='Counter'>${i}</Value>`; });
+
+        const viewXml: string = ` 
+        <View Scope='RecursiveAll'> 
+            <Query> 
+                <Where> 
+                    <In> 
+                        <FieldRef Name='ID' /> 
+                        <Values> 
+                            ${values.join("")} 
+                        </Values> 
+                    </In> 
+                </Where> 
+            </Query> 
+            <RowLimit>${listItemIds.length}</RowLimit> 
+        </View>`;
+
+        //let listID = `2f08f1b2-a600-4a2f-b64c-80443725b364`//`67280d85-09b4-4f37-8c2b-0e42ea7a5fa1`;//`c93fb4cb-9dd1-4a5d-a757-617b1ba8b391`;//this.context.pageContext.list.id.toString() 
+
+
+        let response = await sp.web.getList(`${serverRelativeUrl}/${Constants.sharedDocuments}`).renderListDataAsStream({ RenderOptions: options, ViewXml: viewXml }) as any;
+
+        console.log(response);
+        //"{.mediaBaseUrl}/transform/pdf?provider=spo&inputFormat={.fileType}&cs={.callerStack}&docid={.spItemUrl}&{.driveAccessToken}" 
+        let pdfConversionUrl = response.ListSchema[".pdfConversionUrl"];
+        let mediaBaseUrl = response.ListSchema[".mediaBaseUrl"];
+        let callerStack = response.ListSchema[".callerStack"];
+        let driveAccessToken = response.ListSchema[".driveAccessToken"];
+        let pdfUrls: SharePointFile[] = [];
+        response.ListData.Row.forEach(element => {
+
+            let fileType = element[".fileType"];
+            let spItemUrl = element[".spItemUrl"];
+            let pdfUrl = pdfConversionUrl
+                .replace("{.mediaBaseUrl}", mediaBaseUrl)
+                .replace("{.fileType}", fileType)
+                .replace("{.callerStack}", callerStack)
+                .replace("{.spItemUrl}", spItemUrl)
+                .replace("{.driveAccessToken}", driveAccessToken);
+
+            let pdfFileName = element.FileLeafRef.replace(fileType, "pdf");
+            pdfUrls.push({ serverRelativeUrl: element["FileRef"], pdfUrl: pdfUrl, fileType: fileType, pdfFileName: pdfFileName });
+
+        });
+
+        return pdfUrls;
+
+    }
+
+
 
 }

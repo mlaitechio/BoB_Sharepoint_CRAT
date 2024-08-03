@@ -142,7 +142,7 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
         head.appendChild(meta);
       }
 
-      console.log(this.navRef?.current)
+     // console.log(this.navRef?.current)
 
     }, 1500);
 

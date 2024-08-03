@@ -24,7 +24,7 @@ import { Constants } from '../../Constants/Constants';
 import { Text } from '@microsoft/sp-core-library';
 import { DataContext } from '../../DataContext/DataContext';
 import { DatePicker } from '@fluentui/react-datepicker-compat';
-import { Add16Filled, ArrowCounterclockwiseRegular, ArrowLeftFilled, ArrowUpload16Regular, Attach16Filled, CalendarRegular, ChevronDownRegular, ChevronUpRegular, Delete16Regular, DeleteRegular, OpenRegular } from '@fluentui/react-icons';
+import { Add16Filled, ArrowCounterclockwiseRegular, ArrowLeftFilled, ArrowUpload16Regular, Attach16Filled, CalendarRegular, ChevronDownRegular, ChevronUpRegular, Delete16Regular, DeleteRegular, InfoRegular, OpenRegular } from '@fluentui/react-icons';
 import { IBobCircularRepositoryProps } from '../IBobCircularRepositoryProps';
 import { Dialog } from '@fluentui/react-components';
 import { AnimationClassNames, DialogContent } from '@fluentui/react';
@@ -202,10 +202,22 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 this.setState({ circularListItem })
             }
             else if (displayMode == Constants.lblEditCircular) {
-                this.onEditViewFormLoad(editFormItem)
+                await services.getListDataAsStream(serverRelativeUrl, Constants.circularList, parseInt(editFormItem.ID)).then((listItem) => {
+                    listItem.ListData.ID = parseInt(editFormItem.ID);
+                    this.onEditViewFormLoad(listItem?.ListData ?? [])
+                }).catch((error) => {
+                    console.log(error)
+                })
+
             }
             else if (displayMode == Constants.lblViewCircular) {
-                this.onEditViewFormLoad(editFormItem)
+                await services.getListDataAsStream(serverRelativeUrl, Constants.circularList, parseInt(editFormItem.ID)).then((listItem) => {
+                    listItem.ListData.ID = parseInt(editFormItem.ID);
+                    this.onEditViewFormLoad(listItem?.ListData ?? [])
+                }).catch((error) => {
+                    console.log(error);
+                })
+                //this.onEditViewFormLoad(editFormItem)
             }
 
         })
@@ -259,7 +271,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         this.setState({
             circularListItem: editCircularItem,
             currentCircularListItemValue: editFormItem,
-            currentItemID: editFormItem.ID,
+            currentItemID: parseInt(editFormItem.ID),
             lblCompliance: editCircularItem.Compliance == Constants.lblComplianceYes ? Constants.lblCompliance : ``,
             isNewForm: false,
             isRequesterMaker: isUserRequesterMaker
@@ -272,6 +284,9 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             }
 
             let circularFileName = editFormItem.CircularNumber.split(':').join('_') + `.docx`;
+
+
+
             let allSopFiles = this.allSopFiles(editFormItem, circularFileName);
             let sopUploads = new Map<string, any[]>();
             if (allSopFiles.length > 0) {
@@ -340,6 +355,14 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             })
 
         })
+    }
+
+
+    private onPublishConvertDocxToPDF = async (circularFileName, currentItemID) => {
+
+        let providerValue = this.context;
+        const { context, services, serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
+
     }
 
 
@@ -560,7 +583,9 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                             </div>
                         </div>
                         {documentPreviewURL != "" &&
-                            <div className={`${styles.row}`}>
+                            displayMode != Constants.lblNew &&
+                            displayMode != Constants.lblEditCircular &&
+                            < div className={`${styles.row}`}>
                                 <div className={`${styles.column10}`}></div>
 
                                 <div className={`${styles.column2}`}
@@ -570,7 +595,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                             </div>
                         }
                     </div>
-                </div>
+                </div >
                 <div className={`${styles.row} ${styles.formFieldMarginTop} ${styles['text-center']}`} style={{ borderTop: "1px solid lightgoldenrodyellow" }}>
                     {this.saveCancelBtn()}
                 </div>
@@ -578,7 +603,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     {this.messageBarControl(`error`)}
                 </div> */}
 
-                {showAlert &&
+                {
+                    showAlert &&
                     this.deleteBackDialogControl(showAlert)
                 }
 
@@ -611,6 +637,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         const { displayMode } = this.props
         let providerValue = this.context;
         const { context } = providerValue as IBobCircularRepositoryProps;
+        let author = currentCircularListItemValue?.Author;
         let requester = displayMode == Constants.lblNew ? context.pageContext.user.displayName :
             currentCircularListItemValue?.Author?.split('#')[1].replace(',', '');
         let circularCreationDate = displayMode == Constants.lblNew ? this.onFormatDate(new Date()) :
@@ -664,6 +691,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         let providerValue = this.context;
         const { context, isUserChecker, isUserMaker, isUserCompliance } = providerValue as IBobCircularRepositoryProps;
         const { displayMode, currentPage } = this.props
+        const { keywordsToolTip, categoryToolTip } = Constants
         let circularStatus = circularListItem.CircularStatus;
         let showCommentHistory = circularStatus != Constants.lblNew && circularStatus != Constants.draft;
         const { configVal } = Constants;
@@ -722,7 +750,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 <Divider appearance="subtle" ></Divider>
                 <div className={`${styles.row}  ${styles.formFieldMarginTop}`}>
                     <div className={`${styles.column6}`}>
-                        {this.dropDownControl(`${Constants.category}`, true, `${circularListItem.Category}`, category, disableControl, `Field cannot be empty`)}
+                        {this.dropDownControl(`${Constants.category}`, true, `${circularListItem.Category}`, category, disableControl, `Field cannot be empty`, true, categoryToolTip)}
                     </div>
                     <div className={`${styles.column6}`}>
                         {this.dropDownControl(`${Constants.classification}`, true, `${circularListItem.Classification}`, classification, disableControl, `Field cannot be empty`)}
@@ -736,7 +764,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                         {this.textFieldControl(`${Constants.subFileNo}`, false, `${circularListItem.SubFileCode}`, disableControl, ``)}
                     </div>
                     <div className={`${styles.column6}`}>
-                        {this.textFieldControl(`${Constants.keyWords}`, false, `${circularListItem.Keywords}`, disableControl, ``)}
+                        {this.textFieldControl(`${Constants.keyWords}`, true, `${circularListItem.Keywords}`, disableControl, `Field cannot be empty`, ``, true, keywordsToolTip)}
                     </div>
                 </div>
                 <Divider appearance="subtle" ></Divider>
@@ -761,7 +789,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 <Divider appearance="subtle" ></Divider>
                 <div className={`${styles.row} ${styles.formFieldMarginTop}`}>
                     <div className={`${styles.column6}`}>
-                        {this.dropDownControl(`${Constants.lblTemplate}`, false, `${selectedTemplate}`, templates, disableControl, `Field cannot be empty`)}
+                        {this.dropDownControl(`${Constants.lblTemplate}`, false, `${selectedTemplate}`, templates, disableControl, `Field cannot be empty`,true,["Select Template File"])}
 
                     </div>
                     <div className={`${styles.column6}`}>
@@ -852,7 +880,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 <div className={`${styles.row} ${styles.formFieldMarginTop}`}>
                     <div className={`${styles.column12}`}>
                         {this.textAreaControl(`${Constants.gist}`, false, `${circularListItem.Gist}`, disableControl, ``,
-                            `Maximum ${maxGistWord} words are allowed`)}
+                            `Maximum 2000 characters are allowed`)}
                     </div>
                 </div>
 
@@ -860,7 +888,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
                 <div className={`${styles.row} ${styles.formFieldMarginTop}`}>
                     <div className={`${styles.column12}`}>
-                        {this.textAreaControl(`${Constants.faqs}`, false, `${circularListItem.CircularFAQ}`, disableControl)}
+                        {this.textAreaControl(`${Constants.faqs}`, false, `${circularListItem.CircularFAQ}`, disableControl, ``, `Maximum 2000 characters are allowed`)}
                     </div>
                 </div>
 
@@ -1166,72 +1194,97 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
         const { circularListItem, configuration } = this.state;
         const { configVal } = Constants;
-        let wordLength = this.getWords(data.value?.trim());
+        let wordLength = this.getWordsLength(data.value?.trim());
+        let textValue = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '').trim()
         switch (labelName) {
             case Constants.subject:
                 let subjectMaxWord = configuration.filter(val => val.Title == configVal.SubjectMaxWord)[0]?.Limit ?? 500;
-                if (wordLength <= subjectMaxWord && data.value.length < 63999 && data.value.trim() != "") {
+                if (textValue.length <= subjectMaxWord && data.value.trim() != "") {
                     circularListItem.Subject = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '');
                     this.setState({ circularListItem });
                 }
                 else {
-                    circularListItem.Subject = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '').trim();
-                    this.setState({ circularListItem })
+                    if (textValue == "") {
+                        circularListItem.Subject = ``;
+                        this.setState({ circularListItem })
+                    }
+
                 }
                 break;
             case Constants.gist:
                 let gistMaxWord = configuration.filter(val => val.Title == configVal.GistMaxWord)[0]?.Limit ?? 500;
-                if (wordLength <= gistMaxWord && data.value.length < 63999 && data?.value.trim() != "") {
+                if (textValue.length <= gistMaxWord && data?.value.trim() != "") {
                     circularListItem.Gist = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '');
                     this.setState({ circularListItem })
                 }
                 else {
-                    circularListItem.Gist = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '').trim();
-                    this.setState({ circularListItem })
+                    if (textValue == "") {
+                        circularListItem.Gist = ``;
+                        this.setState({ circularListItem })
+                    }
+                    // circularListItem.Gist = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '').trim();
+                    // this.setState({ circularListItem })
                 }
                 break;
             case Constants.faqs:
                 let faqMaxWord = configuration.filter(val => val.Title == configVal.FAQMaxWord)[0]?.Limit ?? 500;
-                if (wordLength <= faqMaxWord && data.value.length < 63999 && data?.value.trim() != "") {
+                if (textValue.length <= faqMaxWord && data?.value.trim() != "") {
                     circularListItem.CircularFAQ = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '');
                     this.setState({ circularListItem });
                 }
                 else {
-                    circularListItem.CircularFAQ = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '').trim();
-                    this.setState({ circularListItem });
+                    if (textValue == "") {
+                        circularListItem.CircularFAQ = ``;
+                        this.setState({ circularListItem })
+                    }
+                    // circularListItem.CircularFAQ = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '').trim();
+                    // this.setState({ circularListItem });
                 }
                 break;
             case Constants.lblCommentsMaker:
                 let commentsMakerMaxWord = configuration.filter(val => val.Title == configVal.MakerCommentsMaxWord)[0]?.Limit ?? 50;
-                if (wordLength <= commentsMakerMaxWord && data.value.length < 63999 && data?.value.trim() != "") {
+                if (textValue.length <= commentsMakerMaxWord && data?.value.trim() != "") {
                     circularListItem.CommentsMaker = data.value.replace(/[^a-zA-Z0-9.&,() ]/g, '');
                     this.setState({ circularListItem })
                 }
                 else {
-                    circularListItem.CommentsMaker = data.value.replace(/[^a-zA-Z0-9.&,() ]/g, '').trim();
-                    this.setState({ circularListItem })
+                    if (textValue == "") {
+                        circularListItem.CommentsMaker = ``;
+                        this.setState({ circularListItem })
+                    }
+                    // circularListItem.CommentsMaker = data.value.replace(/[^a-zA-Z0-9.&,() ]/g, '').trim();
+                    // this.setState({ circularListItem })
                 }
                 break;
             case Constants.lblCommentsChecker:
                 let checkerMaxWord = configuration.filter(val => val.Title == configVal.CheckerCommentsMaxWord)[0]?.Limit ?? 50;
-                if (wordLength <= checkerMaxWord && data.value.length < 63999 && data?.value.trim() != "") {
+                if (textValue.length <= checkerMaxWord && data?.value.trim() != "") {
                     circularListItem.CommentsChecker = data.value.replace(/[^a-zA-Z0-9.&,() ]/g, '');
                     this.setState({ circularListItem })
                 }
                 else {
-                    circularListItem.CommentsChecker = data.value.replace(/[^a-zA-Z0-9.&,() ]/g, '').trim();
-                    this.setState({ circularListItem })
+
+                    if (textValue == "") {
+                        circularListItem.CommentsChecker = ``;
+                        this.setState({ circularListItem })
+                    }
+                    // circularListItem.CommentsChecker = data.value.replace(/[^a-zA-Z0-9.&,() ]/g, '').trim();
+                    // this.setState({ circularListItem })
                 }
                 break;
             case Constants.lblCommentsCompliance:
                 let complianceMaxWord = configuration.filter(val => val.Title == configVal.ComplianceCommentsMaxWord)[0]?.Limit ?? 50;
-                if (wordLength <= complianceMaxWord && data.value.length < 63999 && data?.value.trim() != "") {
+                if (textValue.length <= complianceMaxWord && data?.value.trim() != "") {
                     circularListItem.CommentsCompliance = data.value.replace(/[^a-zA-Z0-9.&,() ]/g, '');
                     this.setState({ circularListItem })
                 }
                 else {
-                    circularListItem.CommentsCompliance = data.value.replace(/[^a-zA-Z0-9.&,() ]/g, '').trim();
-                    this.setState({ circularListItem })
+                    if (textValue == "") {
+                        circularListItem.CommentsCompliance = ``;
+                        this.setState({ circularListItem })
+                    }
+                    // circularListItem.CommentsCompliance = data.value.replace(/[^a-zA-Z0-9.&,() ]/g, '').trim();
+                    // this.setState({ circularListItem })
                 }
                 break;
 
@@ -1242,7 +1295,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
 
 
-    private getWords = (text: string): number => {
+    private getWordsLength = (text: string): number => {
         text.replace(/(<([^>]+)>)/ig, "");
         text.replace(/(^\s*)|(\s*$)/gi, "");
         text.replace(/[ ]{2,}/gi, " ");
@@ -1250,15 +1303,52 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         return text.split(' ').length;
     }
 
-    private textFieldControl = (labelName: string, isRequired: boolean, value: string, isDisabled?: boolean, errorMessage?: string, placeholder?: string): JSX.Element => {
+    private getWords = (text: string) => {
+        text.replace(/(<([^>]+)>)/ig, "");
+        text.replace(/(^\s*)|(\s*$)/gi, "");
+        text.replace(/[ ]{2,}/gi, " ");
+        text.replace(/\n /, "\n");
+        return text.split(' ');
+    }
+
+    private textFieldControl = (labelName: string, isRequired: boolean, value: string, isDisabled?: boolean, errorMessage?: string, placeholder?: string, isInfoLabel?: boolean, infoText?: any[]): JSX.Element => {
         const { displayMode } = this.props
         let columnClassLabel = labelName == Constants.circularNumber ? `${styles.column3}` : ``;
         let columnClassInput = labelName == Constants.circularNumber && displayMode == Constants.lblNew ?
             `${styles.column9}` : `${styles.column12}`
 
         let textFieldJSX = <>
-            <Field label={<Label className={`${styles.formLabel} ${styles.fieldTitle}`}>{labelName}</Label>}
-                required={isRequired}
+            <Field label={{
+                children: <>
+                    <Label className={`${styles.formLabel} ${styles.fieldTitle}`}>{labelName}</Label>
+                    {isRequired &&
+                        <Label style={{ color: "var(--colorPaletteRedForeground3)", paddingLeft: "var(--spacingHorizontalXS)" }}>*</Label>
+                    }
+                    {isInfoLabel &&
+                        <Tooltip content={{
+                            children: <div className={`${styles.row}`}>
+                                {infoText && infoText.length > 0 && infoText.map((val, index) => {
+                                    return <>
+                                        <div className={`${styles.column12} ${styles.marginBottom}`} style={{ marginTop: index == 0 ? 10 : 0 }}>
+                                            <Label className={`${styles.toolTipLabel}`}>{val}</Label>
+                                        </div>
+                                        <Divider appearance="subtle"></Divider>
+                                    </>
+                                })
+                                }
+                            </div>
+
+                        }}
+                            relationship="description"
+                            positioning={'after'}
+                            withArrow={true}>
+                            <InfoRegular style={{ paddingLeft: "var(--spacingHorizontalXS)", cursor: "pointer" }} ></InfoRegular>
+                        </Tooltip>
+                    }
+
+                </>
+            }}
+                // required={isRequired}
                 validationState={isRequired && value == "" ? "error" : "none"}
                 validationMessage={isRequired && value == "" ? errorMessage : ``} >
                 <div className={`${styles.row}`}>
@@ -1293,10 +1383,10 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 circularListItem.CircularNumber = data?.value?.replace(/[^a-zA-Z0-9 ]/g, '');
                 this.setState({ circularListItem })
                 break;
-            case Constants.subFileNo: circularListItem.SubFileCode = data.value?.replace(/[^a-zA-Z0-9 ]/g, '');
+            case Constants.subFileNo: circularListItem.SubFileCode = data.value?.replace(/[^a-zA-Z0-9,& ]/g, '');
                 this.setState({ circularListItem });
                 break;
-            case Constants.keyWords: circularListItem.Keywords = data.value?.replace(/[^a-zA-Z0-9 ]/g, '');
+            case Constants.keyWords: circularListItem.Keywords = data.value?.replace(/[^a-zA-Z0-9,& ]/g, '');
                 this.setState({ circularListItem });
                 break;
         }
@@ -1327,11 +1417,38 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         return avatarControlJSX;
     }
 
-    private dropDownControl = (labelName: string, isRequired: boolean, value: string, options: any[], isDisabled?: boolean, errorMessage?: string): JSX.Element => {
+    private dropDownControl = (labelName: string, isRequired: boolean, value: string, options: any[], isDisabled?: boolean, errorMessage?: string, isInfoLabel?: boolean, infoText?: any[]): JSX.Element => {
         let dropDownControlJSX = <>
             <Field
-                label={<Label className={`${styles.formLabel} ${styles.fieldTitle}`}>{labelName}</Label>}
-                required={isRequired}
+                label={{
+                    children: <>
+                        <Label className={`${styles.formLabel} ${styles.fieldTitle}`}>{labelName}</Label>
+                        {isRequired &&
+                            <Label style={{ color: "var(--colorPaletteRedForeground3)", paddingLeft: "var(--spacingHorizontalXS)" }}>*</Label>
+                        }
+                        {isInfoLabel &&
+                            <Tooltip content={{
+                                children: <div className={`${styles.row}`}>
+                                    {infoText && infoText.length > 0 && infoText.map((val, index) => {
+                                        return <>
+                                            <div className={`${styles.column12} ${styles.marginBottom}`} style={{ marginTop: index == 0 ? 10 : 0 }}>
+                                                <Label className={`${styles.toolTipLabel}`}>{val}</Label>
+                                            </div>
+
+                                        </>
+                                    })
+                                    }
+                                </div>,
+                                style: { maxWidth: 400 }
+                            }}
+                                relationship="description" positioning={'after'} withArrow={true}>
+                                <InfoRegular style={{ paddingLeft: "var(--spacingHorizontalXS)", cursor: "pointer" }} ></InfoRegular>
+                            </Tooltip>
+                        }
+
+                    </>
+                }}
+                //required={isRequired}
                 validationState={isRequired && value == "" ? "error" : "none"}
                 validationMessage={isRequired && value == "" ? errorMessage : ``}
             >
@@ -1754,6 +1871,12 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         const { sopAttachmentColl, circularListItem, configuration } = this.state
         const { configVal } = Constants;
         const files = e.target.files;
+
+        let providerValue = this.context;
+        const { context, services, serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
+
+
+
         let invalidFileSize = [];
         let inValidFileType = [];
         let invalidFileLimit = [];
@@ -1812,10 +1935,16 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 this.setState({ isFileSizeAlert: false, isFileTypeAlert: true })
             }
 
-            this.setState({ sopUploads: this.sopFileAttachments }, () => {
+            this.setState({ sopUploads: this.sopFileAttachments }, async () => {
                 const { sopUploads } = this.state
                 let attachmentColl = [];
                 let i = 0;
+
+                // await services.addFileToListItem(serverRelativeUrl, Constants.circularList, 3152, files[0].name, files[0]).then((val) => {
+                //     console.log(val);
+                // }).catch((error) => {
+                //     console.log(error);
+                // })
 
                 sopUploads.forEach(async (value, key) => {
                     value.index = i;
@@ -2076,17 +2205,19 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         const { circularListItem } = this.state;
         let providerValue = this.context;
         const { isUserChecker, isUserMaker, isUserCompliance } = providerValue as IBobCircularRepositoryProps;
+        const { lblNew, draft, cmmtCompliance, cmmtChecker, limited } = Constants;
+        const { Subject, CircularNumber, IssuedFor, Category, Classification, CircularType, Expiry, Keywords } = circularListItem;
 
         let circularStatus = circularListItem.CircularStatus;
         let isValid = true;
-        if (circularStatus == Constants.lblNew || circularStatus == Constants.draft || circularStatus == Constants.cmmtCompliance || circularStatus == Constants.cmmtChecker) {
+        if (circularStatus == lblNew || circularStatus == draft || circularStatus == cmmtCompliance || circularStatus == cmmtChecker) {
 
-            if (circularListItem.Subject?.trim() == "" || circularListItem.CircularNumber?.trim() == "" || circularListItem.IssuedFor == "" ||
-                circularListItem.Category == "" || circularListItem.Classification == "") {
+            if (Subject?.trim() == "" || CircularNumber?.trim() == "" || IssuedFor == "" ||
+                Category == "" || Classification == "" || Keywords == "") {
                 isValid = false
             }
-            else if (circularListItem.CircularType == Constants.limited) {
-                isValid = !(circularListItem.Expiry == null)
+            else if (CircularType == limited) {
+                isValid = !(Expiry == null)
             }
         }
         else {
@@ -2268,9 +2399,10 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
 
     private saveForm = (status?: string) => {
-        const { circularListItem, currentCircularListItemValue, sopAttachmentColl } = this.state;
+        const { circularListItem, currentCircularListItemValue, sopAttachmentColl, sopUploads, attachedFile } = this.state;
         let isFormValid = this.validateAllRequiredFields();
-        const { displayMode } = this.props
+        const { displayMode } = this.props;
+
         if (isFormValid) {
 
             let providerValue = this.context;
@@ -2283,9 +2415,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 circularListItem.CircularNumber = `${this.getCircularNumber()}` + `${circularNumberText}`;
             }
 
-            if (status == Constants.published) {
-                circularListItem.PublishedDate = new Date().toISOString().split('T')[0] + `T00:00:00Z`;
-            }
+
 
 
             //circularListItem.CircularCreationDate = new Date().toISOString();
@@ -2313,12 +2443,20 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                         circularListItem.CircularCreationDate = value?.Created;
                         let itemID = parseInt(value.ID);
                         if (this.sopFileAttachments.size > 0) {
-                            await services.addListItemAttachments(serverRelativeUrl, Constants.circularList, itemID, this.sopFileAttachments).
-                                then((attachment) => {
-                                    console.log(attachment)
+
+                            let newSOPUpload: any[] = []
+                            this.sopFileAttachments.forEach((val, key) => {
+                                return newSOPUpload.push(val);
+                            })
+
+                            let newSOPUploadPromise = await services.addListItemAttachments(serverRelativeUrl, Constants.circularList, itemID, newSOPUpload).
+                                then((result) => {
+                                    return result;
                                 }).catch((error) => {
-                                    console.log(error)
+                                    return error;
                                 })
+
+                            console.log(newSOPUploadPromise);
                         }
                         this.setState({ isSuccess: true, isLoading: false, circularListItem, currentCircularListItemValue: value })
                     }).catch((error) => {
@@ -2333,7 +2471,9 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     | Update Comments History & Store in respective comments History Columns
                     |--------------------------------------------------
                     */
+                    console.log(`Updating Comments History`)
                     this.updateCommentsHistory();
+                    console.log(`Updated Comments History Object`)
 
                     /**
                     |--------------------------------------------------
@@ -2349,6 +2489,21 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                         circularListItem.CircularStatus = status;
                     }
 
+                    if (status == Constants.published) {
+                        let circularFileName = attachedFile ? attachedFile.FileName : ``;
+                        if (circularFileName != "") {
+                            const { circularList } = Constants
+                            await services.convertDocxToPDF(serverRelativeUrl, circularList, ID, `${circularFileName}`).then((val) => {
+                                console.log(`File Converted Successfully`)
+                            }).catch((error) => {
+                                console.log(error);
+                                console.log(`Error while converting the file`);
+                            })
+                        }
+
+                        circularListItem.PublishedDate = new Date().toISOString().split('T')[0] + `T00:00:00Z`;
+                    }
+
 
                     if (circularListItem.CircularStatus != Constants.lblNew) {
 
@@ -2358,32 +2513,6 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                             circularListItem.CircularCreationDate = value?.Created;
                             value.Author = currentCircularListItemValue.Author;
 
-                            if (sopAttachmentColl.length > 0) {
-
-                                let updateNewAttachment = new Map<string, any[]>();
-                                sopAttachmentColl.map((val) => {
-                                    if (!val.hasOwnProperty(`isFileEdit`)) {
-                                        updateNewAttachment.set(val.FileName, [val])
-                                    }
-                                })
-
-                                if (updateNewAttachment.size > 0) {
-                                    await services.addListItemAttachments(serverRelativeUrl, Constants.circularList, ID, updateNewAttachment).
-                                        then(async (attachments: IAttachmentAddResult[]) => {
-                                            let addAttachmentPromise = await Promise.all(attachments.map(async (attach) => {
-                                                return await attach.file().then((val) => {
-                                                    return val;
-                                                })
-                                            }))
-
-                                            console.log(addAttachmentPromise);
-
-                                        }).catch((error) => {
-                                            console.log(error)
-                                        })
-                                }
-
-                            }
 
                             if (this.deleteSOPFileAttachments && this.deleteSOPFileAttachments.size > 0) {
 
@@ -2402,6 +2531,26 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                             }
 
 
+                            if (sopAttachmentColl.length > 0) {
+
+                                let updateNewAttachment = [];
+                                sopAttachmentColl.map((val) => {
+                                    if (!val.hasOwnProperty(`isFileEdit`)) {
+                                        let file = sopUploads.get(val.FileName);
+                                        updateNewAttachment.push(file)
+                                    }
+                                })
+
+                                if (updateNewAttachment.length > 0) {
+
+                                    await services.addListItemAttachments(serverRelativeUrl, Constants.circularList, ID, updateNewAttachment).then((results) => {
+                                        return results
+                                    }).catch((error) => {
+                                        return error;
+                                    })
+                                }
+
+                            }
 
                             this.setState({
                                 isSuccess: true,

@@ -4,6 +4,8 @@ export class Constants {
   //public static readonly documentCategoryList = "DocumentCategory";
   public static readonly circularList = "CircularRepository";
 
+  public static readonly sharedDocuments = "Shared Documents";
+
   public static readonly configurationList = "Configuration";
   public static readonly circularNo = "BOB:BR:{0}:";
   public static readonly filterString = "CircularStatus eq 'Published'";
@@ -235,6 +237,22 @@ export class Constants {
   public static readonly deleted = "Deleted";
 
   public static readonly loreumIPSUM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam eget libero nec tellus facilisis blandit at at magna. Donec sed dui finibus, tincidunt ante a, malesuada ligula. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nunc non iaculis erat, a semper dui. Integer porta in nunc sed molestie. Suspendisse aliquet hendrerit justo. Nullam sit amet tortor non nisl viverra venenatis."
+
+
+  /**
+  |--------------------------------------------------
+  | Category , Keywords ,Template Tooltip
+  |--------------------------------------------------
+  */
+
+  public static readonly categoryToolTip = ["Intimation: (ROI Change, Signature number, List of transporters, etc.) that require attention of user but does not direct any system or manual intervention by user.",
+    "Information: (New Finacle menu, launch of new product, etc.) that require attention of user but does not direct any system related updation / intervention by user, however the functionality or product are updated at the back end.",
+    "Action: (Change in SOP, Updation of customer details in finacle as per new regulatory developments, etc.) which directs any system or manual intervention by user."
+  ];
+
+  public static readonly keywordsToolTip = ["When you use keywords, search in SharePoint returns results based on exact matches of your words"]
+
+  public static readonly templateToolTip = [""];
 
 
   /**

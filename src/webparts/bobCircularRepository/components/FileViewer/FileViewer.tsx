@@ -112,16 +112,9 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
         const { listItem } = this.props;
 
         let providerValue = this.context;
-        const { services, publishingDays, isUserAdmin, context, serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
+        const { services, context, serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
         let publisherID = context?.pageContext?.user?.email?.split('@')[0] ?? ``;
-
-        let currentPublisher = "";
         let isUpdateAllowed = false;
-
-        console.log("File Viewer List Item")
-        // console.log(listItem)
-        console.log("User Display Name:" + publisherID + "," + "PublishingDays:" + publishingDays + ",isUserAdmin:" + isUserAdmin);
-
 
         if (listItem?.Attachments != undefined
             && listItem.Attachments?.Attachments?.length > 0) {
@@ -129,6 +122,21 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
             let file = listItem.Attachments.Attachments[0];
             let fileArray = listItem.Attachments.Attachments;
             let choiceGroup: any[] = [];
+
+            /**
+            |--------------------------------------------------
+            | Custom Logic
+            |--------------------------------------------------
+            */
+
+            let circularFileName = listItem.CircularNumber.replace(/:/g, "_") + `.pdf`;
+
+            let isMigrated = listItem?.IsMigrated ?? `Yes`;
+            if (isMigrated == Constants.lblNo) {
+                fileArray = listItem.Attachments.Attachments.filter(val => val.FileName == circularFileName);
+                file = fileArray.filter(val => val.FileName == circularFileName)[0];
+            }
+
 
             await services.getAllListItemAttachments(serverRelativeUrl, Constants.circularList, parseInt(listItem.ID)).then((fileMetadata) => {
                 let attachment: any[] = [];
@@ -286,6 +294,17 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
 
                                             </div>
                                         </div>
+
+                                        {initialPreviewFileUrl != "" &&
+                                            <div className={`${styles.row}`}>
+
+
+                                                <div className={`${!isMobileMode ? styles.column12 : styles.column12}`}
+                                                    style={{ top: 3, background: hidePreviewColor, minHeight: 34, opacity: 1, width: "98.5%" }}>
+
+                                                </div>
+                                            </div>
+                                        }
                                         {
                                             initialPreviewFileUrl != "" && fileContent != null &&
                                             <MyPdfViewer
@@ -307,16 +326,7 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
                                                 }} role="presentation" tabIndex={-1}></iframe>
                                         } */}
 
-                                        {/* {initialPreviewFileUrl != "" &&
-                                            <div className={`${styles.row}`}>
-                                                <div className={`${!isMobileMode ? styles.column10 : styles.column9}`}></div>
 
-                                                <div className={`${!isMobileMode ? styles.column2 : styles.column3}`}
-                                                    style={{ marginTop: -25, background: hidePreviewColor, minHeight: 21, opacity: 1, marginLeft: -11 }}>
-
-                                                </div>
-                                            </div>
-                                        } */}
                                     </>
                                     }
                                     {choiceGroup.length == 0 &&
