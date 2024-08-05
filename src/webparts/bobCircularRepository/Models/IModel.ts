@@ -114,6 +114,14 @@ export interface ICircularListItem {
 }
 
 
+export interface ICommentsAuditLogs {
+    Title: string;
+    CommentsHistory: string;
+    CircularAuditStatus: string;
+    CircularMetadata: string;
+}
+
+
 export interface SharePointFile {
     serverRelativeUrl: string;
     pdfUrl: string;

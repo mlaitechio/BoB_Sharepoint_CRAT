@@ -67,6 +67,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 Compliance: `No`,
                 Gist: ``,
                 CommentsMaker: ``,
+                IsMigrated: `No`,
                 CommentsChecker: ``,
                 CommentsCompliance: ``,
                 CircularContent: ``,
@@ -80,6 +81,12 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 isMakerSelected: false,
                 isCheckerSelected: false,
                 isComplianceSelected: false
+            },
+            auditListItem: {
+                Title: ``,
+                CommentsHistory: ``,
+                CircularAuditStatus: ``,
+                CircularMetadata: ``
             },
             currentCircularListItemValue: undefined,
             isRequesterMaker: true, // Initially when form loads this will be true for new form & it will change in edit/view form load 
@@ -355,14 +362,6 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             })
 
         })
-    }
-
-
-    private onPublishConvertDocxToPDF = async (circularFileName, currentItemID) => {
-
-        let providerValue = this.context;
-        const { context, services, serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
-
     }
 
 
@@ -789,7 +788,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 <Divider appearance="subtle" ></Divider>
                 <div className={`${styles.row} ${styles.formFieldMarginTop}`}>
                     <div className={`${styles.column6}`}>
-                        {this.dropDownControl(`${Constants.lblTemplate}`, false, `${selectedTemplate}`, templates, disableControl, `Field cannot be empty`,true,["Select Template File"])}
+                        {this.dropDownControl(`${Constants.lblTemplate}`, false, `${selectedTemplate}`, templates, disableControl, `Field cannot be empty`, true, ["Select Template File"])}
 
                     </div>
                     <div className={`${styles.column6}`}>
@@ -1192,15 +1191,15 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
     private onTextAreaChange = (labelName: string, ev: React.ChangeEvent<HTMLTextAreaElement>, data: TextareaOnChangeData) => {
 
-        const { circularListItem, configuration } = this.state;
+        const { circularListItem, configuration, auditListItem } = this.state;
         const { configVal } = Constants;
         let wordLength = this.getWordsLength(data.value?.trim());
-        let textValue = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '').trim()
+        let textValue = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '')
         switch (labelName) {
             case Constants.subject:
                 let subjectMaxWord = configuration.filter(val => val.Title == configVal.SubjectMaxWord)[0]?.Limit ?? 500;
-                if (textValue.length <= subjectMaxWord && data.value.trim() != "") {
-                    circularListItem.Subject = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '');
+                if (textValue.length <= subjectMaxWord && textValue.trim() != "") {
+                    circularListItem.Subject = textValue;//data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '');
                     this.setState({ circularListItem });
                 }
                 else {
@@ -1213,8 +1212,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 break;
             case Constants.gist:
                 let gistMaxWord = configuration.filter(val => val.Title == configVal.GistMaxWord)[0]?.Limit ?? 500;
-                if (textValue.length <= gistMaxWord && data?.value.trim() != "") {
-                    circularListItem.Gist = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '');
+                if (textValue.length <= gistMaxWord && textValue.trim() != "") {
+                    circularListItem.Gist = textValue;//data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '');
                     this.setState({ circularListItem })
                 }
                 else {
@@ -1228,8 +1227,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 break;
             case Constants.faqs:
                 let faqMaxWord = configuration.filter(val => val.Title == configVal.FAQMaxWord)[0]?.Limit ?? 500;
-                if (textValue.length <= faqMaxWord && data?.value.trim() != "") {
-                    circularListItem.CircularFAQ = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '');
+                if (textValue.length <= faqMaxWord && textValue.trim() != "") {
+                    circularListItem.CircularFAQ = textValue; //data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '');
                     this.setState({ circularListItem });
                 }
                 else {
@@ -1243,9 +1242,11 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 break;
             case Constants.lblCommentsMaker:
                 let commentsMakerMaxWord = configuration.filter(val => val.Title == configVal.MakerCommentsMaxWord)[0]?.Limit ?? 50;
-                if (textValue.length <= commentsMakerMaxWord && data?.value.trim() != "") {
-                    circularListItem.CommentsMaker = data.value.replace(/[^a-zA-Z0-9.&,() ]/g, '');
-                    this.setState({ circularListItem })
+                if (textValue.length <= commentsMakerMaxWord && textValue.trim() != "") {
+
+                    circularListItem.CommentsMaker = textValue;//data.value.replace(/[^a-zA-Z0-9.&,() ]/g, '');
+                    auditListItem.CommentsHistory = textValue;
+                    this.setState({ circularListItem, auditListItem })
                 }
                 else {
                     if (textValue == "") {
@@ -1258,9 +1259,10 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 break;
             case Constants.lblCommentsChecker:
                 let checkerMaxWord = configuration.filter(val => val.Title == configVal.CheckerCommentsMaxWord)[0]?.Limit ?? 50;
-                if (textValue.length <= checkerMaxWord && data?.value.trim() != "") {
-                    circularListItem.CommentsChecker = data.value.replace(/[^a-zA-Z0-9.&,() ]/g, '');
-                    this.setState({ circularListItem })
+                if (textValue.length <= checkerMaxWord && textValue.trim() != "") {
+                    circularListItem.CommentsChecker = textValue;//data.value.replace(/[^a-zA-Z0-9.&,() ]/g, '');
+                    auditListItem.CommentsHistory = textValue;
+                    this.setState({ circularListItem, auditListItem })
                 }
                 else {
 
@@ -1274,9 +1276,10 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 break;
             case Constants.lblCommentsCompliance:
                 let complianceMaxWord = configuration.filter(val => val.Title == configVal.ComplianceCommentsMaxWord)[0]?.Limit ?? 50;
-                if (textValue.length <= complianceMaxWord && data?.value.trim() != "") {
-                    circularListItem.CommentsCompliance = data.value.replace(/[^a-zA-Z0-9.&,() ]/g, '');
-                    this.setState({ circularListItem })
+                if (textValue.length <= complianceMaxWord && textValue.trim() != "") {
+                    circularListItem.CommentsCompliance = textValue; //data.value.replace(/[^a-zA-Z0-9.&,() ]/g, '');
+                    auditListItem.CommentsHistory = textValue;
+                    this.setState({ circularListItem, auditListItem })
                 }
                 else {
                     if (textValue == "") {
@@ -2399,7 +2402,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
 
     private saveForm = (status?: string) => {
-        const { circularListItem, currentCircularListItemValue, sopAttachmentColl, sopUploads, attachedFile } = this.state;
+        const { circularListItem, currentCircularListItemValue, sopAttachmentColl, sopUploads, attachedFile, auditListItem } = this.state;
         let isFormValid = this.validateAllRequiredFields();
         const { displayMode } = this.props;
 
@@ -2484,21 +2487,29 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     */
                     if (circularListItem.CircularStatus == Constants.draft) {
                         circularListItem.CircularStatus = status;
+                        auditListItem.CircularAuditStatus = status;
                     }
                     else if (status != Constants.draft) {
                         circularListItem.CircularStatus = status;
+                        auditListItem.CircularAuditStatus = status;
                     }
 
                     if (status == Constants.published) {
                         let circularFileName = attachedFile ? attachedFile.FileName : ``;
                         if (circularFileName != "") {
-                            const { circularList } = Constants
-                            await services.convertDocxToPDF(serverRelativeUrl, circularList, ID, `${circularFileName}`).then((val) => {
-                                console.log(`File Converted Successfully`)
-                            }).catch((error) => {
-                                console.log(error);
-                                console.log(`Error while converting the file`);
-                            })
+                            const { circularList } = Constants;
+                            /**
+                            |--------------------------------------------------
+                            | Convert File to PDF on publish
+                            |--------------------------------------------------
+                            */
+
+                            // await services.convertDocxToPDF(serverRelativeUrl, circularList, ID, `${circularFileName}`).then((val) => {
+                            //     console.log(`File Converted Successfully`)
+                            // }).catch((error) => {
+                            //     console.log(error);
+                            //     console.log(`Error while converting the file`);
+                            // })
                         }
 
                         circularListItem.PublishedDate = new Date().toISOString().split('T')[0] + `T00:00:00Z`;
@@ -2506,7 +2517,6 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
 
                     if (circularListItem.CircularStatus != Constants.lblNew) {
-
 
                         await services.updateItem(serverRelativeUrl, Constants.circularList, ID, circularListItem).then(async (value) => {
                             circularListItem.CircularNumber = displayMode == Constants.lblNew ? circularNumberText.replace(`${this.getCircularNumber()}`, ``) : circularListItem.CircularNumber;
@@ -2550,6 +2560,23 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                                     })
                                 }
 
+                            }
+
+                            /**
+                                |--------------------------------------------------
+                                | Logging in to Comments Audit Log List
+                                |--------------------------------------------------
+                                */
+                            if (circularListItem.CircularStatus != Constants.draft) {
+
+                                auditListItem.Title = circularListItem.CircularNumber;
+
+                                await services.createItem(serverRelativeUrl, Constants.commentsAuditLogs, auditListItem).then((auditItem) => {
+                                    console.log(`Item Added to comments Log List`, auditItem);
+                                }).catch((error) => {
+                                    console.log(`Error Adding to comments Audit logs`);
+                                    console.log(error)
+                                })
                             }
 
                             this.setState({

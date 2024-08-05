@@ -74,6 +74,211 @@ Form
 supporting documents > list of circulars will be of specific department (multiple check box)
 
 
+
+private createDocumentPreview = (attachmentCollection: any[], ItemAttachmentUrl: string): JSX.Element => {
+
+        let previewJSXDocument =
+            <>
+                {
+                    attachmentCollection.map((file) => {
+
+                        let fileObject: any = {
+                            name: file.FileName,
+                            FileName: file.FileName,
+                            ServerRelativeUrl: ``,
+                            FileType: file.FileName.split('.')[1],
+                            UniqueID: file.AttachmentId,
+                            ID: file.AttachmentId,
+                            FileURL: `${ItemAttachmentUrl}${file.FileName}`
+
+                        }
+                        let filePreview = this.loadPreviewAttachment(fileObject);
+                        // let previewImages = { };
+                        // previewImages[filePreview.name] = filePreview;
+
+                        return <>
+                            <div key={file.FileName} className={`${styles.documentCardFilePreview} ${styles.column3}`}>
+                                <TooltipHost
+                                    content={file.FileName}
+                                    calloutProps={{ gapSpace: 0, isBeakVisible: true }}
+                                    closeDelay={200}
+                                    directionalHint={DirectionalHint.rightCenter}>
+
+                                    <DocumentCard
+                                        onClick={this.openDocument.bind(this, fileObject)}
+                                        className={styles.documentCard}>
+                                        <DocumentCardPreview previewImages={[filePreview]} styles={{ root: { cursor: "pointer" } }} />
+                                        <Label className={styles.fileLabel}>{file.FileName}</Label>
+                                    </DocumentCard>
+                                </TooltipHost>
+                            </div>
+                        </>
+                    })
+                }
+
+            </>
+
+        return previewJSXDocument;
+    }
+
+
+    private copyItemLink = (id: string) => {
+        const { context } = this.props
+        let itemURL = `${window.location.origin + context.pageContext.legacyPageContext.webServerRelativeUrl}?itemID=${id}`;
+
+        navigator.clipboard.writeText(itemURL)
+            .then(() => {
+                alert('Document link copied.Please store it in your editor for further use in forms as references')
+            })
+            .catch((error) => {
+                console.error('Error copying document to clipboard:', error);
+            });
+    }
+
+    private copyToClipboard = (fileInfo) => {
+        const { allFiles } = this.state;
+        const currentFileInfo = allFiles.filter((value) => {
+            return value.FileName == fileInfo
+        });
+
+        const fileURL = this.previewURL(currentFileInfo[0]);
+
+        navigator.clipboard.writeText(fileURL)
+            .then(() => {
+                alert('File Link Copied .Please store it in your editor for further use in forms as references')
+            })
+            .catch((error) => {
+                console.error('Error copying text to clipboard:', error);
+            });
+    }
+
+    private openDocument = (file: any, ev?: React.SyntheticEvent<HTMLElement>): void => {
+        this.setState({ initialPreviewFileUrl: this.previewURL(file) })
+    }
+
+    private onViewDownloadClick = (fileInfo, isView) => {
+        const { allFiles } = this.state;
+        const currentFileInfo = allFiles.filter((value) => {
+            return value.FileName == fileInfo
+        });
+
+        if (isView && currentFileInfo.length > 0) {
+            /**
+                * View File
+                */
+            const fileURL = this.previewURL(currentFileInfo[0])//currentFileInfo[0].FileURL + "?web=1"
+            window.open(fileURL, "_blank")
+        }
+        else if (currentFileInfo.length > 0) {
+            /**
+                * Download File
+                */
+            let providerValue = this.context;
+            const { serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
+
+            const fileURL = `${serverRelativeUrl}/_layouts/download.aspx?SourceUrl=` + currentFileInfo[0].FileURL;
+            window.open(fileURL, "_blank")
+        }
+
+    }
+
+    private onDownloadAllZip = async (itemID, subject) => {
+        let providerValue = this.context;
+        const { context, serverRelativeUrl, services } = providerValue as IBobCircularRepositoryProps;
+
+        this.setState({ showLoading: true }, async () => {
+            await services.getAllListItemAttachments(serverRelativeUrl, Constants.circularList, itemID).then((val) => {
+
+                const zip = new JSZip();
+
+                val.forEach((fileBuffer, fileName) => {
+                    zip.file(fileName, fileBuffer)
+                })
+                this.setState({ showLoading: false }, () => {
+                    zip.generateAsync({ type: "blob" })
+                        .then(function (content) {
+                            // see FileSaver.js
+                            saveAs(content, `${subject}.zip`);
+                        });
+                })
+
+            }).catch((error) => {
+                this.setState({ showLoading: false });
+            })
+        })
+
+
+    }
+
+    private onDownLoadAllClick = async (attachments: any[]) => {
+        let providerValue = this.context;
+        const { serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
+
+
+        attachments.map((currentFile) => {
+            const fileURL = `${serverRelativeUrl}/_layouts/download.aspx?SourceUrl=` + currentFile?.previewURL;
+            window.open(fileURL, "_blank")
+        })
+
+
+
+    }
+
+
+     private onAttachmentClick = (index, file) => {
+        const { allFiles } = this.state
+        let fileObject = allFiles[index]
+        this.setState({ selectedFile: file, initialPreviewFileUrl: this.previewURL(fileObject) })
+    }
+
+    private workingOnIt = (): JSX.Element => {
+
+        let submitDialogJSX = <>
+
+            <Dialog modalType="alert" defaultOpen={true}>
+                <DialogSurface style={{ maxWidth: 250 }}>
+                    <DialogBody style={{ display: "block" }}>
+                        <DialogContent>
+                            {<Spinner labelPosition="below" label={"Working on It..."}></Spinner>}
+                        </DialogContent>
+                    </DialogBody>
+                </DialogSurface>
+            </Dialog>
+
+        </>;
+        return submitDialogJSX;
+    }
+
+    private convertDate = (dateText) => {
+        let formattedDate = `N/A`;
+        if (dateText != "") {
+            const date = new Date(dateText);
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            formattedDate = `${day}/${month}/${year}`;
+        }
+        return formattedDate;
+    }
+
+    private onUpdateclick = (itemID) => {
+        this.props.onUpdate(itemID)
+    }
+
+    private onChoicePreviewChange = (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, option?: any) => {
+        const { allFiles } = this.state
+        let fileObject = allFiles[option.index]
+        this.setState({ selectedFile: option.key, initialPreviewFileUrl: this.previewURL(fileObject) })
+    }
+
+    private showDocumentMetadata = (): JSX.Element => {
+        let documentMetadataJSX = <>
+
+        </>
+
+        return documentMetadataJSX;
+    }
+
 createTableColumn<Item>({
             columnId: "author",
             compare: (a, b) => {

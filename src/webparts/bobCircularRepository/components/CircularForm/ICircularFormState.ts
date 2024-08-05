@@ -1,8 +1,9 @@
-import { IAttachments, ICircularConfig, ICircularListItem } from "../../Models/IModel";
+import { IAttachments, ICircularConfig, ICircularListItem, ICommentsAuditLogs } from "../../Models/IModel";
 
 export interface ICircularFormState {
     circularListItem?: ICircularListItem;
     currentCircularListItemValue?: ICircularListItem;
+    auditListItem?: ICommentsAuditLogs;
     isRequesterMaker?: boolean;
     configuration?: ICircularConfig[];
     selectedCommentSection?: any;

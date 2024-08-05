@@ -9,6 +9,7 @@ import Header from "./Header/Header";
 import CircularForm from './CircularForm/CircularForm';
 import { Constants } from '../Constants/Constants';
 import EditDashBoard from './EditDashBoard/EditDashBoard';
+import { Text } from '@microsoft/sp-core-library'
 
 export const customLightTheme: Theme = {
   ...webLightTheme,
@@ -28,6 +29,8 @@ export interface IBobCircularRepositoryState {
   isEditCircular?: boolean;
   isPendingCompliance: boolean;
   isPendingChecker: boolean;
+  isArchived?: boolean;
+  isMasterCircularEdit?: boolean
 }
 
 export default class BobCircularRepository extends React.Component<IBobCircularRepositoryProps, IBobCircularRepositoryState> {
@@ -43,7 +46,9 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
       isCreateCircular: false,
       isEditCircular: false,
       isPendingChecker: false,
-      isPendingCompliance: false
+      isPendingCompliance: false,
+      isArchived: false,
+      isMasterCircularEdit: false
 
     }
 
@@ -142,7 +147,7 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
         head.appendChild(meta);
       }
 
-     // console.log(this.navRef?.current)
+      // console.log(this.navRef?.current)
 
     }, 1500);
 
@@ -159,7 +164,11 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
   }
 
   public render(): React.ReactElement<IBobCircularRepositoryProps> {
-    const { isCreateCircular, isHome, isEditCircular, isPendingCompliance, isPendingChecker } = this.state
+    const { isCreateCircular, isHome, isEditCircular, isPendingCompliance, isPendingChecker } = this.state;
+    const { userInformation } = this.props
+    const editCircularFilterString = Text.format(Constants.editCircularFilterString, userInformation.department);
+    const complianceFilterString = Text.format(Constants.compliancePendingFilterString, userInformation.department)
+    const checkerPendingFilterString = Text.format(Constants.checkerPendingFilterString, userInformation.department);
 
     return (
       <>
@@ -199,7 +208,7 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
                         <ContextProvider value={this.props}>
                           <EditDashBoard
                             stateKey={new Date().toString()}
-                            filterString={Constants.editCircularFilterString}
+                            filterString={editCircularFilterString}
                             currentPage={`${Constants.makerGroup}`}
                           />
                         </ContextProvider>
@@ -210,7 +219,7 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
                       (isPendingCompliance) && <>
                         <ContextProvider value={this.props}>
                           <EditDashBoard stateKey={new Date().toString()}
-                            filterString={Constants.compliancePendingFilterString}
+                            filterString={complianceFilterString}
                             currentPage={`${Constants.complianceGroup}`}
                           />
                         </ContextProvider></>
@@ -220,7 +229,7 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
                       (isPendingChecker) && <>
                         <ContextProvider value={this.props}>
                           <EditDashBoard stateKey={new Date().toString()}
-                            filterString={Constants.checkerPendingFilterString}
+                            filterString={checkerPendingFilterString}
                             currentPage={`${Constants.checkerGroup}`}
                           />
                         </ContextProvider></>

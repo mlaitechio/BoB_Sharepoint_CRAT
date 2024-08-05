@@ -132,7 +132,7 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
             let circularFileName = listItem.CircularNumber.replace(/:/g, "_") + `.pdf`;
 
             let isMigrated = listItem?.IsMigrated ?? `Yes`;
-            if (isMigrated == Constants.lblNo) {
+            if (isMigrated == Constants.lblNo || isMigrated == "") {
                 fileArray = listItem.Attachments.Attachments.filter(val => val.FileName == circularFileName);
                 file = fileArray.filter(val => val.FileName == circularFileName)[0];
             }
@@ -143,10 +143,18 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
 
                 if (fileMetadata.size > 0) {
                     fileMetadata.forEach(async (value, key) => {
-                        attachment.push({
-                            "name": key,
-                            "content": value
-                        });
+                        if (key == circularFileName && (isMigrated == Constants.lblNo || isMigrated == "")) {
+                            attachment.push({
+                                "name": key,
+                                "content": value
+                            });
+                        }
+                        else if (isMigrated == Constants.lblYes) {
+                            attachment.push({
+                                "name": key,
+                                "content": value
+                            });
+                        }
                     });
 
                     let allFiles = fileArray.map((value, index) => {
@@ -183,20 +191,26 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
                         return fileObject
                     });
 
-                    this.setState({ fileContent: attachment[0].content }, () => {
+                    this.setState({ fileContent: attachment.length > 0 ? attachment[0].content : null }, () => {
                         this.setState({
                             isPanelOpen: true,
-                            initialPreviewFileUrl: this.previewURL(allFiles[0]),
+                            initialPreviewFileUrl: allFiles && allFiles.length > 0 ? this.previewURL(allFiles[0]) : "",
                             allFiles: allFiles,
                             choiceGroup: choiceGroup,
-                            selectedFile: choiceGroup[0].key,
+                            selectedFile: circularFileName,
                             isAllowedToUpdate: isUpdateAllowed
+                        }, () => {
+                            const { fileContent } = this.state;
+                            if (fileContent == null) {
+                                this.props.documentLoaded()
+                            }
                         })
                     })
 
                 }
             }).catch((error) => {
-                console.log(error)
+                console.log(error);
+                this.props.documentLoaded()
             })
 
         }
@@ -277,9 +291,9 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
                                 <div className={`${filePreviewColumn} `} style={{ minHeight: "100vh" }}>
 
                                     {choiceGroup && choiceGroup.length > 0 && <>
-                                        <div className={`${styles.row}`}>
+                                        <div className={`${styles.row}`} >
                                             <div className={`${!isMobileMode ? `${styles.column7} ${styles.fontSizeFileName}` : `${styles.column6} ${styles.mobileFontFileName}`}`}>
-                                                {`${selectedFile}`}
+
                                             </div>
                                             <div className={`${!isMobileMode ? styles.column5 : styles.column6} ${styles.textAlignEnd}`}>
 
@@ -297,14 +311,13 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
 
                                         {initialPreviewFileUrl != "" &&
                                             <div className={`${styles.row}`}>
-
-
-                                                <div className={`${!isMobileMode ? styles.column12 : styles.column12}`}
-                                                    style={{ top: 3, background: hidePreviewColor, minHeight: 34, opacity: 1, width: "98.5%" }}>
-
+                                                <div className={`${!isMobileMode ? `${styles.column12} ${styles.fontSizeFileName}` : `${styles.column12} ${styles.mobileFontFileName}`}`}
+                                                    style={{ top: 3, background: hidePreviewColor, minHeight: 40, opacity: 1, width: "99.5%" }}>
+                                                    {`${selectedFile}`}
                                                 </div>
                                             </div>
                                         }
+                                        {/* && allFiles.length > 0 && fileContent != null */}
                                         {
                                             initialPreviewFileUrl != "" && fileContent != null &&
                                             <MyPdfViewer
@@ -329,7 +342,8 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
 
                                     </>
                                     }
-                                    {choiceGroup.length == 0 &&
+
+                                    {choiceGroup.length == 0 || fileContent == null &&
                                         <div className={`${styles.row}`}>
                                             <div className={`${styles.column9} ${styles.headerTextAlignCenter}`}>
                                                 {this.labelControl(``, `No Circular Content Found`, false)}
@@ -369,134 +383,11 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
 
     }
 
-    private onAttachmentClick = (index, file) => {
-        const { allFiles } = this.state
-        let fileObject = allFiles[index]
-        this.setState({ selectedFile: file, initialPreviewFileUrl: this.previewURL(fileObject) })
-    }
-
-    private workingOnIt = (): JSX.Element => {
-
-        let submitDialogJSX = <>
-
-            <Dialog modalType="alert" defaultOpen={true}>
-                <DialogSurface style={{ maxWidth: 250 }}>
-                    <DialogBody style={{ display: "block" }}>
-                        <DialogContent>
-                            {<Spinner labelPosition="below" label={"Working on It..."}></Spinner>}
-                        </DialogContent>
-                    </DialogBody>
-                </DialogSurface>
-            </Dialog>
-
-        </>;
-        return submitDialogJSX;
-    }
-
-    private convertDate = (dateText) => {
-        let formattedDate = `N/A`;
-        if (dateText != "") {
-            const date = new Date(dateText);
-            const day = date.getDate().toString().padStart(2, '0');
-            const month = (date.getMonth() + 1).toString().padStart(2, '0');
-            const year = date.getFullYear();
-            formattedDate = `${day}/${month}/${year}`;
-        }
-        return formattedDate;
-    }
-
-    private onUpdateclick = (itemID) => {
-        this.props.onUpdate(itemID)
-    }
-
-    private onChoicePreviewChange = (ev?: React.FormEvent<HTMLElement | HTMLInputElement>, option?: any) => {
-        const { allFiles } = this.state
-        let fileObject = allFiles[option.index]
-        this.setState({ selectedFile: option.key, initialPreviewFileUrl: this.previewURL(fileObject) })
-    }
-
-    private showDocumentMetadata = (): JSX.Element => {
-        let documentMetadataJSX = <>
-
-        </>
-
-        return documentMetadataJSX;
-    }
-
     private onDismissPanel = (ev?: React.SyntheticEvent<HTMLElement> | KeyboardEvent) => {
         this.setState({ isPanelOpen: false }, () => {
             this.props.onClose()
         })
     }
-
-    private onDownLoadAllClick = async (attachments: any[]) => {
-        let providerValue = this.context;
-        const { serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
-
-
-        attachments.map((currentFile) => {
-            const fileURL = `${serverRelativeUrl}/_layouts/download.aspx?SourceUrl=` + currentFile?.previewURL;
-            window.open(fileURL, "_blank")
-        })
-
-
-
-    }
-
-    private onDownloadAllZip = async (itemID, subject) => {
-        let providerValue = this.context;
-        const { context, serverRelativeUrl, services } = providerValue as IBobCircularRepositoryProps;
-
-        this.setState({ showLoading: true }, async () => {
-            await services.getAllListItemAttachments(serverRelativeUrl, Constants.circularList, itemID).then((val) => {
-
-                const zip = new JSZip();
-
-                val.forEach((fileBuffer, fileName) => {
-                    zip.file(fileName, fileBuffer)
-                })
-                this.setState({ showLoading: false }, () => {
-                    zip.generateAsync({ type: "blob" })
-                        .then(function (content) {
-                            // see FileSaver.js
-                            saveAs(content, `${subject}.zip`);
-                        });
-                })
-
-            }).catch((error) => {
-                this.setState({ showLoading: false });
-            })
-        })
-
-
-    }
-
-    private onViewDownloadClick = (fileInfo, isView) => {
-        const { allFiles } = this.state;
-        const currentFileInfo = allFiles.filter((value) => {
-            return value.FileName == fileInfo
-        });
-
-        if (isView && currentFileInfo.length > 0) {
-            /**
-                * View File
-                */
-            const fileURL = this.previewURL(currentFileInfo[0])//currentFileInfo[0].FileURL + "?web=1"
-            window.open(fileURL, "_blank")
-        }
-        else if (currentFileInfo.length > 0) {
-            /**
-                * Download File
-                */
-            let providerValue = this.context;
-            const { serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
-
-            const fileURL = `${serverRelativeUrl}/_layouts/download.aspx?SourceUrl=` + currentFileInfo[0].FileURL;
-            window.open(fileURL, "_blank")
-        }
-
-    }
-
 
     private previewURL = (fileInfo) => {
         let finalUrl: string = "";
@@ -516,52 +407,6 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
         return (finalUrl);
     }
 
-    private createDocumentPreview = (attachmentCollection: any[], ItemAttachmentUrl: string): JSX.Element => {
-
-        let previewJSXDocument =
-            <>
-                {
-                    attachmentCollection.map((file) => {
-
-                        let fileObject: any = {
-                            name: file.FileName,
-                            FileName: file.FileName,
-                            ServerRelativeUrl: ``,
-                            FileType: file.FileName.split('.')[1],
-                            UniqueID: file.AttachmentId,
-                            ID: file.AttachmentId,
-                            FileURL: `${ItemAttachmentUrl}${file.FileName}`
-
-                        }
-                        let filePreview = this.loadPreviewAttachment(fileObject);
-                        // let previewImages = { };
-                        // previewImages[filePreview.name] = filePreview;
-
-                        return <>
-                            <div key={file.FileName} className={`${styles.documentCardFilePreview} ${styles.column3}`}>
-                                <TooltipHost
-                                    content={file.FileName}
-                                    calloutProps={{ gapSpace: 0, isBeakVisible: true }}
-                                    closeDelay={200}
-                                    directionalHint={DirectionalHint.rightCenter}>
-
-                                    <DocumentCard
-                                        onClick={this.openDocument.bind(this, fileObject)}
-                                        className={styles.documentCard}>
-                                        <DocumentCardPreview previewImages={[filePreview]} styles={{ root: { cursor: "pointer" } }} />
-                                        <Label className={styles.fileLabel}>{file.FileName}</Label>
-                                    </DocumentCard>
-                                </TooltipHost>
-                            </div>
-                        </>
-                    })
-                }
-
-            </>
-
-        return previewJSXDocument;
-    }
-
     private loadPreviewAttachment = (file: IAttachmentFile): IDocumentCardPreviewImage => {
         let previewImageUrl = this._utilities.GetAttachmentImageUrl(file);
         return {
@@ -574,39 +419,6 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
         };
     }
 
-    private copyItemLink = (id: string) => {
-        const { context } = this.props
-        let itemURL = `${window.location.origin + context.pageContext.legacyPageContext.webServerRelativeUrl}?itemID=${id}`;
-
-        navigator.clipboard.writeText(itemURL)
-            .then(() => {
-                alert('Document link copied.Please store it in your editor for further use in forms as references')
-            })
-            .catch((error) => {
-                console.error('Error copying document to clipboard:', error);
-            });
-    }
-
-    private copyToClipboard = (fileInfo) => {
-        const { allFiles } = this.state;
-        const currentFileInfo = allFiles.filter((value) => {
-            return value.FileName == fileInfo
-        });
-
-        const fileURL = this.previewURL(currentFileInfo[0]);
-
-        navigator.clipboard.writeText(fileURL)
-            .then(() => {
-                alert('File Link Copied .Please store it in your editor for further use in forms as references')
-            })
-            .catch((error) => {
-                console.error('Error copying text to clipboard:', error);
-            });
-    }
-
-    private openDocument = (file: any, ev?: React.SyntheticEvent<HTMLElement>): void => {
-        this.setState({ initialPreviewFileUrl: this.previewURL(file) })
-    }
 
     public labelControl = (labelClassName: string, labelName: string, isRequired: boolean, requiredColor?: any, toolTipContent?: string): JSX.Element => {
         return <>
@@ -690,7 +502,5 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
 
         </>
     }
-
-
 
 }

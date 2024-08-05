@@ -4,6 +4,8 @@ export class Constants {
   //public static readonly documentCategoryList = "DocumentCategory";
   public static readonly circularList = "CircularRepository";
 
+  public static readonly commentsAuditLogs = `CommentsAuditLogs`
+
   public static readonly sharedDocuments = "Shared Documents";
 
   public static readonly configurationList = "Configuration";
@@ -22,9 +24,9 @@ export class Constants {
   | Edit Circular ,Pending Compliance & Pending Checker Filter string one more filter criteria department needs to be added
   |--------------------------------------------------
   */
-  public static readonly editCircularFilterString = "CircularStatus eq 'Draft' or CircularStatus eq 'Submitted to Compliance' or CircularStatus eq 'Submitted to Checker' or CircularStatus eq 'Comments from Compliance' or CircularStatus eq 'Comments from Checker'"
-  public static readonly compliancePendingFilterString = "(CircularStatus eq 'Submitted to Compliance') and (Compliance eq 'Yes')";
-  public static readonly checkerPendingFilterString = "(CircularStatus eq 'Approved by Compliance' or CircularStatus eq 'Submitted to Checker')";
+  public static readonly editCircularFilterString = "(Department eq '{0}' or Department eq null) and (CircularStatus eq 'Draft' or CircularStatus eq 'Submitted to Compliance' or CircularStatus eq 'Submitted to Checker' or CircularStatus eq 'Comments from Compliance' or CircularStatus eq 'Comments from Checker')"
+  public static readonly compliancePendingFilterString = "(Department eq '{0}' or Department eq null) and (CircularStatus eq 'Submitted to Compliance') and (Compliance eq 'Yes')";
+  public static readonly checkerPendingFilterString = "(Department eq '{0}' or Department eq null) and (CircularStatus eq 'Approved by Compliance' or CircularStatus eq 'Submitted to Checker')";
 
   /**
   |--------------------------------------------------
@@ -146,9 +148,12 @@ export class Constants {
     RefinableString07 -> CircularStatus
     RefinableString08 -> IssuedFor
     RefinableString09 -> Compliance
+    RefinableString10 -> Keywords
+   RefinableString100 ->Gist(Summary)
+   RefinableString101 ->FAQ
   |--------------------------------------------------
   */
-  public static readonly selectedSearchProperties = ["ListItemID", "Modified", "LastModifiedTime", "RefinableString00", "RefinableString01", "RefinableString02", "RefinableString03", "RefinableString04", "RefinableString05", "RefinableString06", "RefinableDate00", "Created", "RefinableString07", "RefinableString08", "RefinableString09"]
+  public static readonly selectedSearchProperties = ["ListItemID", "Modified", "LastModifiedTime", "RefinableString00", "RefinableString01", "RefinableString02", "RefinableString03", "RefinableString04", "RefinableString05", "RefinableString06", "RefinableDate00", "Created", "RefinableString07", "RefinableString08", "RefinableString09", "RefinableString10", "RefinableString100", "RefinableString101"]
   public static readonly filterSearchProperties = ["RefinableString00", "RefinableString01", "RefinableString02", "RefinableString03", "RefinableDate00", "RefinableString07", "RefinableString08", "RefinableString09"];
 
   /**
@@ -165,6 +170,9 @@ export class Constants {
    RefinableString07 -> CircularStatus
    RefinableString08 -> IssuedFor
    RefinableString09 -> Compliance
+   RefinableString10 -> Keywords
+   RefinableString100 ->Gist(Summary)
+   RefinableString101 ->FAQ
  |--------------------------------------------------
  */
 
@@ -179,6 +187,9 @@ export class Constants {
   public static readonly managePropCircularStatus = "RefinableString07";
   public static readonly managePropIssuedFor = "RefinableString08";
   public static readonly managePropCompliance = "RefinableString09";
+  public static readonly managePropKeywords = "RefinableString10";
+  public static readonly managePropSummary = "RefinableString100";
+  public static readonly managePropFAQ = "RefinableString101";
   public static readonly managePropPublishedDate = "RefinableDate00"
 
   /**

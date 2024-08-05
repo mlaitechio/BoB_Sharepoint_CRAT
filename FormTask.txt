@@ -78,22 +78,25 @@ Comments Section ,History Section in Edit Dashboard
 PDF and docx check when clicking on Subject Title (Search Page)
 Logging in to another list for comments.
 Responsive SCSS changes
-editFormItem Department Mapping
+
 Master Circular should be editable in 2nd quarter of the year
 
 
 Circular Number 0000 check
-Iframe file edit section to be hidden 
 
-1. Tooltip for category, keywords,template field (Medium Level Task)
-2. Maximum 2000 character limit for all text area
-3. Conversion of docx to pdf ( Either power automate or JS) (Bigger Task) 
-4. Logging every activity in to the Comments Audit Logs List (Bigger Task)
+editFormItem Department Mapping (Done)
+1. Tooltip for category, keywords,template field (Medium Level Task)(Done) - 4 hours
+2. Maximum 2000 character limit for all text area(Done) -1 hour
+3. Conversion of docx to pdf ( Either power automate or JS) (Bigger Task) (Done) - 32 hours
+4. Logging every activity in to the Comments Audit Logs List (Bigger Task)(Done) - 5 hours
+11.After published PDF File Conversion, Delete File from doc library as well (Done)
 5. Changing header/footer text of pdf file on preview (Medium Level)
+12.Iframe file edit section to be hidden (Done) - 2 hours
 6. Archived Circular screen for users. (Medium Level)
 7. Linking of Master Circular with existing circulars (Bigger Task)
 8. Notification Email based on Circular Status (Power Automate or JS) (Medium Level)
 9. View all Rejected Circulars  (Medium Level)
 10. Permission Matrix handling (Bigger Task)
-11.After published PDF File Conversion, Delete File from doc library as well
+13. Change preview file name section
+
 

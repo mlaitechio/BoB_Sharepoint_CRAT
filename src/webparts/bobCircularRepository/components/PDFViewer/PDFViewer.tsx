@@ -35,6 +35,8 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
     public async componentDidMount() {
         const { currentSelectedFileContent, context } = this.props;
 
+        console.log(currentSelectedFileContent);
+        
         await this.waterMark_ConvertToBase64PDF(currentSelectedFileContent, `${this.props.watermarkText}`).then((val) => {
             this.setState({ blobFile: val }, () => {
                 this.props.documentLoaded();
