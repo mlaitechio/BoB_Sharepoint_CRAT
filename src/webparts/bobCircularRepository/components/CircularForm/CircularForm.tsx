@@ -2503,7 +2503,12 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                             | Convert File to PDF on publish
                             |--------------------------------------------------
                             */
-
+                            await services.convertDocxToPDF(serverRelativeUrl, circularList, ID, `${circularFileName}`).then((val) => {
+                                console.log(`File Converted Successfully`)
+                            }).catch((error) => {
+                                console.log(error);
+                                console.log(`Error while converting the file`);
+                            })
                            
                         }
 
