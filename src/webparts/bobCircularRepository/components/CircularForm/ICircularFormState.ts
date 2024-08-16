@@ -22,8 +22,17 @@ export interface ICircularFormState {
     alertTitle?: string;
     alertMessage?: string;
     isDeleteCircularFile?: boolean;
+    /**
+    |--------------------------------------------------
+    | Supporting Documents & SOP Documents State
+    |--------------------------------------------------
+    */
+    supportingDocAttachmentColl?:any[];
+    supportingDocUploads?:Map<string,any>;
     sopUploads?: Map<string, any>;
     sopAttachmentColl?: any[];
+
+
     documentPreviewURL?: string;
     attachedFile?: any;
     selectedFileName?: string;

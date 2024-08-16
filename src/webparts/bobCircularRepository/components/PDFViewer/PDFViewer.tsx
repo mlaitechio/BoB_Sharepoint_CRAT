@@ -12,6 +12,8 @@ export interface IMyPDFViewerProps {
     currentSelectedFileContent?: any;
     context?: WebPartContext;
     documentLoaded: () => void;
+    footerText?: string;
+    footerTextColor?: any;
 }
 
 export interface IMyPDFViewerState {
@@ -33,11 +35,11 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
     }
 
     public async componentDidMount() {
-        const { currentSelectedFileContent, context } = this.props;
+        const { currentSelectedFileContent, context, watermarkText, footerText, footerTextColor } = this.props;
 
         console.log(currentSelectedFileContent);
-        
-        await this.waterMark_ConvertToBase64PDF(currentSelectedFileContent, `${this.props.watermarkText}`).then((val) => {
+
+        await this.waterMark_ConvertToBase64PDF(currentSelectedFileContent, `${watermarkText}`, footerText, footerTextColor).then((val) => {
             this.setState({ blobFile: val }, () => {
                 this.props.documentLoaded();
             })
@@ -108,7 +110,7 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
         return submitDialogJSX;
     }
 
-    private waterMark_ConvertToBase64PDF = async (fileContent, watermarkText) => {
+    private waterMark_ConvertToBase64PDF = async (fileContent, watermarkText, footerText, footerTextColor) => {
 
         const pdfDoc = await PDFDocument.load(fileContent);
         const totalPages = pdfDoc.getPageCount();
@@ -117,7 +119,7 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
             const page = pdfDoc.getPage(pageNum);
             const { width, height } = page.getSize();
             const textFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-            const fontSize = 100;
+            const fontSize = 75;
 
             const font = pdfDoc.embedStandardFont(StandardFonts.Helvetica);
             const headerHeight = 50;
@@ -132,14 +134,14 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
 
             page.moveTo(startX, startY);
 
-            // page.drawText(Text.format(Constants.infoPDFText, new Date().toLocaleDateString()), {
-            //     x: 5,
-            //     y: 5,
-            //     size: 12,
-            //     font: font,
-            //     opacity: 1,
-            //     color: rgb(0.86, 0.09, 0.26),
-            // });
+            page.drawText(footerText, {
+                x: 5,
+                y: 5,
+                size: 11,
+                font: font,
+                opacity: 1,
+                color: footerTextColor ?? rgb(0.02, 0.02, 0.02) //rgb(0.02, 0.02, 0.02)//rgb(0.86, 0.09, 0.26),
+            });
 
             page.drawText(watermarkText, {
                 x: width / 6,

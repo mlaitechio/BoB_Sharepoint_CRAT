@@ -88,7 +88,7 @@ export class Constants {
   public static readonly colCircularRepository = "Id,Subject,PublishedDate,CircularStatus,Category,IssuedFor,MigratedDepartment,Department,MakerCommentsHistory,CheckerCommentsHistory,ComplianceCommentsHistory,IsMigrated,CircularNumber,Classification,MigratedOriginator,Author/Title,Author/Id,Author/EMail"
   public static readonly expandColCircularRepository = "Author";
   public static readonly adSelectedColumns = "id,mail,region,title,position,grade,zone,displayName,department,employeeId,extensions,businessPhones,title,employeeNumber";
-  public static readonly configSelectColumns = `Title,Limit,ID`;
+  public static readonly configSelectColumns = `Title,Limit,ID,ToolTip`;
   public static readonly configVal = {
     SupportingDocuments: "SupportingDocuments",
     SOPFileUpload: "SOPFileUpload",
@@ -98,7 +98,14 @@ export class Constants {
     FAQMaxWord: "FAQMaxWord",
     MakerCommentsMaxWord: "MakerCommentsMaxWord",
     ComplianceCommentsMaxWord: "ComplianceCommentsMaxWord",
-    CheckerCommentsMaxWord: "CheckerCommentsMaxWord"
+    CheckerCommentsMaxWord: "CheckerCommentsMaxWord",
+    SupportingDocUpload: "SupportingDocUpload",
+    SupportingDocSizeinMB: "SupportingDocSizeinMB",
+    TemplateToolTipText: "TemplateToolTipText",
+    KeyWordsToolTipText: "KeyWordsToolTipText",
+    SupportingDocToolTipText: "SupportingDocToolTipText",
+    AllYearsToolTipText: "AllYearsToolTipText",
+    PreviousYearToolTipText: "PreviousYearToolTipText"
   }
   public static readonly hindiBarodaPedia = "बड़ौदापीडिया";
   public static readonly hindiSearchHeader = "परिपत्र का विवरण दर्ज करें";
@@ -108,13 +115,13 @@ export class Constants {
 
   public static readonly sorting = "Sorting";
 
-  public static readonly infoPDFText = "This data is as on {0} of view/download.For updated information refer to circular/master circular on portal";
+  public static readonly infoPDFText = "This data is as on {0} of view/download.For updated information refer to circular/master circular on portal.";
 
   //Archived Status circulars with limited period after expiry date will have this text on header of pdf with red font
-  public static readonly warninglimitedPDFText = "The circular stands archived with effect from {0} consequent upon validity expiry";
+  public static readonly warninglimitedPDFText = "The circular stands archived with effect from {0} consequent upon validity expiry.";
 
   //Archived Status circulars with Unlimited period after incorporation in master circular will have this text on header of pdf with red font
-  public static readonly warningUnlimitedPDFText = "The circular stands archived with effect from {0} consequent upon its incorporation in the master circular"
+  public static readonly warningUnlimitedPDFText = "The circular stands archived with effect from {0} consequent upon its incorporation in the master circular."
 
   /**
   |--------------------------------------------------
@@ -153,8 +160,8 @@ export class Constants {
    RefinableString101 ->FAQ
   |--------------------------------------------------
   */
-  public static readonly selectedSearchProperties = ["ListItemID", "Modified", "LastModifiedTime", "RefinableString00", "RefinableString01", "RefinableString02", "RefinableString03", "RefinableString04", "RefinableString05", "RefinableString06", "RefinableDate00", "Created", "RefinableString07", "RefinableString08", "RefinableString09", "RefinableString10", "RefinableString100", "RefinableString101"]
-  public static readonly filterSearchProperties = ["RefinableString00", "RefinableString01", "RefinableString02", "RefinableString03", "RefinableDate00", "RefinableString07", "RefinableString08", "RefinableString09"];
+  public static readonly selectedSearchProperties = ["ListItemID", "Modified", "LastModifiedTime", "RefinableString00", "RefinableString01", "RefinableString02", "RefinableString03", "RefinableString04", "RefinableString05", "RefinableString06", "RefinableDate00", "Created", "RefinableString07", "RefinableString08", "RefinableString09", "RefinableString10", "RefinableString100", "RefinableString101", "RefinableString102"]
+  public static readonly filterSearchProperties = ["RefinableString00", "RefinableString01", "RefinableString02", "RefinableString03", "RefinableDate00", "RefinableString07", "RefinableString08", "RefinableString09", "RefinableString10", "RefinableString100", "RefinableString101", "RefinableString102"];
 
   /**
    * Managed Metadata Properties
@@ -190,6 +197,7 @@ export class Constants {
   public static readonly managePropKeywords = "RefinableString10";
   public static readonly managePropSummary = "RefinableString100";
   public static readonly managePropFAQ = "RefinableString101";
+  public static readonly managePropCircularType = "RefinableString102";
   public static readonly managePropPublishedDate = "RefinableDate00"
 
   /**
@@ -246,6 +254,8 @@ export class Constants {
   public static readonly published = "Published";
   public static readonly archived = "Archived";
   public static readonly deleted = "Deleted";
+  public static readonly expired = "Expired";
+
 
   public static readonly loreumIPSUM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam eget libero nec tellus facilisis blandit at at magna. Donec sed dui finibus, tincidunt ante a, malesuada ligula. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nunc non iaculis erat, a semper dui. Integer porta in nunc sed molestie. Suspendisse aliquet hendrerit justo. Nullam sit amet tortor non nisl viverra venenatis."
 

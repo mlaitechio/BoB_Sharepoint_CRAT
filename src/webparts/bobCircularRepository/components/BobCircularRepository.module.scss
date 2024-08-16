@@ -363,6 +363,13 @@ input * {
   width: 0px;
 }
 
+.normalLabel {
+  font-family: Roboto !important;
+  font-weight: 400;
+  color: #162B75;
+  margin-top:5px;
+}
+
 .formBtn {
   margin: 5px;
 }
@@ -379,7 +386,9 @@ input * {
   color: var(--colorBrandBackground);
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 112px;
+  max-width: 200px;
+  width: 125px;
+  vertical-align: middle;
 }
 
 .tableRow {
@@ -442,6 +451,18 @@ input * {
   align-items: center;
 }
 
+.headerLabel {
+  font-family: Roboto !important;
+  color: black;
+  font-weight: 600;
+  display: flex;
+  font-size: 14px;
+  height: 20px;
+  /* top: 10px; */
+  position: relative;
+  align-items: center;
+}
+
 .formRequestInfo {
   font-family: Roboto !important;
   color: black;
@@ -481,6 +502,8 @@ input * {
 .mobileHeaderTextFont {
   font-size: large;
 }
+
+
 
 .headerTextAlignCenter {
   text-align: center;

@@ -8,7 +8,7 @@ import { IBobCircularRepositoryProps } from '../IBobCircularRepositoryProps';
 import { Constants } from '../../Constants/Constants';
 import { IconButton } from '@fluentui/react'
 import { Button, Divider, Link, Menu, MenuButton, MenuItem, MenuList, MenuPopover, MenuTrigger } from '@fluentui/react-components';
-import { AddCircleRegular, AddRegular, CheckboxPersonRegular, ClockRegular, DeleteRegular, EditRegular, HomeRegular, NavigationFilled, NavigationRegular, ShieldPersonAddRegular, TaskListLtrRegular } from '@fluentui/react-icons';
+import { AddCircleRegular, AddRegular, CheckboxPersonRegular, ClockRegular, DeleteRegular, EditRegular, HomeRegular, NavigationFilled, NavigationRegular, PhoneUpdateRegular, ShieldPersonAddRegular, TaskListLtrRegular } from '@fluentui/react-icons';
 
 export default class Header extends React.Component<IHeaderProps, IHeaderState> {
 
@@ -48,6 +48,8 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
         let headerClass = mobileMode ? `${styles.column3}` : `${styles.column3}`;
         let headerClassTabletMode = `${styles.column6}`;
         let logoImg = context.pageContext.web.absoluteUrl + "/_api/siteiconmanager/getsitelogo";//require('../../assets/sidbilogo.png')
+
+        
 
         // ${styles.headerBgColor}
 
@@ -118,9 +120,11 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                                         icon={<EditRegular />}
                                         onClick={() => { onMenuSubMenuLinkClick(Constants.lblEditCircular) }}>
                                         Maker Dashboard</MenuItem>
+                                    {/* onClick={() => { onMenuSubMenuLinkClick(Constants.lblEditCircular) }} */}
                                     {/* <MenuItem className={`${styles.fontRoboto}`}
-                                        icon={<DeleteRegular />}
-                                        onClick={() => { onMenuSubMenuLinkClick(Constants.lblEditCircular) }}>Delete Circular</MenuItem> */}
+                                        icon={<PhoneUpdateRegular />}>
+                                        Master Circular Annual Updation
+                                    </MenuItem> */}
                                 </MenuList>
                             </MenuPopover>
                         </Menu>}
@@ -134,6 +138,10 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                                 <MenuList>
                                     <MenuItem className={`${styles.fontRoboto}`} icon={<ClockRegular />}
                                         onClick={() => { onMenuSubMenuLinkClick(Constants.lblPendingCompliance) }}>Pending Request</MenuItem>
+                                    {/* <MenuItem className={`${styles.fontRoboto}`}
+                                        icon={<PhoneUpdateRegular />}>
+                                        Master Circular Annual Updation
+                                    </MenuItem> */}
                                 </MenuList>
                             </MenuPopover>
                         </Menu>}
@@ -148,6 +156,10 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                                         onClick={() => { onMenuSubMenuLinkClick(Constants.lblPendingChecker) }}
                                         className={`${styles.fontRoboto}`}
                                         icon={<ClockRegular />}>Pending Request</MenuItem>
+                                    {/* <MenuItem className={`${styles.fontRoboto}`}
+                                        icon={<PhoneUpdateRegular />}>
+                                        Master Circular Annual Updation
+                                    </MenuItem> */}
                                 </MenuList>
                             </MenuPopover>
                         </Menu>}

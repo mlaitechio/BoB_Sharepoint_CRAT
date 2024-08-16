@@ -2,9 +2,11 @@ import * as React from 'react';
 import { ISupportingDocumentProps } from './ISupportingDocumentProps';
 import { ISupportingDocumentState } from './ISupportingDocumentState';
 import { IBasePickerSuggestionsProps, IInputProps, ITag, Panel, PanelType, TagPicker as Picker, ValidationState } from '@fluentui/react';
-import { Button, Checkbox, FluentProvider, Label, Theme, webLightTheme } from '@fluentui/react-components';
+import { Button, Checkbox, Divider, Dropdown, Option, FluentProvider, Label, OptionOnSelectData, SelectionEvents, Theme, webLightTheme, Tooltip } from '@fluentui/react-components';
 import { Constants } from '../../../Constants/Constants';
 import styles from '../../BobCircularRepository.module.scss';
+import { Info20Regular, Info24Regular, InfoRegular } from '@fluentui/react-icons';
+import { Text } from '@microsoft/sp-core-library';
 
 export const customLightTheme: Theme = {
     ...webLightTheme,
@@ -28,13 +30,15 @@ export default class SupportingDocument extends React.Component<ISupportingDocum
         this.state = {
             isSupportingPanelOpen: true,
             circularCollection: [],
+            allItems: [],
             checkBoxCollection: new Map<string, any[]>(),
-            filterPanelCheckBoxCollection: new Map<string, any[]>()
+            filterPanelCheckBoxCollection: new Map<string, any[]>(),
+            optionsYear: ["All Years", "Previous Year"],
+            selectedYear: `All Years`
         }
     }
 
     public componentDidMount() {
-        const { providerValue, department } = this.props;
         this.setState({ isSupportingPanelOpen: true }, () => {
             this.searchResults()
         })
@@ -56,10 +60,22 @@ export default class SupportingDocument extends React.Component<ISupportingDocum
 
         let filterProperties = Constants.filterSearchProperties;
         let filterArray = [];
-        // Default Search will always be Circular Status as Published
 
-        filterArray.push(`${filterProperties[5]}:equals("${Constants.published}")`);
-        filterArray.push(`${filterProperties[3]}:equals("${department}")`);//${department} MSME BANKING DEPARTMENT IT PROJECTS AND CRM
+        const { managePropClassification, managePropCircularType, published, lblMaster, lblCircular, unlimited, limited } = Constants;
+
+        /**
+        |--------------------------------------------------
+        | Default Search will always be "Circular Status as Published" & 
+        "Current Users Department" & 
+        "Circular Type as unlimited" & 
+        "last year start date will be 1st October"
+        |--------------------------------------------------
+        */
+
+        filterArray.push(`${filterProperties[5]}:equals("${published}")`);
+        filterArray.push(`${filterProperties[3]}:equals("${department}")`);//${department} HR ADMINISTRATION MSME BANKING DEPARTMENT IT PROJECTS AND CRM
+        filterArray.push(`${managePropClassification}:equals("${lblCircular}")`);
+
 
         let filterString = `and(${filterArray.join(',')})`
         let sortListProperty = [{
@@ -72,46 +88,66 @@ export default class SupportingDocument extends React.Component<ISupportingDocum
             then(async (searchResults: any[]) => {
                 searchResults.map((val) => {
 
-                    listItemData.push({
-                        ID: parseInt(val.ListItemID),
-                        Id: parseInt(val.ListItemID),
-                        Created: val?.Created,
-                        CircularNumber: val.RefinableString00,
-                        Subject: val.RefinableString01,
-                        MigratedDepartment: val.RefinableString02,
-                        Department: val.RefinableString03,
-                        Category: val.RefinableString04,
-                        IsMigrated: val.RefinableString05,
-                        Classification: val.RefinableString06,
-                        PublishedDate: val.RefinableDate00,
-                        IssuedFor: val.RefinableString08,
+                    /**
+                    |--------------------------------------------------
+                    | RefinableString102 is Circular Type
+                      CircularType ne null && CircularType -eq Unlimited
 
-                    });
+                    |--------------------------------------------------
+                    */
+
+                    if (val.RefinableString102 != null && val.RefinableString102 == unlimited) {
+
+                        listItemData.push({
+                            ID: parseInt(val.ListItemID),
+                            Id: parseInt(val.ListItemID),
+                            Created: val?.Created,
+                            CircularNumber: val.RefinableString00,
+                            Subject: val.RefinableString01,
+                            MigratedDepartment: val.RefinableString02,
+                            Department: val.RefinableString03,
+                            Category: val.RefinableString04,
+                            IsMigrated: val.RefinableString05,
+                            Classification: val.RefinableString06,
+                            PublishedDate: val.RefinableDate00,
+                            IssuedFor: val.RefinableString08,
+                        });
+                    }
                 })
 
-                this.setState({ circularCollection: listItemData.map((val) => val.CircularNumber) }, () => {
-                    let checkBoxCollection = new Map<string, any[]>();
+                this.setState({ circularCollection: listItemData.map((val) => val.CircularNumber), allItems: listItemData }, () => {
 
-                    checkBoxCollection.set(`${Constants.searchSupportingCirculars}`, listItemData.map((val) => {
-                        let isValueChecked = selectedSupportingCirculars?.filter((circular) => {
-                            return circular.CircularNumber == val.CircularNumber
-                        })
-                        return {
-                            checked: isValueChecked?.length > 0 ?? false,
-                            value: val.CircularNumber,
-                            ...val
-                        }
-                    }));
+                    this.allYears()
 
-                    this.setState({ checkBoxCollection }, () => {
-                        this.props.completeLoading();
-                    })
                 })
             }).catch((error) => {
                 console.log(error);
                 this.props.completeLoading();
             });
 
+    }
+
+
+    private allYears = () => {
+        const { selectedSupportingCirculars } = this.props
+        let checkBoxCollection = new Map<string, any[]>();
+        const { allItems } = this.state
+
+
+        checkBoxCollection.set(`${Constants.searchSupportingCirculars}`, allItems.map((val) => {
+            let isValueChecked = selectedSupportingCirculars?.filter((circular) => {
+                return circular.CircularNumber == val.CircularNumber
+            })
+            return {
+                checked: isValueChecked?.length > 0 ?? false,
+                value: val.CircularNumber,
+                ...val
+            }
+        }));
+
+        this.setState({ checkBoxCollection }, () => {
+            this.props.completeLoading();
+        })
     }
 
 
@@ -124,15 +160,11 @@ export default class SupportingDocument extends React.Component<ISupportingDocum
             checkBoxCollection.size > 0 && <FluentProvider theme={customLightTheme}>
                 <Panel isOpen={isSupportingPanelOpen}
                     isLightDismiss={true}
+
                     onDismiss={() => {
                         this.applyAll()
-                        // const { checkBoxCollection } = this.state;
-                        // this.setState({ isSupportingPanelOpen: false }, () => {
-                        //     const { checkBoxCollection } = this.state
-                        //     this.props.onDismiss()
-                        // })
                     }}
-                    type={PanelType.smallFixedFar}
+                    type={PanelType.medium}
                     onRenderFooterContent={() => <>
                         <FluentProvider theme={customLightTheme}>
                             <div className={`${styles.row}`}>
@@ -177,11 +209,14 @@ export default class SupportingDocument extends React.Component<ISupportingDocum
                         }
                     }} >
                     {this.tagPicker({ placeholder: `Search Circulars` }, this.tagPickerRef, [])}
+
                     {this.checkBoxControl()}
                 </Panel>
             </FluentProvider>
         );
     }
+
+
 
 
 
@@ -191,26 +226,56 @@ export default class SupportingDocument extends React.Component<ISupportingDocum
 
         let checkBoxControlJSX = <>
             <FluentProvider theme={webLightTheme}>
-                <div className={`${styles.row}`}>
-                    {
-                        allCirculars && allCirculars.length > 0 && allCirculars.map((circular, index) => {
-                            return <div className={`${styles.column12}`}>
-                                <Checkbox
-                                    checked={circular.checked} //isChecked
-                                    label={
-                                        <Label weight="regular"
-                                            onClick={() => { this.onCheckBoxLabelClick(index, Constants.searchSupportingCirculars) }} //this.onCheckBoxLabelClick.bind(this, labelName, index, !currentCheck)
-                                            style={{ fontFamily: "Roboto", cursor: "pointer", textTransform: "capitalize" }}>
-                                            {circular.value}
-                                        </Label>
-                                    }
-                                    shape="square" size="medium"
-                                    //this.onCheckBoxChange.bind(this, labelName, index)
-                                    onChange={() => { this.onCheckBoxLabelClick(index, Constants.searchSupportingCirculars) }} />
-                            </div>
-                        })
-                    }
+
+                <div className={`${styles.row} `} style={{ marginLeft: 1, marginTop: 5, marginBottom: 5 }}>
+                    <div className={`${styles.column4}`}>
+                        <Label className={`${styles.headerLabel}`}>Circular Number</Label>
+                    </div>
+
+                    <div className={`${styles.column1}`}>
+                        <Label className={`${styles.headerLabel}`}>Date</Label>
+                    </div>
+
                 </div>
+
+                <Divider appearance="subtle"></Divider>
+
+                {
+                    allCirculars && allCirculars.length > 0 && allCirculars.map((circular, index) => {
+                        return <>
+                            <div className={`${styles.row}`}>
+                                <div className={`${styles.column4}`}>
+                                    <Checkbox
+                                        checked={circular.checked} //isChecked
+                                        label={
+                                            <Label weight="regular"
+                                                onClick={() => { this.onCheckBoxLabelClick(index, Constants.searchSupportingCirculars) }}
+                                                //this.onCheckBoxLabelClick.bind(this, labelName, index, !currentCheck)
+                                                style={{ fontFamily: "Roboto", cursor: "pointer", textTransform: "capitalize" }}>
+                                                {circular.value}
+                                            </Label>
+                                        }
+                                        shape="square" size="medium"
+                                        //this.onCheckBoxChange.bind(this, labelName, index)
+                                        onChange={() => { this.onCheckBoxLabelClick(index, Constants.searchSupportingCirculars) }} />
+
+                                </div >
+                                {/* <div className={`${styles.column7}`}>
+                                <Label style={{ fontFamily: "Roboto", cursor: "pointer", textTransform: "capitalize" }}>
+                                    {circular.Subject}
+                                </Label>
+                            </div> */}
+                                <div className={`${styles.column1}`} style={{ marginTop: 5 }}>
+                                    <Label style={{ fontFamily: "Roboto", textTransform: "capitalize" }}>
+                                        {new Date(circular.PublishedDate).toLocaleDateString("en-UK", { year: "numeric", month: "2-digit", day: "2-digit" })}
+                                    </Label>
+                                </div>
+                            </div>
+                            <Divider appearance="subtle"></Divider>
+                        </>
+                    })
+                }
+
             </FluentProvider>
         </>;
 
@@ -219,6 +284,15 @@ export default class SupportingDocument extends React.Component<ISupportingDocum
 
     private tagPicker = (inputProps: IInputProps, tagPickerRef: any, selectedItem?: any[]): JSX.Element => {
 
+        const { optionsYear, selectedYear } = this.state
+        const { configuration } = this.props;
+        const { configVal } = Constants
+
+        let allYearsToolTipLimit = configuration.filter(val => val.Title == configVal.AllYearsToolTipText)[0].Limit ?? 1000;
+        let allYearsToolTipText = configuration.filter(val => val.Title == configVal.AllYearsToolTipText)[0].ToolTip ?? ``;
+        let previousYearsToolTipLimit = configuration.filter(val => val.Title == configVal.PreviousYearToolTipText)[0].Limit ?? 1000;
+        let previousYearsToolTipText = configuration.filter(val => val.Title == configVal.PreviousYearToolTipText)[0].ToolTip ?? ``;
+
         const pickerSuggestionsProps: IBasePickerSuggestionsProps = {
             suggestionsHeaderText: `${inputProps.placeholder}`,
             noResultsFoundText: 'No results found!',
@@ -226,7 +300,7 @@ export default class SupportingDocument extends React.Component<ISupportingDocum
 
         let tagPickerJSX = <>
             <div className={`${styles.row} `}>
-                <div className={`${styles.column12} ${styles.marginFilterTop}`}>
+                <div className={`${styles.column4} ${styles.marginFilterTop}`}>
                     <Picker
                         componentRef={tagPickerRef}
                         onResolveSuggestions={this.onResolveSuggestions.bind(this, inputProps.placeholder)}
@@ -243,10 +317,106 @@ export default class SupportingDocument extends React.Component<ISupportingDocum
                         defaultSelectedItems={[]}
                     />
                 </div>
+                <div className={`${styles.column4} ${styles.marginFilterTop}`}>
+                    <FluentProvider theme={webLightTheme}>
+                        <Dropdown
+                            style={{ maxWidth: 180, minWidth: 180 }}
+                            defaultSelectedOptions={[optionsYear[0]]}
+                            mountNode={{}} placeholder={`Year`}
+                            value={selectedYear ?? ``}
+                            selectedOptions={[selectedYear ?? ""]}
+                            button={{ className: `${styles.formLabel}` }}
+                            onOptionSelect={this.onDropDownChange.bind(this, `${Constants.sorting}`)}>
+                            {optionsYear && optionsYear.length > 0 && optionsYear.map((val) => {
+                                return <>
+                                    <Option key={`${val}`} className={`${styles.formLabel}`}>
+                                        {val}
+                                    </Option>
+                                </>
+                            })}
+                        </Dropdown>
+
+                    </FluentProvider>
+                </div >
+                <div className={`${styles.column4} ${styles.marginFilterTop}`}>
+                    <FluentProvider theme={webLightTheme}>
+                        <Tooltip content={
+                            <>
+                                <Label className={`${styles.normalLabel}`}>
+                                    {`${allYearsToolTipText.substring(0, allYearsToolTipLimit)}`}
+                                </Label>
+                                <Divider appearance="subtle"></Divider>
+                                <Label className={`${styles.normalLabel}`}>
+                                    {`${Text.format(previousYearsToolTipText, (new Date().getFullYear() - 1)).substring(0, previousYearsToolTipLimit)}`}
+                                </Label>
+                            </>
+                        }
+                            withArrow={true}
+                            relationship="label">
+                            <Info20Regular />
+                        </Tooltip>
+                    </FluentProvider>
+                </div>
             </div>
         </>;
 
         return tagPickerJSX;
+    }
+
+    private onDropDownChange = (textLabel: string, event: SelectionEvents, data: OptionOnSelectData) => {
+
+        const { allItems } = this.state;
+        const { selectedSupportingCirculars } = this.props
+        switch (textLabel) {
+            case Constants.sorting: this.setState({
+                selectedYear: data.optionValue,
+                // sortingFields: data.optionValue == "Date" ? Constants.colPublishedDate : Constants.colSubject
+            }, () => {
+
+                const { selectedYear, } = this.state
+                // const { filteredItems, sortingFields, sortDirection } = this.state;
+                // this.setState({ filteredItems: this.sortListItems(filteredItems, sortingFields, sortDirection) })
+
+                if (selectedYear == "Previous Year") {
+
+                    let currentDate = new Date();
+                    let lastYearStartDate = `${currentDate.getFullYear() - 1}` + `-10-01`;//${currentDate.getFullYear() - 1}
+                    let currentMonth = currentDate.getMonth() + 1 < 10 ? `0` + (currentDate.getMonth() + 1) : (currentDate.getMonth() + 1);
+                    let currentDay = currentDate.getDate() < 10 ? `0` + (currentDate.getDate()) : currentDate.getDate()
+                    let currentEndDate = `${currentDate.getFullYear()}` + `-` + currentMonth;
+                    currentEndDate += `-` + (currentDay); //+ `T23:59:59:59Z`;
+
+                    let fromDate = new Date(lastYearStartDate);
+                    let toDate = new Date(currentEndDate);
+
+                    let previousYearCirculars = allItems.filter((val) => {
+                        let publishedDate = new Date(val.PublishedDate);
+                        return publishedDate >= fromDate && publishedDate <= toDate
+                    });
+
+                    let checkBoxCollection = new Map<string, any[]>();
+
+                    checkBoxCollection.set(`${Constants.searchSupportingCirculars}`, previousYearCirculars.map((val) => {
+                        let isValueChecked = selectedSupportingCirculars?.filter((circular) => {
+                            return circular.CircularNumber == val.CircularNumber
+                        })
+                        return {
+                            checked: isValueChecked?.length > 0 ?? false,
+                            value: val.CircularNumber,
+                            ...val
+                        }
+                    }));
+
+                    this.setState({ circularCollection: previousYearCirculars.map((val) => val.CircularNumber), checkBoxCollection })
+
+                }
+                else {
+                    this.allYears()
+                }
+
+            });
+                break;
+        }
     }
 
     private onTagPickerBlur = (selectedInput: string) => {
@@ -259,11 +429,11 @@ export default class SupportingDocument extends React.Component<ISupportingDocum
     private _onEmptyInputFocus = (selectedInput, filterText, tagList) => {
         const { circularCollection } = this.state;
         let filters = [];
-        switch (selectedInput) {
-            case `Search ${Constants.department}`: filters = circularCollection;
-                break;
+        // switch (selectedInput) {
+        //     case `Search ${Constants.department}`: filters = circularCollection;
+        //         break;
 
-        }
+        // }
 
         return []
 

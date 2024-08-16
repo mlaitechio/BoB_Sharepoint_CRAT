@@ -22,6 +22,8 @@ import { IBobCircularRepositoryProps } from '../IBobCircularRepositoryProps';
 import JSZip from "jszip";
 import { saveAs } from 'file-saver';
 import MyPdfViewer from '../PDFViewer/PDFViewer';
+import { Text } from '@microsoft/sp-core-library'
+import { rgb } from 'pdf-lib';
 
 
 
@@ -241,16 +243,27 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
 
         const { isPanelOpen, initialPreviewFileUrl, allFiles, fileContent, choiceGroup, selectedFile, isAllowedToUpdate, showLoading } = this.state;
         const { listItem } = this.props;
+        const { published, expired, archived, infoPDFText, warninglimitedPDFText, warningUnlimitedPDFText } = Constants;
         let providerValue = this.context;
         const { responsiveMode, context, userInformation } = providerValue as IBobCircularRepositoryProps;
-        const waterMarkText = userInformation?.employeeId ?? context.pageContext.user.displayName;  //context.pageContext.user.displayName;
+        const waterMarkText = userInformation?.employeeId ? userInformation?.employeeId + ` \n \n \n` + context.pageContext.user.displayName : context.pageContext.user.displayName;  //context.pageContext.user.displayName;
         let isMobileMode = responsiveMode == 0 || responsiveMode == 1 || responsiveMode == 2;
         let informationColumn = isMobileMode ? `${styles.column12}` : `${styles.column12}`;
         let filePreviewColumn = isMobileMode ? `${styles.column12}` : `${styles.column12}`
         let references = [];
         let hidePreviewColor = initialPreviewFileUrl.includes('.ppt') ? `#444444` : initialPreviewFileUrl.includes('.xls') ? `#217346` : `white`;
 
-        console.log(listItem)
+        const circularStatus = listItem.CircularStatus;
+        const limited = listItem.Classification == Constants.limited;
+        const currentDate = new Date();
+        const month = (currentDate.getMonth() + 1 < 10 ? '0' : '') + (currentDate.getMonth() + 1);
+        const day = (currentDate.getDate() < 10 ? '0' : '') + currentDate.getDate();
+        const year = currentDate.getFullYear().toString();
+        const formatDate = `${day}/${month}/${year}`;
+
+        const footerText = circularStatus == published ? Text.format(infoPDFText, formatDate) :
+            circularStatus == archived && limited ? Text.format(warninglimitedPDFText, formatDate) : Text.format(warningUnlimitedPDFText, formatDate);
+        const footerTextColor = circularStatus == published ? rgb(0.02, 0.02, 0.02) : circularStatus == archived ? rgb(0.86, 0.09, 0.26) : rgb(0.86, 0.09, 0.26);
 
         let infoPanelJSX = <>
             {
@@ -280,7 +293,7 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
                         }
                     }}
                 >
-                    {this.props.listItem != undefined &&
+                    {listItem != undefined &&
                         <>
                             <div className={`${styles.row}`}>
                                 <div className={`${informationColumn}`}>
@@ -325,6 +338,8 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
                                                 pdfFilePath={allFiles[0].FileURL}
                                                 currentSelectedFileContent={fileContent}
                                                 watermarkText={`${waterMarkText}`}
+                                                footerText={footerText}
+                                                footerTextColor={footerTextColor}
                                                 documentLoaded={() => { this.props.documentLoaded() }}
                                             />
                                         }

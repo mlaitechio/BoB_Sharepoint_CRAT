@@ -185,7 +185,8 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
         const { listItems, accordionFields, currentSelectedItem, currentSelectedItemId, filteredItems } = this.state;
         let filteredPageItems = this.paginateFn(filteredItems);
         const columns = [
-            { columnKey: "Subject", label: "Document Title", columnType: "Text" },
+            { columnKey: "CircularNo", label: "Circular No", columnType: "Text" },
+            { columnKey: "Subject", label: "Subject", columnType: "Text" },
             { columnKey: "ID", label: "ID", columnType: "Number" },
             { columnKey: "Created", label: "Created Date", columnType: "Date" },
             { columnKey: "CircularStatus", label: "Circular Status", columnType: "Text" },
@@ -242,7 +243,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                                 {columns.map((column, index) => (
                                     <TableHeaderCell
                                         key={column.columnKey}
-                                        colSpan={index == 0 ? 3 : 1}
+                                        colSpan={index == 1 ? 2 : 1}
                                         style={index == 0 ? { paddingLeft: 15 } : {}}
                                         className={`${styles1.fontWeightBold}`}>
                                         {column.label}
@@ -268,14 +269,16 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
 
                                     return <>
                                         <TableRow className={`${styles1.tableRow}`} >
-                                            <TableCell colSpan={3}>
-                                                <TableCellLayout className={`${styles1.verticalSpacing}`} style={{ padding: 5 }}>
-                                                    <div
-                                                        className={`${styles1.colorLabel}`}
-                                                        style={{
-                                                            color: val.Classification == "Master" ? "#f26522" : "#162B75"
-                                                        }}>{val.CircularNumber}</div>
-                                                    <div className={`${styles1.verticalSpacing}`}>
+                                            <TableCell>
+                                                <div
+                                                    className={`${styles1.colorLabel}`}
+                                                    style={{
+                                                        color: val.Classification == "Master" ? "#f26522" : "#162B75"
+                                                    }}>{val.CircularNumber}</div>
+                                            </TableCell>
+                                            <TableCell colSpan={2}>
+                                                <TableCellLayout>
+                                                    <div style={{ paddingLeft: 5 }}>
                                                         <Button
                                                             style={{
                                                                 padding: 0, fontWeight: 400,
@@ -286,7 +289,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                                                             onClick={this.onDetailItemClick.bind(this, val, Constants.colSubject)}>
                                                             <div style={{
                                                                 textAlign: "left",
-                                                                marginTop: 5,
+                                                                // marginTop: 5,
                                                                 color: val.Classification == "Master" ? "#f26522" : "#162B75"
                                                             }}>{val.Subject} </div>
                                                             {/* <OpenRegular /> */}
@@ -351,7 +354,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                                         </TableRow >
                                         <TableRow className={`${tableRowClass}`}>
 
-                                            <TableCell colSpan={4}>
+                                            <TableCell colSpan={5}>
                                                 <div className={`${styles1.row}`}>
                                                     <div className={`${styles1.column1}`} style={{ paddingLeft: "0px", marginRight: 25 }}>
                                                         <Button icon={accordionFields.isSummarySelected && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}

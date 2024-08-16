@@ -75,6 +75,41 @@ supporting documents > list of circulars will be of specific department (multipl
 
 
 
+private clearAllFormFields = () => {
+        this.setState({
+            circularListItem: {
+                CircularNumber: ``,
+                CircularStatus: `New`,
+                CircularType: `${Constants.limited}`,
+                SubFileCode: ``,
+                IssuedFor: ``,
+                Category: ``,
+                Classification: ``,
+                Expiry: null,
+                Subject: ``,
+                Keywords: ``,
+                Department: ``,
+                Compliance: ``,
+                Gist: ``,
+                CommentsMaker: ``,
+                CommentsChecker: ``,
+                CommentsCompliance: ``,
+                CircularContent: ``,
+                CircularFAQ: ``,
+                CircularSOP: ``,
+                SupportingDocuments: ``
+            },
+            lblCompliance: ``,
+            lblCircularType: Constants.limited,
+            isBack: false,
+            isDelete: false,
+            isSuccess: false,
+            isLoading: false,
+            expiryDate: null
+
+        });
+    }
+
 private createDocumentPreview = (attachmentCollection: any[], ItemAttachmentUrl: string): JSX.Element => {
 
         let previewJSXDocument =

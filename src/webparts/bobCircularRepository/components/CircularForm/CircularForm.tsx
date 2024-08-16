@@ -46,6 +46,10 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
     private editSOPFileAttachments: Map<string, any>;
     private deleteSOPFileAttachments: Map<string, any>;
     private sopFileInput;
+    private supportingDocAttachments: Map<string, any>;
+    private editSupportingDocAttachments: Map<string, any>;
+    private deleteSupportingDocAttachments: Map<string, any>;
+    private supportingDocFileInput;
 
     public constructor(props) {
         super(props)
@@ -88,10 +92,13 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 CircularAuditStatus: ``,
                 CircularMetadata: ``
             },
-            currentCircularListItemValue: undefined,
+            currentCircularListItemValue: null,
             isRequesterMaker: true, // Initially when form loads this will be true for new form & it will change in edit/view form load 
             selectedSupportingCirculars: [],
+            sopUploads: new Map<string, any>(),
             sopAttachmentColl: [],
+            supportingDocUploads: new Map<string, any>(),
+            supportingDocAttachmentColl: [],
             showSubmitDialog: false,
             submittedStatus: ``,
             alertTitle: `Validation Alert!`,
@@ -119,7 +126,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             currentItemID: -1,
             isExpiryDateDisabled: false,
             openSupportingCircularFile: false,
-            supportingDocLinkItem: undefined,
+            supportingDocLinkItem: [],
             isFileSizeAlert: false,
             isFileTypeAlert: false,
             isDuplicateCircular: false,
@@ -129,10 +136,29 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         }
 
 
+        /**
+        |--------------------------------------------------
+        | SOP File Input
+        |--------------------------------------------------
+        */
         this.sopFileInput = React.createRef();
         this.sopFileAttachments = new Map<string, any>();
         this.editSOPFileAttachments = new Map<string, any>();
         this.deleteSOPFileAttachments = new Map<string, any>();
+
+
+        /**
+        |--------------------------------------------------
+        | Supporting Doc Input
+        |--------------------------------------------------
+        */
+
+        this.supportingDocFileInput = React.createRef();
+        this.supportingDocAttachments = new Map<string, any>();
+        this.editSupportingDocAttachments = new Map<string, any>();
+        this.deleteSupportingDocAttachments = new Map<string, any>();
+
+
     }
 
 
@@ -453,6 +479,48 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
     }
 
 
+    private deleteSupportingUploadedFiles = (fileName) => {
+
+        console.log(this.supportingDocAttachments)
+
+        if (this.supportingDocAttachments.has(fileName)) {
+
+            if (this.editSupportingDocAttachments.has(fileName)) {
+                this.deleteSupportingDocAttachments.set(fileName, this.editSupportingDocAttachments.get(fileName))
+            }
+
+            this.supportingDocAttachments.delete(fileName);
+
+            this.setState({
+                supportingDocUploads: this.supportingDocAttachments
+            }, () => {
+
+                let { supportingDocUploads } = this.state;
+                let attachmentColl = [];
+                let i = 0;
+                supportingDocUploads.forEach((value, key) => {
+                    value.index = i;
+                    attachmentColl.push(value);
+                    i++;
+                });
+
+                if (attachmentColl.length > 0) {
+                    this.setState({
+                        supportingDocAttachmentColl: attachmentColl
+                    });
+                }
+                else {
+                    this.setState({
+                        supportingDocAttachmentColl: attachmentColl
+                    })
+                }
+
+            })
+
+        }
+    }
+
+
     private createSOPPreviewURL = (file: IAttachmentFile) => {
         let documentPreviewURL = ``
         let providerValue = this.context;
@@ -610,13 +678,13 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 {
                     (isFormInValid || isFileSizeAlert || isFileTypeAlert || isDuplicateCircular) &&
                     this.alertControl((isFormInValid || isFileSizeAlert || isFileTypeAlert || isDuplicateCircular),
-                        title, undefined, message, this.alertButton())
+                        title, ``, message, this.alertButton())
                 }
                 {
                     openSupportingDocument && this.filterPanelSupportingDocument()
                 }
                 {
-                    isDeleteCircularFile && this.alertControl(isDeleteCircularFile, title, undefined, message, this.alertButton())
+                    isDeleteCircularFile && this.alertControl(isDeleteCircularFile, title, ``, message, this.alertButton())
                 }
                 {openSupportingCircularFile && this.supportingDocumentFileViewerPanel()}
                 {
@@ -690,12 +758,21 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         let providerValue = this.context;
         const { context, isUserChecker, isUserMaker, isUserCompliance } = providerValue as IBobCircularRepositoryProps;
         const { displayMode, currentPage } = this.props
-        const { keywordsToolTip, categoryToolTip } = Constants
+        const { keywordsToolTip, categoryToolTip } = Constants;
+
+
         let circularStatus = circularListItem.CircularStatus;
         let showCommentHistory = circularStatus != Constants.lblNew && circularStatus != Constants.draft;
         const { configVal } = Constants;
         let maxSupportingDocument = configuration.filter(val => val.Title == configVal.SupportingDocuments)[0]?.Limit ?? 20;
         let maxGistWord = configuration.filter(val => val.Title == configVal.GistMaxWord)[0]?.Limit ?? 5;
+
+        let templateToolTipText = configuration.filter(val => val.Title == configVal.TemplateToolTipText)[0]?.ToolTip ?? ``;
+        let templateToolTipLimit = configuration.filter(val => val.Title == configVal.TemplateToolTipText)[0]?.Limit ?? 1000;
+        let keyWordsToolTipText = configuration.filter(val => val.Title == configVal.KeyWordsToolTipText)[0]?.ToolTip ?? ``;
+        let keyWordsToolTipLimit = configuration.filter(val => val.Title == configVal.KeyWordsToolTipText)[0]?.Limit ?? 1000;
+        let supportingDocToolTipText = configuration.filter(val => val.Title == configVal.SupportingDocToolTipText)[0]?.ToolTip ?? ``;
+        let supportingDocToolTipLimit = configuration.filter(val => val.Title == configVal.SupportingDocuments)[0]?.Limit ?? 1000;
 
         /**
         |--------------------------------------------------
@@ -763,7 +840,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                         {this.textFieldControl(`${Constants.subFileNo}`, false, `${circularListItem.SubFileCode}`, disableControl, ``)}
                     </div>
                     <div className={`${styles.column6}`}>
-                        {this.textFieldControl(`${Constants.keyWords}`, true, `${circularListItem.Keywords}`, disableControl, `Field cannot be empty`, ``, true, keywordsToolTip)}
+                        {this.textFieldControl(`${Constants.keyWords}`, true, `${circularListItem.Keywords}`, disableControl, `Field cannot be empty`, ``, true, [keyWordsToolTipText], keyWordsToolTipLimit)}
                     </div>
                 </div>
                 <Divider appearance="subtle" ></Divider>
@@ -788,7 +865,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 <Divider appearance="subtle" ></Divider>
                 <div className={`${styles.row} ${styles.formFieldMarginTop}`}>
                     <div className={`${styles.column6}`}>
-                        {this.dropDownControl(`${Constants.lblTemplate}`, false, `${selectedTemplate}`, templates, disableControl, `Field cannot be empty`, true, ["Select Template File"])}
+                        {this.dropDownControl(`${Constants.lblTemplate}`, false, `${selectedTemplate}`, templates, disableControl, `Field cannot be empty`, true, [templateToolTipText], templateToolTipLimit)}
 
                     </div>
                     <div className={`${styles.column6}`}>
@@ -799,13 +876,26 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 </div>
                 <Divider appearance="subtle" ></Divider>
 
+                {/* {
+                    <div className={`${styles.row} ${styles.formFieldMarginTop}`}>
+                        <div className={`${styles.column12}`}>
+                            {this.fileUploadControl(`${Constants.supportingDocument}`, this.supportingDocFileInput, disableControl)}
+                        </div>
+                        <div className={`${styles.column6}`} style={{ padding: 10 }}>
+                            {this.supportingFilesControl(disableControl)}
+                        </div>
+                    </div>
+                } */}
+
+                <Divider appearance="subtle" ></Divider>
+
                 <div className={`${styles.row} ${styles.formFieldMarginTop}`}>
                     {/* {Check if Logged in User is Maker & Get All Circulars from Makers Department in search} */}
                     <div className={`${styles.column6}`}>
                         <Label className={`${styles.formLabel} ${styles.fieldTitle}`}>{`${Constants.supportingDocument}`}</Label>
                     </div>
                     <div className={`${styles.column6}`}>
-                        <Tooltip content={`Maximum ${maxSupportingDocument} supporting documents can be attached`}
+                        <Tooltip content={`${Text.format(supportingDocToolTipText, supportingDocToolTipLimit)}`}
                             relationship="description" positioning={"after"} withArrow={true}>
                             <Button appearance="primary" icon={<Add16Filled />}
                                 disabled={disableControl}
@@ -857,6 +947,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                                         <div className={`${styles.column1}`}>
                                             <Button
                                                 disabled={disableControl}
+                                                style={{ paddingTop: 0 }}
                                                 icon={<Delete16Regular />}
                                                 appearance="transparent"
                                                 onClick={() => { this.deleteSupportingCircular(listItem) }}></Button>
@@ -968,7 +1059,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             }).catch((error) => {
                 this.setState({
                     isLoading: false,
-                    supportingDocLinkItem: undefined,
+                    supportingDocLinkItem: [],
                     openSupportingCircularFile: false
                 })
                 console.log(error)
@@ -1314,7 +1405,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         return text.split(' ');
     }
 
-    private textFieldControl = (labelName: string, isRequired: boolean, value: string, isDisabled?: boolean, errorMessage?: string, placeholder?: string, isInfoLabel?: boolean, infoText?: any[]): JSX.Element => {
+    private textFieldControl = (labelName: string, isRequired: boolean, value: string, isDisabled?: boolean,
+        errorMessage?: string, placeholder?: string, isInfoLabel?: boolean, infoText?: any[], infoTextLimit?: any): JSX.Element => {
         const { displayMode } = this.props
         let columnClassLabel = labelName == Constants.circularNumber ? `${styles.column3}` : ``;
         let columnClassInput = labelName == Constants.circularNumber && displayMode == Constants.lblNew ?
@@ -1333,7 +1425,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                                 {infoText && infoText.length > 0 && infoText.map((val, index) => {
                                     return <>
                                         <div className={`${styles.column12} ${styles.marginBottom}`} style={{ marginTop: index == 0 ? 10 : 0 }}>
-                                            <Label className={`${styles.toolTipLabel}`}>{val}</Label>
+                                            <Label className={`${styles.toolTipLabel}`}>{val.substring(0, infoTextLimit ?? 1000)}</Label>
                                         </div>
                                         <Divider appearance="subtle"></Divider>
                                     </>
@@ -1420,7 +1512,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         return avatarControlJSX;
     }
 
-    private dropDownControl = (labelName: string, isRequired: boolean, value: string, options: any[], isDisabled?: boolean, errorMessage?: string, isInfoLabel?: boolean, infoText?: any[]): JSX.Element => {
+    private dropDownControl = (labelName: string, isRequired: boolean, value: string, options: any[], isDisabled?: boolean, errorMessage?: string, isInfoLabel?: boolean, infoText?: any[], infoTextLimit?: any): JSX.Element => {
         let dropDownControlJSX = <>
             <Field
                 label={{
@@ -1435,7 +1527,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                                     {infoText && infoText.length > 0 && infoText.map((val, index) => {
                                         return <>
                                             <div className={`${styles.column12} ${styles.marginBottom}`} style={{ marginTop: index == 0 ? 10 : 0 }}>
-                                                <Label className={`${styles.toolTipLabel}`}>{val}</Label>
+                                                <Label className={`${styles.toolTipLabel}`}>{val.substring(0, infoTextLimit ?? 1000)}</Label>
                                             </div>
 
                                         </>
@@ -1846,7 +1938,15 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 id={`file-picker_${labelName}`}
                 style={{ display: "none" }}
                 type="file"
-                onChange={(e) => { this.onFileUploadChange(labelName, e) }}
+                onChange={(e) => {
+                    if (labelName == Constants.sop) {
+                        this.onFileUploadChange(labelName, e)
+                    }
+                    else {
+                        this.onSupportingDocumentUpload(labelName, e)
+                    }
+
+                }}
                 ref={filePickerRef}
                 multiple
             />
@@ -1854,8 +1954,19 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             <Button icon={<ArrowUpload16Regular />}
                 onClick={this.onUploadClick.bind(this, labelName)}
                 disabled={isDisabled}
-                iconPosition="before"
-            > Upload SOP File
+                iconPosition="before">
+                {
+                    labelName == Constants.sop &&
+                    <>
+                        Upload SOP File
+                    </>
+                }
+                {
+                    labelName == Constants.supportingDocument &&
+                    <>
+                        Upload Supporting Documents
+                    </>
+                }
             </Button>
             <Field label={
                 <Label className={`${styles.formLabel} `}>
@@ -1870,13 +1981,19 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         return fileUploadJSX;
     }
 
+
+    /**
+    |--------------------------------------------------
+    | SOP Upload 
+    |--------------------------------------------------
+    */
     private onFileUploadChange = (labelName: string, e: React.ChangeEvent<HTMLInputElement>) => {
         const { sopAttachmentColl, circularListItem, configuration } = this.state
         const { configVal } = Constants;
         const files = e.target.files;
 
-        let providerValue = this.context;
-        const { context, services, serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
+        // let providerValue = this.context;
+        // const { context, services, serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
 
 
 
@@ -1972,12 +2089,124 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
     }
 
+    /**
+    |--------------------------------------------------
+    | On Supporting Documents Upload 
+    |--------------------------------------------------
+    */
+
+    private onSupportingDocumentUpload = (labelName: string, e: React.ChangeEvent<HTMLInputElement>) => {
+        const { supportingDocAttachmentColl, circularListItem, configuration } = this.state
+        const { configVal } = Constants;
+        const files = e.target.files;
+
+        // let providerValue = this.context;
+        // const { context, services, serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
+
+
+
+        let invalidFileSize = [];
+        let inValidFileType = [];
+        let invalidFileLimit = [];
+
+        let fileCount = files.length + supportingDocAttachmentColl?.length;
+        let isFormValid = this.validateAllRequiredFields();
+        // Configure 
+        let maxFileSizeMB = configuration.filter(val => val.Title == configVal.SupportingDocSizeinMB)[0]?.Limit ?? 5120;
+        let uploadLimit = configuration.filter(val => val.Title == configVal.SupportingDocUpload)[0]?.Limit ?? 5;
+
+        if (files && isFormValid) {
+
+            for (let i = 0; i < files.length; i++) {
+
+                let fileExtension = files[i].name.split('.');
+
+                let circularNumberText = circularListItem.CircularNumber;
+                let circularNumberIndexOf = circularNumberText.indexOf(`${this.getCircularNumber()}`);
+                let circularFileName = ``;
+                let isCircularFile = false;
+                // if BOB:BR:116: not present then circular Number will be this
+                if (circularNumberIndexOf == -1) {
+                    circularFileName = `${this.getCircularNumber()}` + `${circularNumberText}` + `.docx`;
+                    isCircularFile = circularFileName == files[i].name
+                }
+                else {
+                    circularFileName = circularNumberText.split(':').join('_') + `.docx`;
+                    isCircularFile = circularFileName == files[i].name
+                }
+
+                if (fileExtension.length < 3 && !isCircularFile && (files[i].name.indexOf('.docx') > -1 || files[i].name.indexOf('.pdf') > -1)) {
+                    let sizeInMB = Math.round((files[i].size) / 1024);
+                    if (sizeInMB <= (maxFileSizeMB * 1024)) {
+                        if ((this.supportingDocAttachments.has(files[i].name)) || fileCount <= 5) {
+                            this.supportingDocAttachments.delete(files[i].name);
+                            this.supportingDocAttachments.set(files[i].name, files[i]);
+                        }
+                        else if (fileCount <= uploadLimit) {
+                            this.supportingDocAttachments.set(files[i].name, files[i]);
+                        }
+                    }
+                    else {
+                        invalidFileSize.push(sizeInMB);
+                    }
+
+                }
+                else {
+                    inValidFileType.push(files[i].type)
+                }
+
+            }
+
+            if (invalidFileSize.length > 0) {
+                this.setState({ isFileSizeAlert: true, isFileTypeAlert: false })
+            }
+            else if (inValidFileType.length > 0) {
+                this.setState({ isFileSizeAlert: false, isFileTypeAlert: true })
+            }
+
+            this.setState({ supportingDocUploads: this.supportingDocAttachments }, async () => {
+                const { supportingDocUploads } = this.state
+                let attachmentColl = [];
+                let i = 0;
+
+                // await services.addFileToListItem(serverRelativeUrl, Constants.circularList, 3152, files[0].name, files[0]).then((val) => {
+                //     console.log(val);
+                // }).catch((error) => {
+                //     console.log(error);
+                // })
+
+                supportingDocUploads.forEach(async (value, key) => {
+                    value.index = i;
+                    value.FileName = key;
+                    value.ServerRelativeUrl = value?.ServerRelativeUrl ?? ``;
+                    value.UniqueId = value?.UniqueId ?? ``;
+                    if (value.hasOwnProperty(`isFileEdit`)) {
+                        value.isFileEdit = value?.isFileEdit
+                    }
+
+                    attachmentColl.push(value);
+                    i++;
+                });
+
+                this.setState({ supportingDocAttachmentColl: attachmentColl })
+            })
+        }
+
+        else {
+            this.setState({ isFormInValid: true })
+        }
+
+    }
+
     private onUploadClick = (labelName: string) => {
         switch (labelName) {
             case Constants.sop:
                 this.sopFileInput.current.value = "";
                 this.sopFileInput.current.click();
-
+                break;
+            case Constants.supportingDocument:
+                this.supportingDocFileInput.current.value = "";
+                this.supportingDocFileInput.current.click();
                 break;
             default:
                 break;
@@ -2026,6 +2255,51 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         </>
 
         return sopFileUploadJSX;
+    }
+
+
+    private supportingFilesControl = (isDisabled?: boolean): JSX.Element => {
+
+        const { supportingDocAttachmentColl } = this.state;
+
+        let supportingFileUploadJSX = <>
+            {
+                supportingDocAttachmentColl && supportingDocAttachmentColl.length > 0 &&
+
+                supportingDocAttachmentColl.map((file) => {
+                    const fileName = file.FileName;
+
+                    return <div className={`${styles.column12}`} style={{ marginBottom: 5 }}>
+                        <div className={`${styles.row}`}>
+                            <div className={`${styles.column1}`}> <Attach16Filled></Attach16Filled></div>
+                            <div className={`${styles.column10}`}>
+                                <Link
+                                    onClick={() => {
+                                        this.setState({ selectedFileName: fileName }, () => {
+                                            this.createSOPPreviewURL(file)
+                                        })
+                                    }}
+                                    style={{
+                                        wordBreak: "break-all",
+                                        padding: 5
+                                    }}
+                                >{fileName}</Link>
+                                <Button disabled={isDisabled}
+                                    icon={<Delete16Regular></Delete16Regular>} style={{ marginLeft: 5 }}
+                                    onClick={() => { this.deleteSupportingUploadedFiles(fileName) }}></Button>
+                            </div>
+                            <div className={`${styles.column1}`}>
+
+                            </div>
+                        </div>
+                    </div>
+                })
+
+
+            }
+        </>
+
+        return supportingFileUploadJSX;
     }
 
 
@@ -2251,6 +2525,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         let panelSupportingDocumentsJSX = <>
             <SupportingDocument department={`${circularListItem.Department}`}
                 providerValue={providerValue}
+                configuration={this.state.configuration}
                 selectedSupportingCirculars={selectedSupportingCirculars}
                 onDismiss={(supportingCirculars) => {
                     this.setState({
@@ -2402,7 +2677,9 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
 
     private saveForm = (status?: string) => {
-        const { circularListItem, currentCircularListItemValue, sopAttachmentColl, sopUploads, attachedFile, auditListItem } = this.state;
+        const { circularListItem,
+            currentCircularListItemValue, sopAttachmentColl,
+            sopUploads, attachedFile, auditListItem, selectedSupportingCirculars } = this.state;
         let isFormValid = this.validateAllRequiredFields();
         const { displayMode } = this.props;
 
@@ -2435,7 +2712,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     })
 
 
-                if (currentCircularListItemValue == undefined && !isCircularNumberExist) {
+                if (currentCircularListItemValue == null && !isCircularNumberExist) {
 
                     circularListItem.CircularStatus = status;
                     circularListItem.CircularCreationDate = new Date().toISOString().split('T')[0] + `T00:00:00Z`;
@@ -2494,6 +2771,12 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                         auditListItem.CircularAuditStatus = status;
                     }
 
+                    /**
+                    |--------------------------------------------------
+                    | On Item Publish Docx to PDF conversion & Update Circular Status to Archived
+                    |--------------------------------------------------
+                    */
+
                     if (status == Constants.published) {
                         let circularFileName = attachedFile ? attachedFile.FileName : ``;
                         if (circularFileName != "") {
@@ -2508,8 +2791,29 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                             }).catch((error) => {
                                 console.log(error);
                                 console.log(`Error while converting the file`);
+                                this.setState({ isLoading: false })
                             })
-                           
+
+                        }
+
+                        if (selectedSupportingCirculars && selectedSupportingCirculars.length > 0) {
+                            let itemIDs = selectedSupportingCirculars.map((val) => {
+                                return val.ID
+                            });
+
+                            let archivedObject = {
+                                CircularStatus: Constants.archived
+                            }
+
+                            await services.updateMultipleListItem(serverRelativeUrl, Constants.circularList, itemIDs, archivedObject).then((updateItem) => {
+                                console.log(updateItem);
+                                console.log(`Circulars Archived`)
+                            }).catch((error) => {
+                                console.log(error);
+                                this.setState({ isLoading: false });
+                            });
+
+
                         }
 
                         circularListItem.PublishedDate = new Date().toISOString().split('T')[0] + `T00:00:00Z`;
@@ -2530,7 +2834,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                                     ID, this.deleteSOPFileAttachments).then((deleteResult) => {
                                         console.log(deleteResult)
                                     }).catch((error) => {
-                                        console.log(error)
+                                        console.log(error);
+                                        this.setState({ isLoading: false })
                                     })
 
                                 // let deleteFileRelativeUrl: string[] = [];
@@ -2554,8 +2859,11 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                                 if (updateNewAttachment.length > 0) {
 
                                     await services.addListItemAttachments(serverRelativeUrl, Constants.circularList, ID, updateNewAttachment).then((results) => {
+                                        console.log(results)
                                         return results
                                     }).catch((error) => {
+                                        this.setState({ isLoading: false })
+                                        console.log(error)
                                         return error;
                                     })
                                 }
@@ -2569,14 +2877,37 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                                 */
                             if (circularListItem.CircularStatus != Constants.draft) {
 
-                                auditListItem.Title = circularListItem.CircularNumber;
+                                if (circularListItem.CircularNumber.indexOf(`${this.getCircularNumber()}`) > -1) {
+                                    auditListItem.Title = circularListItem.CircularNumber;
+                                }
+                                else {
+                                    auditListItem.Title = `${this.getCircularNumber()}` + circularListItem.CircularNumber;
+                                }
 
                                 await services.createItem(serverRelativeUrl, Constants.commentsAuditLogs, auditListItem).then((auditItem) => {
                                     console.log(`Item Added to comments Log List`, auditItem);
                                 }).catch((error) => {
                                     console.log(`Error Adding to comments Audit logs`);
+                                    this.setState({ isLoading: false })
                                     console.log(error)
-                                })
+                                });
+
+                                if (status == Constants.published) {
+                                    if (selectedSupportingCirculars.length > 0) {
+
+                                        let allArchivedIDs = selectedSupportingCirculars.map(val => val.ID).join(',');
+                                        auditListItem.CommentsHistory = `Archived Supporting Circulars: [` + allArchivedIDs + `]`;
+
+                                        await services.createItem(serverRelativeUrl, Constants.commentsAuditLogs, auditListItem).then((auditItem) => {
+                                            console.log(`Item Added to comments Log List`, auditItem);
+                                        }).catch((error) => {
+                                            console.log(`Error Adding to comments Audit logs`);
+                                            this.setState({ isLoading: false })
+                                            console.log(error)
+                                        });
+                                    }
+
+                                }
                             }
 
                             this.setState({
@@ -2651,7 +2982,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
         if (selectedTemplateFile.length > 0) {
 
-            if (attachedFile == null && currentCircularListItemValue == undefined) {
+            if (attachedFile == null && currentCircularListItemValue == null) {
                 this.setState({ isLoading: true }, async () => {
 
                     if (circularListItem.CircularStatus == Constants.lblNew) {
@@ -2766,40 +3097,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
     }
 
 
-    private clearAllFormFields = () => {
-        this.setState({
-            circularListItem: {
-                CircularNumber: ``,
-                CircularStatus: `New`,
-                CircularType: `${Constants.limited}`,
-                SubFileCode: ``,
-                IssuedFor: ``,
-                Category: ``,
-                Classification: ``,
-                Expiry: null,
-                Subject: ``,
-                Keywords: ``,
-                Department: ``,
-                Compliance: ``,
-                Gist: ``,
-                CommentsMaker: ``,
-                CommentsChecker: ``,
-                CommentsCompliance: ``,
-                CircularContent: ``,
-                CircularFAQ: ``,
-                CircularSOP: ``,
-                SupportingDocuments: ``
-            },
-            lblCompliance: ``,
-            lblCircularType: Constants.limited,
-            isBack: false,
-            isDelete: false,
-            isSuccess: false,
-            isLoading: false,
-            expiryDate: null
 
-        });
-    }
 
 }
 

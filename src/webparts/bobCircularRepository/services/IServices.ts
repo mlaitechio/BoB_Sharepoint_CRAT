@@ -27,4 +27,6 @@ export interface IServices {
     deleteListItemAttachment: (serverRelativeUrl: string, listName: string, itemID: number, fileName: string) => Promise<any>;
     addFileToListItem: (serverRelativeUrl: string, listName: string, itemID: number, fileArray: any[]) => Promise<any>;
     convertDocxToPDF: (serverRelativeUrl: string, listName: string, itemID: number, fileName: string) => Promise<any>;
+    updateMultipleListItem: (serverRelativeUrl: string, listName: string, itemID: any[], metadata: any) => Promise<any[]>;
+    sendEmail: (emailAddress: string, subject: string, body: any) => Promise<any>;
 }

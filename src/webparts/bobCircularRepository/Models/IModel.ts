@@ -65,6 +65,7 @@ export interface ICheckBoxCollection {
 }
 
 export interface ICircularListItem {
+    ArchivalDate?: string | Date;
     ID?: string;
     Id?: string;
     CreatedBy?: string;
@@ -140,6 +141,7 @@ export interface ICircularConfig {
     Title: string;
     Limit: number;
     ID: number;
+    ToolTip: string;
 }
 
 export interface IADProperties {

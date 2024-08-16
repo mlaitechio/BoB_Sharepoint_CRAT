@@ -76,7 +76,7 @@ import { IBobCircularRepositoryProps } from '../IBobCircularRepositoryProps';
 import Pagination from 'react-js-pagination';
 import { DataContext } from '../../DataContext/DataContext';
 import FileViewer from '../FileViewer/FileViewer';
-import { AddCircleRegular, ArrowClockwise24Regular, ArrowClockwiseRegular, ArrowCounterclockwiseRegular, ArrowDownloadRegular, ArrowDownRegular, ArrowResetRegular, ArrowUpRegular, Attach12Filled, CalendarRegular, ChevronDownRegular, ChevronUpRegular, Dismiss24Regular, DismissRegular, EyeRegular, Filter12Regular, Filter16Regular, FilterRegular, MoreVerticalRegular, OpenRegular, Search24Regular, ShareAndroidRegular, TextAlignJustifyRegular } from '@fluentui/react-icons';
+import { AddCircleRegular, Archive20Filled, Archive24Filled, ArchiveFilled, ArrowClockwise24Regular, ArrowClockwiseRegular, ArrowCounterclockwiseRegular, ArrowDownloadRegular, ArrowDownRegular, ArrowResetRegular, ArrowUpRegular, Attach12Filled, CalendarRegular, Check24Filled, CheckmarkCircle20Filled, CheckmarkCircle24Filled, CheckmarkCircleFilled, ChevronDownRegular, ChevronUpRegular, Dismiss24Regular, DismissRegular, EyeRegular, Filter12Regular, Filter16Regular, FilterRegular, MoreVerticalRegular, OpenRegular, Search24Regular, ShareAndroidRegular, SubtractCircle20Filled, TextAlignJustifyRegular } from '@fluentui/react-icons';
 import { ICheckBoxCollection, ICircularListItem } from '../../Models/IModel';
 import { PDFDocument, StandardFonts, degrees, error, rgb } from 'pdf-lib';
 import download from 'downloadjs'
@@ -113,12 +113,12 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       sortingFields: ``,
       publishedStartDate: null,
       publishedEndDate: null,
-      previewItems: undefined,
-      filePreviewItem: undefined,
+      previewItems: null,
+      filePreviewItem: null,
       isSearchNavOpen: true,
       currentSelectedItemId: -1,
       sortingOptions: ["Date", "Subject"],
-      currentSelectedFile: undefined,
+      currentSelectedFile: null,
       isAccordionSelected: false,
       openPanelCheckedValues: [],
       checkBoxCollection: new Map<string, ICheckBoxCollection[]>(),
@@ -158,12 +158,18 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
     this.setState({ isLoading: true }, async () => {
 
+      // await services.sendEmail(`kumar.v@mlaitech.io`, `Test Subject`, `Test Email`).then((val) => {
+      //   console.log(`Email Sent`)
+      // }).catch((error) => {
+      //   console.log(`Email Errored out`, error)
+      // })
+
       await services.getPagedListItems(serverRelativeUrl,
         Constants.circularList, Constants.colCircularRepository, `${Constants.filterString}`,
         Constants.expandColCircularRepository, 'PublishedDate', false).then(async (value: ICircularListItem[]) => {
 
           const listItems = value?.filter((val) => {
-            return val.CircularStatus == Constants.published;
+            return val.CircularStatus == Constants.published || val.CircularStatus == Constants.archived;
           })
 
           const uniqueDepartment: any[] = [...new Set(listItems.map((item) => {
@@ -489,7 +495,11 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
             {/* {Department} */}
             <div className={`${styles1.column10} ${styles1.marginFilterTop} `}>
-              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`${Constants.department}`}</FluentLabel>} ></Field>
+              <Field
+                label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}
+                  onClick={() => { this.onFilterAccordionClick(Constants.department) }}>
+                  {`${Constants.department}`}</FluentLabel>} >
+              </Field>
             </div>
             <div className={`${styles1.column2} ${styles1.marginFilterTop} `}>
               <Button appearance="transparent"
@@ -532,7 +542,12 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
             {/* {Circular Number} */}
             <div className={`${styles1.column10} ${styles1.marginFilterTop} `}>
-              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`${Constants.circularNumber}`}</FluentLabel>} ></Field>
+              <Field label={<FluentLabel
+                weight="semibold"
+                style={{ fontFamily: "Roboto" }}
+                onClick={() => { this.onFilterAccordionClick(Constants.circularNumber) }}>
+                {`${Constants.circularNumber}`}
+              </FluentLabel>} ></Field>
             </div>
             <div className={`${styles1.column2} ${styles1.marginFilterTop} `}>
               <Button appearance="transparent"
@@ -574,7 +589,9 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
           {/* {Published Year} */}
           <div className={`${styles1.row} `}>
             <div className={`${styles1.column10} ${styles1.marginFilterTop}`}>
-              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`Published Year`}</FluentLabel>} >
+              <Field label={<FluentLabel weight="semibold"
+                onClick={() => { this.onFilterAccordionClick(Constants.publishedYear) }}
+                style={{ fontFamily: "Roboto" }}>{`Published Year`}</FluentLabel>} >
               </Field>
             </div>
             <div className={`${styles1.column2} ${styles1.marginFilterTop} `}>
@@ -615,7 +632,9 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
           {/* {Classification} */}
           <div className={`${styles1.row} ${styles1.marginFilterTop}`}>
             <div className={`${styles1.column10} ${styles1.marginFilterTop} `}>
-              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`${Constants.classification}`}</FluentLabel>} ></Field>
+              <Field label={<FluentLabel weight="semibold"
+                onClick={() => { this.onFilterAccordionClick(Constants.classification) }}
+                style={{ fontFamily: "Roboto" }}>{`${Constants.classification}`}</FluentLabel>} ></Field>
             </div>
             <div className={`${styles1.column2} ${styles1.marginFilterTop} `}>
               <Button
@@ -637,7 +656,10 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
           {/* {Issued For} */}
           <div className={`${styles1.row} ${styles1.marginFilterTop}`}>
             <div className={`${styles1.column10} ${styles1.marginFilterTop} `}>
-              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`${Constants.issuedFor}`}</FluentLabel>} >
+              <Field label={<FluentLabel
+                weight="semibold"
+                onClick={() => { this.onFilterAccordionClick(Constants.issuedFor) }}
+                style={{ fontFamily: "Roboto" }}>{`${Constants.issuedFor}`}</FluentLabel>} >
               </Field>
             </div>
             <div className={`${styles1.column2} ${styles1.marginFilterTop} `}>
@@ -660,7 +682,10 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
           {/* {Compliance} */}
           <div className={`${styles1.row} ${styles1.marginFilterTop}`}>
             <div className={`${styles1.column10} ${styles1.marginFilterTop} `}>
-              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`${Constants.compliance}`}</FluentLabel>} ></Field>
+              <Field label={<FluentLabel
+                weight="semibold"
+                onClick={() => { this.onFilterAccordionClick(Constants.compliance) }}
+                style={{ fontFamily: "Roboto" }}>{`${Constants.compliance}`}</FluentLabel>} ></Field>
             </div>
             <div className={`${styles1.column2} ${styles1.marginFilterTop} `}>
               <Button
@@ -683,7 +708,9 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
           {/* {Category} */}
           <div className={`${styles1.row} ${styles1.marginFilterTop}`}>
             <div className={`${styles1.column10} ${styles1.marginFilterTop} `}>
-              <Field label={<FluentLabel weight="semibold" style={{ fontFamily: "Roboto" }}>{`${Constants.category}`}</FluentLabel>} ></Field>
+              <Field label={<FluentLabel weight="semibold"
+                onClick={() => { this.onFilterAccordionClick(Constants.category) }}
+                style={{ fontFamily: "Roboto" }}>{`${Constants.category}`}</FluentLabel>} ></Field>
             </div>
             <div className={`${styles1.column2} ${styles1.marginFilterTop} `}>
               <Button
@@ -894,6 +921,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       { columnKey: "Date", label: "Date" },
       // { columnKey: "Classification", label: "Classification" },
       { columnKey: "Department", label: "Department" },
+      // { columnKey: "CircularStatus", label: "Status" },
       { columnKey: "Vertical Button", label: "" },
       // { columnKey: "IssuedFor", label: "Issued For" }
     ];
@@ -904,11 +932,11 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         <TableHeader>
           <TableRow >
             {columns.map((column, index) => (
-              <TableHeaderCell key={column.columnKey} colSpan={index == 1 ? 5 : index == 3 ? 2 : 1}
-                button={{ style: { paddingLeft: index == 0 ? 2 : 0 } }}
+              <TableCell key={column.columnKey} colSpan={index == 1 ? 5 : index == 3 ? 2 : 1}
+                // button={{ style: { paddingLeft: index == 0 ? 2 : 0 } }}
                 className={`${styles1.fontWeightBold}`}>
-                {column.label}
-              </TableHeaderCell>
+                <div style={{ textAlign: column.label == `Status` ? "center" : "left" }}>{column.label}</div>
+              </TableCell>
             ))}
           </TableRow>
         </TableHeader>
@@ -921,10 +949,12 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
             let supportingDocuments = previewItems?.SupportingDocuments ? JSON.parse(previewItems?.SupportingDocuments) : ``;
             let summary = previewItems?.Gist ?? ``;
             let faq = previewItems?.CircularFAQ ?? ``;
+            let isPublished = val.CircularStatus == Constants.published;
             // let isVerticalDotsVisible = summary != "" || supportingDocuments != "" || faq != "";
 
             return <>
               <TableRow className={`${styles1.tableRow}`}>
+
                 <TableCell className={`${styles1.tableCellHeight}`}>
                   {/* {className={`${styles1.verticalSpacing}`}} */}
                   <TableCellLayout style={{ padding: 2 }}>
@@ -966,18 +996,32 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                     </div>
                   </TableCellLayout>
                 </TableCell>
+
                 <TableCell className={`${styles1.tableCellHeight}`}>
                   <TableCellLayout>
-                    {this.formatDate(val.PublishedDate)}
+                    {val.PublishedDate ? this.formatDate(val.PublishedDate) : ``}
                   </TableCellLayout>
                 </TableCell>
 
                 <TableCell colSpan={2} className={`${styles1.tableCellHeight}`}>
                   {/* {className={`${styles1.verticalSpacing}`}} */}
-                  <TableCellLayout>
+                  <TableCellLayout main={{ style: { whiteSpace: "nowrap", maxWidth: 230, textOverflow: "ellipsis", overflow: "hidden" } }}>
                     {val.Department}
                   </TableCellLayout>
                 </TableCell>
+
+                {/* {<SubtractCircle20Filled/>} */}
+                {/* <TableCell className={`${styles1.tableCellHeight}`}>
+                  <Tooltip content={isPublished ? Constants.published : Constants.archived}
+                    appearance="normal"
+                    relationship="label"
+                    positioning={'below-end'}>
+                    <div style={{ textAlign: "center" }}>
+                      {isPublished ? <CheckmarkCircle20Filled color="green" style={{ paddingLeft: 5 }} /> : <Archive20Filled color="black" style={{ paddingLeft: 5 }} />}
+                    </div>
+                  </Tooltip>
+                </TableCell> */}
+
 
                 {/* {Showing Menu Items} */}
                 <TableCell className={`${styles1.tableCellHeight}`}>
@@ -1906,6 +1950,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                   Category: val.RefinableString04,
                   IsMigrated: val.RefinableString05,
                   Classification: val.RefinableString06,
+                  CircularStatus: val.RefinableString07,
                   PublishedDate: val.RefinableDate00,
                   IssuedFor: val.RefinableString08,
                   Rank: val.Rank
@@ -1943,6 +1988,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                 Category: val.RefinableString04,
                 IsMigrated: val.RefinableString05,
                 Classification: val.RefinableString06,
+                CircularStatus: val.RefinableString07,
                 PublishedDate: val.RefinableDate00,
                 IssuedFor: val.RefinableString08,
                 Rank: val.Rank
@@ -2081,7 +2127,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
 
     // Default Search will always be Circular Status as Published
-    filterArray.push(`${filterProperties[5]}:equals("${Constants.published}")`);
+    filterArray.push(`filter(or(${filterProperties[5]}:equals("${Constants.published}"),${filterProperties[5]}:equals("${Constants.archived}")))`);
 
     if (!isNormalSearch) {
 
@@ -2210,7 +2256,8 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     let checkBoxFilter = [];
 
     // Default Search will always be Circular Status as Published
-    filterArray.push(`${filterProperties[5]}:equals("${Constants.published}")`);
+    //filterArray.push(`${filterProperties[5]}:equals("${Constants.published}")`);
+    filterArray.push(`filter(or(${filterProperties[5]}:equals("${Constants.published}"),${filterProperties[5]}:equals("${Constants.archived}")))`);
 
     let publishedYears = checkBoxCollection.get(`${Constants.colPublishedDate}`)?.filter((val) =>
       val.checked == true
@@ -2281,52 +2328,6 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         advanceFilterString += ``;
       }
     }
-
-
-    // if (filterArray.length > 1 && checkBoxFilter.length > 1) {
-    //   if (searchTextRefinment != "") {
-
-    //     advanceFilterString += filterArray.length > 1 ? `and(` : ``;
-    //     advanceFilterString += filterArray.length > 1 ? `${filterArray.join(',')}` : ``
-    //     advanceFilterString += checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``;
-    //     advanceFilterString += filterArray.length > 1 ? `)` : ``;
-    //   }
-    //   else {
-    //     advanceFilterString += filterArray.length > 1 ? `and(` : ``;
-    //     advanceFilterString += filterArray.length > 1 ? `${filterArray.join(',')}` : ``
-    //     advanceFilterString += checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``;
-    //     advanceFilterString += filterArray.length > 1 ? `)` : ``;
-    //   }
-    // }
-    // else if ((filterArray.length > 1 || filterArray.length == 1) && checkBoxFilterString == "") {
-    //   advanceFilterString += filterArray.length > 1 ? `and(` : ``;
-    //   advanceFilterString += (filterArray.length > 1 || filterArray.length == 1) ? `${filterArray.join(',')}` : ``;
-    //   advanceFilterString += filterArray.length > 1 ? `)` : ``;
-    // }
-    // else if (filterArray.length == 1 && checkBoxFilterString != "") {
-    //   advanceFilterString += filterArray.length == 1 ? `and(` : ``;
-    //   advanceFilterString += filterArray.length == 1 ? `${filterArray.join(',')}` : ``;
-    //   advanceFilterString += checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``;
-    //   advanceFilterString += filterArray.length == 1 ? `)` : ``;
-    // }
-    // else if (filterArray.length == 1 || checkBoxFilterString != "") {
-    //   if (searchTextRefinment != "") {
-    //     advanceFilterString += filterArray.length == 1 && checkBoxFilterString != "" ? `and(` : ``;
-    //     advanceFilterString += filterArray.length == 1 ? `${filterArray[0]}` : ``;
-    //     advanceFilterString += checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``;
-    //     advanceFilterString += filterArray.length == 1 && checkBoxFilterString != "" ? `)` : ``;
-
-    //   }
-    //   else {
-    //     advanceFilterString += filterArray.length == 1 && checkBoxFilterString != "" ? `and(` : ``;
-    //     advanceFilterString += filterArray.length == 1 ? `${filterArray[0]}` : ``;
-    //     advanceFilterString += checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``;
-    //     advanceFilterString += filterArray.length == 1 && checkBoxFilterString != "" ? `)` : ``;
-    //   }
-    // }
-    // else {
-    //   advanceFilterString += ``
-    // }
 
     console.log("Refinable Filter")
 
@@ -2605,6 +2606,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
 
   private formatDate(dateStr: string): string {
+
     const date = new Date(dateStr);
     const month = (date.getMonth() + 1 < 10 ? '0' : '') + (date.getMonth() + 1);
     const day = (date.getDate() < 10 ? '0' : '') + date.getDate();

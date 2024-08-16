@@ -2,7 +2,8 @@ import { IServices } from "./IServices";
 import {
     IAttachmentFileInfo, IAttachmentInfo, IItem, IItemAddResult, IItemUpdateResult,
     ISiteUserInfo, SPFI, spfi, SPFx as spSPFX, ControlMode, IFile, Web, IFileInfo,
-    PagedItemCollection
+    PagedItemCollection,
+    IEmailProperties
 } from '@pnp/sp/presets/all'
 import { ISearchQuery, SearchResults, SearchQueryBuilder, QueryPropertyValueType } from "@pnp/sp/search";
 import "@pnp/sp/batching";
@@ -53,7 +54,7 @@ export class Services implements IServices {
             let expandQuery: any[] = [];
             let listItems = [];
 
-            let items: PagedItemCollection<any[]> = undefined;
+            let items: PagedItemCollection<any[]> = null;
             do {
                 if (!items) items = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items.select(selectColumns).
                     orderBy(`${orderByColum}`, false).expand(expandColumns).top(4000).getPaged();
@@ -109,6 +110,27 @@ export class Services implements IServices {
         return Promise.resolve(itemUpdated);
 
 
+    }
+
+    public async updateMultipleListItem(serverRelativeUrl: string, listName: string, itemIDs: any[], metadata: any): Promise<any[]> {
+        const [batchedSP, execute] = sp.batched();
+
+        const list = batchedSP.web.getList(`${serverRelativeUrl}/Lists/${listName}`);
+
+        const itemUpdated = [];
+
+        for (let i = 0; i < itemIDs.length; i++) {
+
+            await list.items.getById(itemIDs[i]).update(metadata,`*`).then((listItem)=>{
+                itemUpdated.push(listItem)
+            }).catch((error)=>{
+                console.log(error)
+            })
+        }
+
+        await execute();
+
+        return Promise.resolve(itemUpdated);
     }
 
     public async updateItem(serverRelativeUrl: string, listName: string, itemID: number, metadataValues: any, etag: any = "*"): Promise<any> {
@@ -605,6 +627,27 @@ export class Services implements IServices {
         //     })
     };
 
+
+    public async sendEmail(emailAddress: string, subject: string, body: any): Promise<any> {
+
+        const emailProperties: IEmailProperties = {
+            To: [emailAddress],
+            Subject: subject,
+            Body: body,
+            AdditionalHeaders: {
+                "content-type": "text/html"
+            }
+        }
+
+        let emailPromise = await sp.utility.sendEmail(emailProperties).then((emailVal) => {
+            return Promise.resolve(emailVal)
+        }).catch((error) => {
+            return Promise.reject(error);
+        });
+
+        return emailPromise
+    }
+
     public async getSearchResults(queryText: string, selectedProperties: any[], queryTemplate?: string, refinementFilters?: string, sortList?: any[]): Promise<any> {
 
         // const queryBuilder =  SearchQueryBuilder();
@@ -711,7 +754,7 @@ export class Services implements IServices {
             const asyncFunctions = [];
 
             let finalItems: any[] = [];
-            let items: PagedItemCollection<any[]> = undefined;
+            let items: PagedItemCollection<any[]> = null;
             do {
                 if (!items) items = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items.select(selectedColumn)
                     .expand(expandColumns).top(2000).getPaged();
@@ -784,7 +827,104 @@ export class Services implements IServices {
 
     public async convertDocxToPDF(serverRelativeUrl: string, listName: string, itemID: number, fileName: string): Promise<any> {
 
-        
+        let fileItemId = [];
+        let capturePDFProcess = [];
+        await sp.web.getFileByServerRelativePath(`${serverRelativeUrl}/Lists/${listName}/Attachments/${itemID}/${fileName}`).
+            copyTo(`${serverRelativeUrl}/${Constants.sharedDocuments}/${fileName}`, true).then(async (metadata) => {
+
+                capturePDFProcess.push(`Docx File ${fileName} copied successfully to Shared Documents Library`);
+
+                await sp.web.getFileByServerRelativePath(`${serverRelativeUrl}/${Constants.sharedDocuments}/${fileName}`).getItem().then(async (item) => {
+                    await item().then(async (item) => {
+
+                        capturePDFProcess.push(`PDF File Item Found in SP Library`);
+
+                        if (item) {
+                            fileItemId.push(`${item.ID}`);
+                            console.log(`Item ID of file`, `${item.ID}`);
+                            capturePDFProcess.push(`Item ID of PDF File ${item.ID}`)
+                        }
+
+                        if (fileItemId.length > 0) {
+
+                            await this.generatePdfUrls(fileItemId, serverRelativeUrl, listName).then(async (files) => {
+                                console.log(`PDF URLs generated`);
+                                capturePDFProcess.push(`Processing PDF File`);
+
+                                await this.saveAsPDF(files).then(async (isOk) => {
+
+                                    capturePDFProcess.push(`PDF File generated successfully`);
+
+                                    let pdfFileName = fileName.replace(".docx", ".pdf");
+
+                                    //add file as attachment
+                                    if (files.length > 0) {
+                                        await sp.web.getFileByServerRelativePath(`${serverRelativeUrl}/${Constants.sharedDocuments}/${pdfFileName}`).getBlob().
+                                            then(async (blobVal) => {
+
+                                                capturePDFProcess.push(`Getting PDF Blob from SP Library`);
+
+                                                capturePDFProcess.push(`Adding PDF File as attachment back to list Item ${itemID}`)
+
+                                                await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items.getById(itemID).
+                                                    attachmentFiles.add(pdfFileName, blobVal).then(async (attachResult) => {
+
+                                                        capturePDFProcess.push(`PDF file ${pdfFileName} attached successfully`);
+
+                                                        await sp.web.getFileByServerRelativePath(`${serverRelativeUrl}/${Constants.sharedDocuments}/${fileName}`).
+                                                            deleteWithParams({ BypassSharedLock: true }).then(async (val) => {
+
+                                                                console.log(`Docx File Delelted`);
+                                                                capturePDFProcess.push(`Docx File ${fileName} deleted successfully`);
+
+                                                                await sp.web.getFileByServerRelativePath(`${serverRelativeUrl}/${Constants.sharedDocuments}/${pdfFileName}`).deleteWithParams({
+                                                                    BypassSharedLock: true
+                                                                }).then((val) => {
+                                                                    console.log(`Deleted PDF File`);
+                                                                    capturePDFProcess.push(`Deleted PDF File successfully`);
+
+                                                                }).catch((error) => {
+                                                                    console.log(`PDF File Not Deleted`);
+                                                                    console.log(error);
+                                                                    capturePDFProcess.push(`PDF File:${error}`)
+                                                                })
+                                                            }).catch((error) => {
+
+                                                                console.log(`Docx file not deleted`);
+                                                                console.log(error);
+                                                                capturePDFProcess.push(`Docx File Delete Error:${error}`)
+                                                            })
+                                                    }).catch((error) => {
+                                                        return Promise.reject(error)
+                                                    })
+                                            }).catch((error) => {
+                                                console.log(error)
+                                            })
+                                    }
+
+                                }).catch((error) => {
+                                    console.log(error)
+                                    return Promise.reject(error)
+                                })
+                            }).catch((error) => {
+                                console.log(error)
+                                return Promise.reject(error)
+                            });
+                        }
+                    })
+                }).catch((error) => {
+                    console.log(error);
+                    return Promise.reject(error)
+                });
+
+            }).catch((error) => {
+                console.log(error)
+                return Promise.reject(error)
+            })
+
+
+        return Promise.resolve(capturePDFProcess)
+
     }
 
     private async saveAsPDF(files: SharePointFile[]): Promise<boolean> {

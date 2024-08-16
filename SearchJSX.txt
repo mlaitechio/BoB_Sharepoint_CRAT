@@ -17,6 +17,9 @@ var values = listItemIds.map(i => { return `<Value Type='Counter'>${i}</Value>`;
 
 
 
+
+
+
 private allListItemAttachments = async () => {
         let providerValue = this.context;
         const { context, services, serverRelativeUrl } = providerValue as IBobCircularRepositoryProps;
@@ -60,6 +63,51 @@ private allListItemAttachments = async () => {
 
 
     }
+
+    // if (filterArray.length > 1 && checkBoxFilter.length > 1) {
+    //   if (searchTextRefinment != "") {
+
+    //     advanceFilterString += filterArray.length > 1 ? `and(` : ``;
+    //     advanceFilterString += filterArray.length > 1 ? `${filterArray.join(',')}` : ``
+    //     advanceFilterString += checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``;
+    //     advanceFilterString += filterArray.length > 1 ? `)` : ``;
+    //   }
+    //   else {
+    //     advanceFilterString += filterArray.length > 1 ? `and(` : ``;
+    //     advanceFilterString += filterArray.length > 1 ? `${filterArray.join(',')}` : ``
+    //     advanceFilterString += checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``;
+    //     advanceFilterString += filterArray.length > 1 ? `)` : ``;
+    //   }
+    // }
+    // else if ((filterArray.length > 1 || filterArray.length == 1) && checkBoxFilterString == "") {
+    //   advanceFilterString += filterArray.length > 1 ? `and(` : ``;
+    //   advanceFilterString += (filterArray.length > 1 || filterArray.length == 1) ? `${filterArray.join(',')}` : ``;
+    //   advanceFilterString += filterArray.length > 1 ? `)` : ``;
+    // }
+    // else if (filterArray.length == 1 && checkBoxFilterString != "") {
+    //   advanceFilterString += filterArray.length == 1 ? `and(` : ``;
+    //   advanceFilterString += filterArray.length == 1 ? `${filterArray.join(',')}` : ``;
+    //   advanceFilterString += checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``;
+    //   advanceFilterString += filterArray.length == 1 ? `)` : ``;
+    // }
+    // else if (filterArray.length == 1 || checkBoxFilterString != "") {
+    //   if (searchTextRefinment != "") {
+    //     advanceFilterString += filterArray.length == 1 && checkBoxFilterString != "" ? `and(` : ``;
+    //     advanceFilterString += filterArray.length == 1 ? `${filterArray[0]}` : ``;
+    //     advanceFilterString += checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``;
+    //     advanceFilterString += filterArray.length == 1 && checkBoxFilterString != "" ? `)` : ``;
+
+    //   }
+    //   else {
+    //     advanceFilterString += filterArray.length == 1 && checkBoxFilterString != "" ? `and(` : ``;
+    //     advanceFilterString += filterArray.length == 1 ? `${filterArray[0]}` : ``;
+    //     advanceFilterString += checkBoxFilterString != "" ? `,${checkBoxFilterString}` : ``;
+    //     advanceFilterString += filterArray.length == 1 && checkBoxFilterString != "" ? `)` : ``;
+    //   }
+    // }
+    // else {
+    //   advanceFilterString += ``
+    // }
 
     private bufferToBase64 = async (buffer): Promise<any> => {
         // use a FileReader to generate a base64 data URI:

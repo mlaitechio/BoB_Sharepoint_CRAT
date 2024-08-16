@@ -14,7 +14,8 @@ Form Related Task
 13. Working on it Dialog 
 14. Success message Dialog
 15. If no search criteria is added , do rest api call to get all items (Done)
-16. Supporting Documents with Pop up & selection functionality (Master --> Previous year & published & department circulars) (Circulars - All years ,published & related to department)
+16. Supporting Documents with Pop up & selection functionality (Master --> Previous year & published & department circulars)
+ (Circulars - All years ,published & related to department)
 17. FAQ (Done)
 18. Edit Circular Dashboard Screen / Edit Circular Form Draft & Returned (Done)
 19. Delete Circular Screen/ Delete Circular Form in Draft Mode
@@ -89,15 +90,60 @@ editFormItem Department Mapping (Done)
 2. Maximum 2000 character limit for all text area(Done) -1 hour
 3. Conversion of docx to pdf ( Either power automate or JS) (Bigger Task) (Done) - 32 hours
 4. Logging every activity in to the Comments Audit Logs List (Bigger Task)(Done) - 5 hours
-11.After published PDF File Conversion, Delete File from doc library as well (Done)
-5. Changing header/footer text of pdf file on preview (Medium Level)
-12.Iframe file edit section to be hidden (Done) - 2 hours
-6. Archived Circular screen for users. (Medium Level)
-14. Archived Circular Flow based on expiry
-7. Linking of Master Circular with existing circulars (Bigger Task)
-8. Notification Email based on Circular Status (Power Automate or JS) (Medium Level)
-9. View all Rejected Circulars  (Medium Level)
-10. Permission Matrix handling (Bigger Task)
-13. Change preview file name section(Done)
+5. After published PDF File Conversion, Delete File from doc library as well (Done) - 3 hours
+6. Changing header/footer text of pdf file on preview (Medium Level) - 6 hours
+7. Iframe file edit section to be hidden (Done) - 2 hours
+8. (Archived Circular Screen will be part of search & search filter changes needs to be implemented) - 2 hours
+9. Archived Circular Flow based on expiry (Bigger Task)
+10.Linking of Master Circular with existing circulars (Bigger Task)
+11.Notification Email based on Circular Status (Power Automate or JS) (Medium Level)
+12.View all Rejected Circulars  (Medium Level)
+13.Permission Matrix handling (Bigger Task)
+14.Change preview file name section(Done)
+
+(Archived Circular Screen will be part of search & search filter changes needs to be implemented)
+Show Archive Status on Search Screen
+(Master Circular Screen will come) ()
+   1. To whom master circular updation will be available
+   2. Once Master Circular annual updation happens what will be the status of Master Circular 
+   3. After updation who will do the check if its correct updation or not.
+   4. Addendum of circular will be done by whom?. Once Addendum is done notification is sent to all users
+
+(Update feature for all incorporated circulars)
+
+ToolTip content for Circular Template & Keywords needed?
+Power Automate to send email to the respective stakeholders 1 week before expiry
+Power Automate to mark circular as Archived after expiry date
+Power Automate to send notification after every status check 
+Watermark PDF will have archival date or current date in footer text? 
+Supporting Documents are uploads then form changes will be required
+Uploading Supporting Documents to List Item
+Validation Check of Supporting Documents & SOP Files Uploaded
+
+
+
+Limited Period Circular should be marked as expired 
+1. Power Automate to send email to the respective stakeholders 1 week before expiry.(Checker)
+2. After expiry, mark Circulars as archived.Power Automate to mark circular as Archived after expiry date 
+3. Archival Date of Circular Field needs to be created - (Date & Time)
+4. Watermark PDF will have archival date in footer text? 
+5. This circular are not part of incorporation
+
+Longer (Unlimited) Impact Circulars
+1. In Master Circular once users adds Specific circular during annual updation , 
+    these circulars should be marked Archived (It can be master or circular)
+2. Only master circulars for this year should be visible to the admin 
+3. Year Checking
+
+
+6.5 The Master circular annual updation alert should be prompted to Checker 90 days
+before due date and should be submitted to Compliance Department with at least 30
+day notice. The circulars (issued during the year) incorporated in master circular
+should have colour coding (in similar fashion as available in RBI Master circular with
+
+date differentiation). Further, any modification in master circular should be
+summarized at the end clearly showing the existing and proposed modification in
+tabular format with date of modification. At the end of master circular, the list
+(hyperlinked) of all previous circulars should be mentioned/aggregated by the Maker.
 
 
