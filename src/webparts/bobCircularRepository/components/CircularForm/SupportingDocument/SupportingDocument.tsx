@@ -73,7 +73,7 @@ export default class SupportingDocument extends React.Component<ISupportingDocum
         */
 
         filterArray.push(`${filterProperties[5]}:equals("${published}")`);
-        filterArray.push(`${filterProperties[3]}:equals("${department}")`);//${department} HR ADMINISTRATION MSME BANKING DEPARTMENT IT PROJECTS AND CRM
+        filterArray.push(`${filterProperties[3]}:equals("${department}")`);//${department} Information Technology HR ADMINISTRATION MSME BANKING DEPARTMENT IT PROJECTS AND CRM
         filterArray.push(`${managePropClassification}:equals("${lblCircular}")`);
 
 

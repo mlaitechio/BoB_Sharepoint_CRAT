@@ -76,7 +76,7 @@ import { IBobCircularRepositoryProps } from '../IBobCircularRepositoryProps';
 import Pagination from 'react-js-pagination';
 import { DataContext } from '../../DataContext/DataContext';
 import FileViewer from '../FileViewer/FileViewer';
-import { AddCircleRegular, Archive20Filled, Archive24Filled, ArchiveFilled, ArrowClockwise24Regular, ArrowClockwiseRegular, ArrowCounterclockwiseRegular, ArrowDownloadRegular, ArrowDownRegular, ArrowResetRegular, ArrowUpRegular, Attach12Filled, CalendarRegular, Check24Filled, CheckmarkCircle20Filled, CheckmarkCircle24Filled, CheckmarkCircleFilled, ChevronDownRegular, ChevronUpRegular, Dismiss24Regular, DismissRegular, EyeRegular, Filter12Regular, Filter16Regular, FilterRegular, MoreVerticalRegular, OpenRegular, Search24Regular, ShareAndroidRegular, SubtractCircle20Filled, TextAlignJustifyRegular } from '@fluentui/react-icons';
+import { AddCircleRegular, Archive20Filled, Archive24Filled, ArchiveFilled, ArrowClockwise24Regular, ArrowClockwiseRegular, ArrowCounterclockwiseRegular, ArrowDownloadRegular, ArrowDownRegular, ArrowResetRegular, ArrowSquareDown20Filled, ArrowSquareDownFilled, ArrowUpRegular, Attach12Filled, CalendarRegular, Check24Filled, CheckmarkCircle20Filled, CheckmarkCircle24Filled, CheckmarkCircleFilled, ChevronDownRegular, ChevronUpRegular, DataFunnelRegular, Dismiss24Regular, DismissRegular, EyeRegular, Filter12Regular, Filter16Regular, FilterRegular, MoreVerticalRegular, OpenRegular, Search24Regular, ShareAndroidRegular, SubtractCircle20Filled, TextAlignJustifyRegular } from '@fluentui/react-icons';
 import { ICheckBoxCollection, ICircularListItem } from '../../Models/IModel';
 import { PDFDocument, StandardFonts, degrees, error, rgb } from 'pdf-lib';
 import download from 'downloadjs'
@@ -97,6 +97,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     this.state = {
       searchText: "",
       items: [],
+      openSearchFilters: false,
       filteredItems: [],
       columns,
       currentPage: 1,
@@ -117,7 +118,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       filePreviewItem: null,
       isSearchNavOpen: true,
       currentSelectedItemId: -1,
-      sortingOptions: ["Date", "Subject"],
+      sortingOptions: ["Date", "Circular Number"],
       currentSelectedFile: null,
       isAccordionSelected: false,
       openPanelCheckedValues: [],
@@ -407,10 +408,13 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     const { openFileViewer,
       isLoading, isSearchNavOpen, filePreviewItem } = this.state;
     const responsiveMode = getResponsiveMode(window);
-    let mobileMode = responsiveMode == 0 || responsiveMode == 1 || responsiveMode == 2;
+    console.log(responsiveMode)
+
+    let mobileMode = responsiveMode == 0 || responsiveMode == 1;
+    let isTabletMode = responsiveMode == 3 || responsiveMode == 2;
     let searchBoxColumn = mobileMode ? `${styles1.column12}` : `${styles1.column10}`;
     let searchClearColumn = mobileMode ? `${styles1.column12} ${styles1.textAlignEnd}` : `${styles1.column2}`;
-    let searchResultsColumn = isSearchNavOpen ? `${styles1.column10}` : `${styles1.column11}`
+    let searchResultsColumn = isSearchNavOpen && !isTabletMode ? `${styles1.column10}` : `${styles1.column12} ${styles1.marginLeft}`
 
 
     let detailListClass = mobileMode ? `${styles1.column12}` : `${styles1.column12}`;
@@ -422,18 +426,19 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       }
 
       <div className={`${styles1.row} ${styles1.marginFilterTop}`}>
-        {
+        {/* {
 
-          !isSearchNavOpen &&
-          <Drawer type={"inline"} open={!isSearchNavOpen} separator className={`${styles1.column1} ${styles1.marginTop}`}>
+          tabletMode &&
+          <Drawer type={"overlay"} open={tabletMode} separator className={`${styles1.column1} ${styles1.marginTop}`}>
             <Button
               style={{ maxWidth: "100%", minWidth: "100%" }}
               className={`${styles1.fontRoboto}`}
               icon={<TextAlignJustifyRegular />} appearance="transparent" iconPosition={"after"}
               onClick={() => { this.setState({ isSearchNavOpen: true }) }}></Button>
           </Drawer>
-        }
-        {isSearchNavOpen &&
+        } */}
+
+        {isSearchNavOpen && !isTabletMode &&
           <Drawer type="inline" style={{ maxHeight: "200vh" }} separator open={isSearchNavOpen} className={`${styles1.column2}`}>
             <DrawerHeader style={{ padding: 5 }}>
               <DrawerHeaderTitle
@@ -457,10 +462,13 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
             </DrawerBody>
           </Drawer>
         }
+
+
         <div className={`${searchResultsColumn}`}>
           {this.searchFilterResults()}
 
         </div>
+
         {
           filePreviewItem && openFileViewer && <FileViewer
             listItem={filePreviewItem}
@@ -468,6 +476,11 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
             documentLoaded={() => { this.setState({ isLoading: false }) }}
             onClose={this.onPanelClose} />
         }
+
+        {/* {This will only work for tablet & mobile view} */}
+
+        {isTabletMode && this.openFilterPanel()}
+
       </div>
 
 
@@ -476,6 +489,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   }
 
   private searchFilters = (): JSX.Element => {
+
     const { circularNumber, checkBoxCollection, filterLabelName, filterAccordion, relevanceDepartment } = this.state;
     let circularBox = checkBoxCollection.get(`${Constants.circularNumber}`);
     let departmentBox = checkBoxCollection.get(`${Constants.department}`);
@@ -484,12 +498,14 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     let regulatoryBox = checkBoxCollection.get(`${Constants.compliance}`);
     let issuedForBox = checkBoxCollection.get(`${Constants.issuedFor}`);
     let classificationBox = checkBoxCollection.get(`${Constants.classification}`);
-
+    let providerValue = this.context;
+    const { responsiveMode } = providerValue as IBobCircularRepositoryProps;
+    let isTabletMode = responsiveMode == 2 || responsiveMode == 3;
 
     let searchFiltersJSX = <>
       {this.createFilterPanel(filterLabelName)}
       <div className={`${styles1.row}`}>
-        <div className={`${styles1.column12}`} style={{ paddingLeft: 0 }}>
+        <div className={`${styles1.column12}`} style={{ paddingLeft: isTabletMode ? 20 : 0 }}>
 
           <div className={`${styles1.row}`}>
 
@@ -742,9 +758,22 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   }
 
   private searchFilterResults = (): JSX.Element => {
+
+    let providerValue = this.context;
+    const { responsiveMode } = providerValue as IBobCircularRepositoryProps;
+
+
+
     const { filteredItems, isLoading, checkBoxCollection, sortingOptions, selectedSortFields, sortDirection } = this.state
     let filteredPageItems = this.paginateFn(filteredItems);
 
+    let isTabletMode = responsiveMode == 3 || responsiveMode == 2;
+
+
+    let circularCountClass = isTabletMode ? `${styles1.column7}` : `${styles1.column9}`
+    let searchBtnClass = isTabletMode ? styles1.column2 : styles1.column1;
+    let searchBoxClass = isTabletMode ? styles1.column7 : styles1.column9;
+    let sortingClass = isTabletMode ? styles1.column3 : styles1.column2;
 
     let searchFilterResultsJSX = <>
 
@@ -754,7 +783,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
           <>
             <div className={`${styles1.row}`}>
-              <div className={`${styles1.column9} ${styles1.marginTop}`}>
+              <div className={`${circularCountClass} ${styles1.marginTop}`}>
                 <FluentLabel weight="regular" style={{
                   fontFamily: "Roboto",
                   padding: 10,
@@ -764,6 +793,31 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                   lineHeight: "var(--lineHeightBase500)"
                 }}>Circulars {`(${filteredItems.length})`}</FluentLabel>
               </div>
+
+              {isTabletMode &&
+                <div className={`${styles1.column5}`}>
+                  <>
+                    <Button
+                      appearance="subtle"
+                      aria-label="Refine"
+                      icon={<DataFunnelRegular />}
+                      onClick={() => { this.setState({ openSearchFilters: true }) }}
+                    >Refine</Button>
+
+                    <Button
+                      appearance="subtle"
+                      aria-label="Reset"
+                      icon={<ArrowCounterclockwiseRegular />}
+                      onClick={() => { this.clearFilters() }}
+                    >Reset Filters</Button>
+                  </>
+                </div>
+              }
+              {/* {isTabletMode &&
+                <div className={`${styles1.column3}`}>
+
+                </div>
+              } */}
             </div>
             <div className={`${styles1.row}`}>
               {this.selectedFilters()}
@@ -775,15 +829,15 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       </div>
 
       <div className={`${styles1.row} `}>
-        <div className={`${styles1.column9} ${styles1.marginTop}`}>
+        <div className={`${searchBoxClass} ${styles1.marginTop}`}>
           {this.searchBox()}
         </div>
-        <div className={`${styles1.column1} ${styles1.marginTop}`}>
+        <div className={`${searchBtnClass} ${styles1.marginTop}`}>
           {this.searchClearButtons()}
         </div>
-        <div className={`${styles1.column2} ${styles1.marginTop}`}>
+        <div className={`${sortingClass} ${styles1.marginTop}`}>
           <Dropdown
-            style={{ maxWidth: 95, minWidth: 95 }}
+            style={{ maxWidth: 150, minWidth: 150 }}
             mountNode={{}} placeholder={`Sorting`} value={selectedSortFields ?? ``}
             selectedOptions={[selectedSortFields ?? ""]}
             onOptionSelect={this.onDropDownChange.bind(this, `${Constants.sorting}`)}>
@@ -913,8 +967,16 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   }
 
   private createSearchResultsTable = (): JSX.Element => {
+
+    let providerValue = this.context;
+    const { responsiveMode } = providerValue as IBobCircularRepositoryProps;
     const { filteredItems, previewItems, currentSelectedItemId, accordionFields } = this.state
     let filteredPageItems = this.paginateFn(filteredItems);
+    let isTabletMode = responsiveMode == 3 || responsiveMode == 2;
+
+    let colorLabelClass = isTabletMode ? styles1.colorLabelTablet : styles1.colorLabel;
+    let colSpan = responsiveMode == 2 ? 2 : 1;
+
     const columns = [
       { columnKey: "CircularNumber", label: "Circular No" },
       { columnKey: "Title", label: "Document Title" },
@@ -932,7 +994,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         <TableHeader>
           <TableRow >
             {columns.map((column, index) => (
-              <TableCell key={column.columnKey} colSpan={index == 1 ? 5 : index == 3 ? 2 : 1}
+              <TableCell key={column.columnKey} colSpan={index == 1 ? 5 : index == 0 ? colSpan : index == 3 ? 2 : 1}
                 // button={{ style: { paddingLeft: index == 0 ? 2 : 0 } }}
                 className={`${styles1.fontWeightBold}`}>
                 <div style={{ textAlign: column.label == `Status` ? "center" : "left" }}>{column.label}</div>
@@ -955,22 +1017,22 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
             return <>
               <TableRow className={`${styles1.tableRow}`}>
 
-                <TableCell className={`${styles1.tableCellHeight}`}>
+                <TableCell className={`${styles1.tableCellHeight}`} colSpan={colSpan}>
                   {/* {className={`${styles1.verticalSpacing}`}} */}
                   <TableCellLayout style={{ padding: 2 }}>
-                    {val.CircularNumber.length > 12 &&
+                    {val.CircularNumber.length > 10 &&
                       <Tooltip content={`${val.CircularNumber}`} relationship="label" positioning={"after"} withArrow={true}>
                         <div
-                          className={`${styles1.colorLabel}`}
+                          className={`${colorLabelClass}`}
                           style={{
                             color: val.Classification == "Master" ? "#f26522" : "#162B75"
                           }}>{val.CircularNumber}</div>
                       </Tooltip>
                     }
                     {
-                      val.CircularNumber.length <= 12 &&
+                      val.CircularNumber.length <= 10 &&
                       <div
-                        className={`${styles1.colorLabel}`}
+                        className={`${colorLabelClass}`}
                         style={{
                           color: val.Classification == "Master" ? "#f26522" : "#162B75"
                         }}>{val.CircularNumber}
@@ -1005,22 +1067,23 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
                 <TableCell colSpan={2} className={`${styles1.tableCellHeight}`}>
                   {/* {className={`${styles1.verticalSpacing}`}} */}
-                  <TableCellLayout main={{ style: { whiteSpace: "nowrap", maxWidth: 230, textOverflow: "ellipsis", overflow: "hidden" } }}>
+                  <TableCellLayout main={{ style: { whiteSpace: responsiveMode == 2 ? "normal" : "nowrap", maxWidth: 230, textOverflow: "ellipsis", overflow: "hidden" } }}>
                     {val.Department}
                   </TableCellLayout>
                 </TableCell>
 
                 {/* {<SubtractCircle20Filled/>} */}
-                {/* <TableCell className={`${styles1.tableCellHeight}`}>
+                <TableCell className={`${styles1.tableCellHeight}`}>
                   <Tooltip content={isPublished ? Constants.published : Constants.archived}
+                    withArrow={true}
                     appearance="normal"
                     relationship="label"
                     positioning={'below-end'}>
                     <div style={{ textAlign: "center" }}>
-                      {isPublished ? <CheckmarkCircle20Filled color="green" style={{ paddingLeft: 5 }} /> : <Archive20Filled color="black" style={{ paddingLeft: 5 }} />}
+                      {isPublished ? <></> : <ArrowSquareDown20Filled color="rgb(242, 101, 34)" style={{ paddingLeft: 5 }} />}
                     </div>
                   </Tooltip>
-                </TableCell> */}
+                </TableCell>
 
 
                 {/* {Showing Menu Items} */}
@@ -1511,6 +1574,48 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     return filterPanelJSX;
   }
 
+  private openFilterPanel = () => {
+
+    const { openSearchFilters } = this.state
+
+    let navigationJSX = <>
+      < Panel
+        isOpen={openSearchFilters}
+        isLightDismiss={true}
+        onDismiss={() => { this.setState({ openSearchFilters: false }) }}
+        type={PanelType.smallFixedNear}
+
+        closeButtonAriaLabel="Close"
+        headerText={`Refine`}
+        styles={{
+          commands: { background: "white", paddingTop: 0 },
+          headerText: {
+            fontSize: "1.3em", fontWeight: "600",
+            marginBlockStart: "0.83em", marginBlockEnd: "0.83em",
+            color: "black", fontFamily: 'Roboto'
+          },
+
+          main: { background: "white" },
+          content: { paddingBottom: 0, paddingLeft: 0, paddingRight: 0 },
+          navigation: {
+            borderBottom: "1px solid #ccc",
+            selectors: {
+              ".ms-Button": { color: "black", marginRight: 0 },
+              ".ms-Button:hover": { color: "black" }
+            }
+          }
+        }}>
+        <FluentProvider theme={webLightTheme}>
+          {this.searchFilters()}
+        </FluentProvider>
+
+      </Panel>
+    </>;
+
+    return navigationJSX;
+
+  }
+
   private applyFilters = (labelName) => {
     const { isFilterPanel, checkBoxCollection, openPanelCheckedValues } = this.state;
     if (isFilterPanel && openPanelCheckedValues && openPanelCheckedValues.length > 0) {
@@ -1761,7 +1866,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     switch (textLabel) {
       case Constants.sorting: this.setState({
         selectedSortFields: data.optionValue,
-        sortingFields: data.optionValue == "Date" ? Constants.colPublishedDate : Constants.colSubject
+        sortingFields: data.optionValue == "Date" ? Constants.colPublishedDate : Constants.colCircularNumber
       }, () => {
         const { filteredItems, sortingFields, sortDirection } = this.state;
         this.setState({ filteredItems: this.sortListItems(filteredItems, sortingFields, sortDirection) })
@@ -1769,6 +1874,8 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         break;
     }
   }
+
+
 
   private onSorting = () => {
     const { sortDirection } = this.state;
@@ -1807,9 +1914,13 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   }
 
 
+
   private searchClearButtons = (): JSX.Element => {
+    let providerValue = this.context;
+    const { responsiveMode } = providerValue as IBobCircularRepositoryProps;
+    let isTabletMode = responsiveMode == 3 || responsiveMode == 2;
     let searchClearJSX = <>
-      <FluentUIBtn appearance="primary" style={{ marginRight: 2, width: "100%" }} icon={<FilterRegular />} onClick={() => { this.searchResults() }}>
+      <FluentUIBtn appearance="primary" style={{ marginRight: 2, width: isTabletMode ? "97%" : "100%" }} icon={<FilterRegular />} onClick={() => { this.searchResults() }}>
         Search
       </FluentUIBtn>
       {/* <FluentUIBtn appearance="secondary" icon={<DismissRegular />} onClick={() => { this.clearFilters() }}>
@@ -2558,7 +2669,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     const totalItems = filteredItems.length;
     const _themeWindow: any = window;
     const _theme = _themeWindow.__themeState__.theme;
-    let isMobileMode = responsiveMode == 0 || responsiveMode == 1 || responsiveMode == 2;
+    let isMobileMode = responsiveMode == 0 || responsiveMode == 1;
     let lastItemCount = ((itemsPerPage * (currentPage - 1)) + itemsPerPage) > filteredItems.length ? filteredItems.length : ((itemsPerPage * (currentPage - 1)) + itemsPerPage)
     let pagination: any =
       <>

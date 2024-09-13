@@ -367,7 +367,7 @@ input * {
   font-family: Roboto !important;
   font-weight: 400;
   color: #162B75;
-  margin-top:5px;
+  margin-top: 5px;
 }
 
 .formBtn {
@@ -382,13 +382,31 @@ input * {
   border-radius: 5px;
 }
 
+.marginLeft {
+  margin-left: 20px;
+}
+
 .colorLabel {
   color: var(--colorBrandBackground);
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 200px;
-  width: 125px;
+  width: 110px;
   vertical-align: middle;
+}
+
+.colorLabelTablet {
+  color: var(--colorBrandBackground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+  width: 95px;
+  vertical-align: middle;
+}
+
+.imgTablet {
+  height: 40px;
+  width: 115px;
 }
 
 .tableRow {

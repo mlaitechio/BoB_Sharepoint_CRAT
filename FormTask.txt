@@ -119,6 +119,9 @@ Watermark PDF will have archival date or current date in footer text?
 Supporting Documents are uploads then form changes will be required
 Uploading Supporting Documents to List Item
 Validation Check of Supporting Documents & SOP Files Uploaded
+Archival Date to be added in pdf
+Email Send To && CC 
+Digital Signature 
 
 
 

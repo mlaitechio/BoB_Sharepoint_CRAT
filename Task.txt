@@ -1114,6 +1114,41 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     return listItems;
   }
 
+
+  <Tree>
+                        <TreeItem itemType="branch" >
+                            <TreeItemPersonaLayout expandIcon={<></>} media={
+                                <Button className={`${styles.formBtn} ${styles.fontRoboto} ${styles.fontWeightBold}`}
+                                    appearance="transparent" icon={<HomeRegular style={{ paddingRight: 5 }} />}
+                                    iconPosition="before"
+                                    onClick={() => { onMenuSubMenuLinkClick(Constants.lblHome) }}>Home
+                                </Button>
+                            }>
+                            </TreeItemPersonaLayout>
+                        </TreeItem>
+                    </Tree>
+                    <Tree>
+                        <TreeItem itemType="branch">
+                            <TreeItemLayout
+                                expandIcon={<ChevronUpRegular />}
+
+                            />
+                            <Button className={`${styles.formBtn} ${styles.fontRoboto} ${styles.fontWeightBold}`}
+                                appearance="transparent" icon={<HomeRegular style={{ paddingRight: 5 }} />}
+                                iconPosition="before"
+                                onClick={() => { onMenuSubMenuLinkClick(Constants.lblHome) }}>Maker
+                            </Button>
+                            <Tree>
+                                <TreeItem itemType="leaf">
+                                    Add Circular
+                                </TreeItem>
+                                <TreeItem itemType="leaf">
+                                    Maker Dashboard
+                                </TreeItem>
+                            </Tree>
+                        </TreeItem>
+                    </Tree>
+
   private handleSorting = (property: string) => (event: React.MouseEvent<unknown>, column: IColumn) => {
     property = column.key;
 

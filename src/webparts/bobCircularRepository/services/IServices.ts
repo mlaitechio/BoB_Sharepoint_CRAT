@@ -20,6 +20,7 @@ export interface IServices {
     getCurrentUserInformation: (userEmail: string, selectedColumns: string) => Promise<any[]>;
     getListItemById: (serverRelativeUrl: string, listName: string, itemID: number) => Promise<any>;
     addListItemAttachmentAsBuffer: (listName: string, serverRelativeUrl: string, itemID: number, fileName: string, buffer: any) => Promise<any>;
+    getAllUsersInformationFromGroup: (groupName: string) => Promise<any>;
     getAllFiles: (folderServerRelativeUrl: string) => Promise<any[]>;
     getFileContent: (fileServerRelativeUrl: string) => Promise<any>;
     getLatestItemId: (serverRelativeUrl: string, listName: string) => Promise<any>
@@ -28,5 +29,5 @@ export interface IServices {
     addFileToListItem: (serverRelativeUrl: string, listName: string, itemID: number, fileArray: any[]) => Promise<any>;
     convertDocxToPDF: (serverRelativeUrl: string, listName: string, itemID: number, fileName: string) => Promise<any>;
     updateMultipleListItem: (serverRelativeUrl: string, listName: string, itemID: any[], metadata: any) => Promise<any[]>;
-    sendEmail: (emailAddress: string, subject: string, body: any) => Promise<any>;
+    sendEmail: (emailAddress: string[], ccEmailAddress: string[], subject: string, body: any) => Promise<any>;
 }

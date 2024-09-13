@@ -10,6 +10,7 @@ import CircularForm from './CircularForm/CircularForm';
 import { Constants } from '../Constants/Constants';
 import EditDashBoard from './EditDashBoard/EditDashBoard';
 import { Text } from '@microsoft/sp-core-library'
+import { withResponsiveMode } from '@fluentui/react';
 
 export const customLightTheme: Theme = {
   ...webLightTheme,
@@ -33,6 +34,7 @@ export interface IBobCircularRepositoryState {
   isMasterCircularEdit?: boolean
 }
 
+@withResponsiveMode
 export default class BobCircularRepository extends React.Component<IBobCircularRepositoryProps, IBobCircularRepositoryState> {
 
   private formRef;

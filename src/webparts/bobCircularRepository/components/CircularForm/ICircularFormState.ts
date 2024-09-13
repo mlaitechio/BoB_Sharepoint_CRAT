@@ -27,8 +27,8 @@ export interface ICircularFormState {
     | Supporting Documents & SOP Documents State
     |--------------------------------------------------
     */
-    supportingDocAttachmentColl?:any[];
-    supportingDocUploads?:Map<string,any>;
+    supportingDocAttachmentColl?: any[];
+    supportingDocUploads?: Map<string, any>;
     sopUploads?: Map<string, any>;
     sopAttachmentColl?: any[];
 
@@ -46,6 +46,7 @@ export interface ICircularFormState {
     templates?: any[];
     selectedTemplate?: string;
     templateFiles?: any[];
+    emailTemplates?: any[];
     isBack?: boolean;
     isDelete?: boolean;
     isMaker?: boolean;

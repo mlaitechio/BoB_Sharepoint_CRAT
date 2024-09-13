@@ -97,6 +97,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             selectedSupportingCirculars: [],
             sopUploads: new Map<string, any>(),
             sopAttachmentColl: [],
+            emailTemplates: [],
             supportingDocUploads: new Map<string, any>(),
             supportingDocAttachmentColl: [],
             showSubmitDialog: false,
@@ -215,6 +216,14 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             }).catch((error) => {
                 this.setState({ isLoading: false })
             })
+
+
+            await services.getPagedListItems(serverRelativeUrl, Constants.emailList, `*`, ``, ``, `ID`).then((email) => {
+                this.setState({ emailTemplates: email })
+            }).catch((error) => {
+                this.setState({ isLoading: false })
+            })
+
 
             /**
             |--------------------------------------------------
@@ -572,7 +581,12 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
     public render() {
 
-        const { displayMode } = this.props
+        const { displayMode } = this.props;
+        let providerValue = this.context;
+        const { responsiveMode } = providerValue as IBobCircularRepositoryProps;
+
+        let isTabletMode = responsiveMode == 2 || responsiveMode == 1 || responsiveMode == 0;
+        let formClass = isTabletMode ? styles.column12 : styles.column6;
 
         const { isBack, isDelete, isLoading, isSuccess,
             documentPreviewURL, attachedFile,
@@ -623,14 +637,14 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
                 </div>
                 <div className={`${styles.row}`}>
-                    <div className={`${styles.column6}`}>
+                    <div className={`${formClass}`}>
                         <div className={`${styles.row}`} style={{ padding: 15, borderRight: "1px solid #80808036" }}>
                             {this.infoHeader()}
                             {this.formSection()}
 
                         </div >
                     </div>
-                    <div className={`${styles.column6} `} style={{ minHeight: "100vh" }}>
+                    <div className={`${formClass} `} style={{ minHeight: "100vh" }}>
                         <div className={`${styles.row}`} style={{ padding: 15 }}>
                             <div className={`${styles.column12}`}>
                                 <Label className={`${styles.formLabel}`} >
@@ -1184,9 +1198,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             }
             {isUserChecker && showPublishRejectButton && currentPage == Constants.checkerGroup && !isRequesterMaker
                 && <Button appearance="primary"
-
                     onClick={() => {
-                        status = Constants.archived;
+                        status = Constants.rejected;
                         this.setState({ submittedStatus: status, showSubmitDialog: true })
                     }}
                     className={`${styles.formBtn}`}>
@@ -1286,15 +1299,22 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         const { configVal } = Constants;
         let wordLength = this.getWordsLength(data.value?.trim());
         let textValue = data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '')
+
+        let isWhiteSpaceString = !textValue.replace(/\s/g, '').length;
+        if (isWhiteSpaceString) {
+            textValue = textValue.trim();
+        }
+
         switch (labelName) {
             case Constants.subject:
+                let subjectValue = data?.value;
                 let subjectMaxWord = configuration.filter(val => val.Title == configVal.SubjectMaxWord)[0]?.Limit ?? 500;
-                if (textValue.length <= subjectMaxWord && textValue.trim() != "") {
-                    circularListItem.Subject = textValue;//data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '');
+                if (subjectValue.length <= subjectMaxWord && subjectValue.trim() != "") {
+                    circularListItem.Subject = subjectValue;//data.value?.replace(/[^a-zA-Z0-9.&,() ]/g, '');
                     this.setState({ circularListItem });
                 }
                 else {
-                    if (textValue == "") {
+                    if (subjectValue == "") {
                         circularListItem.Subject = ``;
                         this.setState({ circularListItem })
                     }
@@ -1472,16 +1492,23 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
     }
 
     private onInputChange = (labelName: string, ev: React.ChangeEvent<HTMLInputElement>, data: InputOnChangeData) => {
-        const { circularListItem } = this.state
+        const { circularListItem } = this.state;
+
+        let textValue = data.value?.replace(/[^a-zA-Z0-9,& ]/g, '');
+        let isWhiteSpaceString = !textValue.replace(/\s/g, '').length;
+        if (isWhiteSpaceString) {
+            textValue = textValue.trim();
+        }
+
         switch (labelName) {
             case Constants.circularNumber:
-                circularListItem.CircularNumber = data?.value?.replace(/[^a-zA-Z0-9 ]/g, '');
+                circularListItem.CircularNumber = textValue;//data?.value?.replace(/[^a-zA-Z0-9 ]/g, '');
                 this.setState({ circularListItem })
                 break;
-            case Constants.subFileNo: circularListItem.SubFileCode = data.value?.replace(/[^a-zA-Z0-9,& ]/g, '');
+            case Constants.subFileNo: circularListItem.SubFileCode = textValue;//data.value?.replace(/[^a-zA-Z0-9,& ]/g, '');
                 this.setState({ circularListItem });
                 break;
-            case Constants.keyWords: circularListItem.Keywords = data.value?.replace(/[^a-zA-Z0-9,& ]/g, '');
+            case Constants.keyWords: circularListItem.Keywords = textValue;//data.value?.replace(/[^a-zA-Z0-9,& ]/g, '');
                 this.setState({ circularListItem });
                 break;
         }
@@ -1789,7 +1816,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             ? ""
             : (date.getDate() < 9 ? (`0` + date.getDate()) : date.getDate()) +
             "/" +
-            ((date.getMonth() + 1 < 9 ? (`0${date.getMonth() + 1}`) : date.getMonth() + 1)) +
+            ((date.getMonth() + 1 < 10 ? (`0${date.getMonth() + 1}`) : date.getMonth() + 1)) +
             "/" +
             (date.getFullYear());
     };
@@ -2679,7 +2706,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
     private saveForm = (status?: string) => {
         const { circularListItem,
             currentCircularListItemValue, sopAttachmentColl,
-            sopUploads, attachedFile, auditListItem, selectedSupportingCirculars } = this.state;
+            sopUploads, attachedFile, auditListItem, selectedSupportingCirculars, emailTemplates } = this.state;
         let isFormValid = this.validateAllRequiredFields();
         const { displayMode } = this.props;
 
@@ -2694,9 +2721,6 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             if (circularNumberIndexOf == -1) {
                 circularListItem.CircularNumber = `${this.getCircularNumber()}` + `${circularNumberText}`;
             }
-
-
-
 
             //circularListItem.CircularCreationDate = new Date().toISOString();
 
@@ -2738,7 +2762,16 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
                             console.log(newSOPUploadPromise);
                         }
-                        this.setState({ isSuccess: true, isLoading: false, circularListItem, currentCircularListItemValue: value })
+
+                        this.setState({
+                            isSuccess: true,
+                            isLoading: false,
+                            circularListItem,
+                            currentCircularListItemValue: value
+                        }, async () => {
+
+                        })
+
                     }).catch((error) => {
                         this.setState({ isLoading: false })
                     });
@@ -2746,6 +2779,16 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 else {
 
                     let ID = parseInt(currentCircularListItemValue.ID);
+
+                    // let subject = Text.format(emailTemplates[0].Subject, circularListItem.CircularNumber);
+                    // let body = emailTemplates[0].Body;
+
+                    // // await services.sendEmail([`kumar.v@mlaitech.io`], [`kumar.v@mlaitech.io`], subject, body).then((val) => {
+                    // //     console.log(val)
+                    // // }).catch((error) => {
+                    // //     console.log(error)
+                    // // })
+
                     /**
                     |--------------------------------------------------
                     | Update Comments History & Store in respective comments History Columns
@@ -2802,7 +2845,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                             });
 
                             let archivedObject = {
-                                CircularStatus: Constants.archived
+                                CircularStatus: Constants.archived,
+                                ArchivalDate: new Date().toISOString().split('T')[0] + `T00:00:00Z`
                             }
 
                             await services.updateMultipleListItem(serverRelativeUrl, Constants.circularList, itemIDs, archivedObject).then((updateItem) => {
@@ -2819,10 +2863,34 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                         circularListItem.PublishedDate = new Date().toISOString().split('T')[0] + `T00:00:00Z`;
                     }
 
+                    /**
+                    |--------------------------------------------------
+                    | End of code
+                    |--------------------------------------------------
+                    */
+
+                    /**
+                    |--------------------------------------------------
+                    | If Circular Status is Not New 
+                    |--------------------------------------------------
+                    */
 
                     if (circularListItem.CircularStatus != Constants.lblNew) {
 
+                        /**
+                        |--------------------------------------------------
+                        | Set Archival Date & Published Date for Archived & Rejected Status of Circular Item
+                        |--------------------------------------------------
+                        */
+
+                        if (status == Constants.archived || status == Constants.rejected) {
+                            circularListItem.ArchivalDate = new Date().toISOString().split('T')[0] + `T00:00:00Z`;
+                            circularListItem.PublishedDate = new Date().toISOString().split('T')[0] + `T00:00:00Z`;
+                        }
+
+
                         await services.updateItem(serverRelativeUrl, Constants.circularList, ID, circularListItem).then(async (value) => {
+
                             circularListItem.CircularNumber = displayMode == Constants.lblNew ? circularNumberText.replace(`${this.getCircularNumber()}`, ``) : circularListItem.CircularNumber;
                             circularListItem.CircularCreationDate = value?.Created;
                             value.Author = currentCircularListItemValue.Author;
@@ -2837,12 +2905,6 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                                         console.log(error);
                                         this.setState({ isLoading: false })
                                     })
-
-                                // let deleteFileRelativeUrl: string[] = [];
-
-                                // this.deleteEditFileAttachments.forEach((value, key) => {
-                                //     deleteFileRelativeUrl.push(value.ServerRelativeUrl);
-                                // });
                             }
 
 
@@ -2870,19 +2932,29 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
                             }
 
+
+
                             /**
                                 |--------------------------------------------------
-                                | Logging in to Comments Audit Log List
+                                | Logging in to Comments Audit Log List if status not equal to draft
                                 |--------------------------------------------------
                                 */
                             if (circularListItem.CircularStatus != Constants.draft) {
 
                                 if (circularListItem.CircularNumber.indexOf(`${this.getCircularNumber()}`) > -1) {
                                     auditListItem.Title = circularListItem.CircularNumber;
+                                    auditListItem.CircularAuditStatus = circularListItem.CircularStatus;
                                 }
                                 else {
                                     auditListItem.Title = `${this.getCircularNumber()}` + circularListItem.CircularNumber;
+                                    auditListItem.CircularAuditStatus = circularListItem.CircularStatus;
                                 }
+
+                                /**
+                                |--------------------------------------------------
+                                | Create items in audit log List
+                                |--------------------------------------------------
+                                */
 
                                 await services.createItem(serverRelativeUrl, Constants.commentsAuditLogs, auditListItem).then((auditItem) => {
                                     console.log(`Item Added to comments Log List`, auditItem);
@@ -2892,12 +2964,24 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                                     console.log(error)
                                 });
 
+
+                                /**
+                           |--------------------------------------------------
+                           | If Status is published create item in audit logs list with archived circular IDs
+                           |--------------------------------------------------
+                           */
+
                                 if (status == Constants.published) {
                                     if (selectedSupportingCirculars.length > 0) {
 
                                         let allArchivedIDs = selectedSupportingCirculars.map(val => val.ID).join(',');
                                         auditListItem.CommentsHistory = `Archived Supporting Circulars: [` + allArchivedIDs + `]`;
 
+                                        /**
+                                        |--------------------------------------------------
+                                        | Log Creation in audit list item
+                                        |--------------------------------------------------
+                                        */
                                         await services.createItem(serverRelativeUrl, Constants.commentsAuditLogs, auditListItem).then((auditItem) => {
                                             console.log(`Item Added to comments Log List`, auditItem);
                                         }).catch((error) => {
@@ -2908,6 +2992,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                                     }
 
                                 }
+
                             }
 
                             this.setState({
@@ -2915,6 +3000,16 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                                 circularListItem,
                                 currentCircularListItemValue: value,
                                 isLoading: false
+                            }, () => {
+                                /**
+                                |--------------------------------------------------
+                                | Send Email to the users if status is other than draft
+                                |--------------------------------------------------
+                                */
+                                if (status != Constants.draft) {
+                                    this.sendEmail(status)
+                                }
+
                             })
                         }).catch((error) => {
                             console.log(error);
@@ -2936,6 +3031,112 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             this.setState({ isFormInValid: true })
         }
 
+    }
+
+    private sendEmail = async (status) => {
+
+        let providerValue = this.context;
+        const { services, serverRelativeUrl, checkerUsersInfo, userInformation, complianceUsersInfo } = providerValue as IBobCircularRepositoryProps;
+        const { emailTemplates, circularListItem } = this.state;
+        const { sbmtChecker, sbmtCompliance, rejected, published, cmmtChecker, cmmtCompliance, commentsAuditLogs } = Constants;
+
+        let department = userInformation.department;
+        let toCheckerEmailAddress = [];
+        let toComplianceEmailAddress = [];
+        let circularNumber = ``;
+        if (circularListItem.CircularNumber.indexOf(`${this.getCircularNumber()}`) > -1) {
+            circularNumber = circularListItem.CircularNumber;
+        }
+        else {
+            circularNumber = `${this.getCircularNumber()}` + circularListItem.CircularNumber;
+        }
+
+        let checkerUsers = checkerUsersInfo.filter((val) => {
+            return val.department == department;
+        });
+
+        checkerUsers.map((val) => {
+            toCheckerEmailAddress.push(val.mail)
+        });
+
+        let complianceUsers = complianceUsersInfo.filter((val) => {
+            return val.department == department;
+        })
+
+        complianceUsers.map((val) => {
+            toComplianceEmailAddress.push(val.mail)
+        });
+
+        let subject = Text.format(emailTemplates[0].Subject, circularNumber);
+        let body = emailTemplates[0].Body;
+
+        let toEmailAddress = [];
+        let ccEmailAddress = [];
+
+
+        switch (status) {
+            case sbmtCompliance: body = Text.format(body, `Compliance Users`, circularNumber);
+                toEmailAddress = toComplianceEmailAddress;
+                ccEmailAddress = [userInformation.mail];
+                break;
+            case sbmtChecker: body = Text.format(body, `Checker Users`, circularNumber);
+                toEmailAddress = toCheckerEmailAddress;
+                ccEmailAddress = [userInformation.mail];
+                break;
+            case cmmtChecker: body = Text.format(body, `${userInformation.displayName}`, circularNumber)
+                ccEmailAddress = toCheckerEmailAddress;
+                toEmailAddress = [userInformation.mail];
+                break;
+            case cmmtCompliance: body = Text.format(body, `${userInformation.displayName}`, circularNumber)
+                ccEmailAddress = toComplianceEmailAddress;
+                toEmailAddress = [userInformation.mail];
+                break;
+            case rejected: body = Text.format(body, `${userInformation.displayName}`, circularNumber)
+                toEmailAddress = [userInformation.mail];
+                ccEmailAddress = toCheckerEmailAddress;
+                break;
+            case published: body = Text.format(body, `${userInformation.displayName}`, circularNumber)
+                toEmailAddress = [userInformation.mail];
+                ccEmailAddress = toCheckerEmailAddress;
+                break;
+        }
+
+        await services.sendEmail(toEmailAddress, ccEmailAddress, subject, body).then(async (val) => {
+            console.log(`Email Sent Successfully`);
+
+            let auditLog = {
+                CircularAuditStatus: `${status}`,
+                CommentsHistory: `Email sent to:${toEmailAddress.join(',')}} | Email sent cc: ${ccEmailAddress.join(',')}`,
+                Title: circularNumber,
+
+            }
+
+            await services.createItem(serverRelativeUrl, commentsAuditLogs, auditLog).then((val) => {
+                console.log(val)
+            }).catch((error) => {
+                this.errorLogging(circularNumber, error);
+            })
+
+        }).catch((error) => {
+            console.log(error)
+        })
+    }
+
+    private errorLogging = async (circularNumber, errorMessage) => {
+        let providerValue = this.context;
+        const { services, serverRelativeUrl, checkerUsersInfo, userInformation, complianceUsersInfo } = providerValue as IBobCircularRepositoryProps;
+        let auditLog = {
+            CircularAuditStatus: `Error`,
+            CommentsHistory: `${errorMessage}`,
+            Title: circularNumber,
+
+        }
+
+        await services.createItem(serverRelativeUrl, Constants.commentsAuditLogs, auditLog).then((val) => {
+            console.log(val)
+        }).catch((error) => {
+            console.log(error);
+        })
     }
 
     private createUpdateCircularFile = async () => {

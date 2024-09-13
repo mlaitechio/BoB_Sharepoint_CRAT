@@ -255,7 +255,9 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
 
         const circularStatus = listItem.CircularStatus;
         const limited = listItem.Classification == Constants.limited;
-        const currentDate = new Date();
+        const expiryDate = listItem.Expiry != null ? (listItem.Expiry as string).split('T')[0] : "";
+        const archivalDate = listItem.ArchivalDate != null ? (listItem.ArchivalDate as string).split('T')[0] : ""
+        const currentDate = circularStatus == archived && limited ? new Date(expiryDate) : circularStatus == archived ? new Date(archivalDate) : new Date();
         const month = (currentDate.getMonth() + 1 < 10 ? '0' : '') + (currentDate.getMonth() + 1);
         const day = (currentDate.getDate() < 10 ? '0' : '') + currentDate.getDate();
         const year = currentDate.getFullYear().toString();

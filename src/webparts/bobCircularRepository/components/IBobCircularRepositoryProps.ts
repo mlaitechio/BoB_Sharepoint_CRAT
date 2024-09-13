@@ -22,4 +22,6 @@ export interface IBobCircularRepositoryProps {
   publishingDays?: Number;
   circularListID?: string;
   updateItem?: (itemID: any) => void;
+  checkerUsersInfo?: any[];
+  complianceUsersInfo?: any[]
 }

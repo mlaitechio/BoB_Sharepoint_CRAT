@@ -4,7 +4,9 @@ export class Constants {
   //public static readonly documentCategoryList = "DocumentCategory";
   public static readonly circularList = "CircularRepository";
 
-  public static readonly commentsAuditLogs = `CommentsAuditLogs`
+  public static readonly commentsAuditLogs = `CommentsAuditLogs`;
+
+  public static readonly emailList = "EmailTemplates";
 
   public static readonly sharedDocuments = "Shared Documents";
 
@@ -85,7 +87,7 @@ export class Constants {
   public static readonly searchSupportingCirculars = `Search Circulars`;
 
 
-  public static readonly colCircularRepository = "Id,Subject,PublishedDate,CircularStatus,Category,IssuedFor,MigratedDepartment,Department,MakerCommentsHistory,CheckerCommentsHistory,ComplianceCommentsHistory,IsMigrated,CircularNumber,Classification,MigratedOriginator,Author/Title,Author/Id,Author/EMail"
+  public static readonly colCircularRepository = "Id,Subject,ArchivalDate,PublishedDate,CircularStatus,Category,IssuedFor,MigratedDepartment,Department,MakerCommentsHistory,CheckerCommentsHistory,ComplianceCommentsHistory,IsMigrated,CircularNumber,Classification,MigratedOriginator,Author/Title,Author/Id,Author/EMail"
   public static readonly expandColCircularRepository = "Author";
   public static readonly adSelectedColumns = "id,mail,region,title,position,grade,zone,displayName,department,employeeId,extensions,businessPhones,title,employeeNumber";
   public static readonly configSelectColumns = `Title,Limit,ID,ToolTip`;
@@ -255,6 +257,7 @@ export class Constants {
   public static readonly archived = "Archived";
   public static readonly deleted = "Deleted";
   public static readonly expired = "Expired";
+  public static readonly rejected = "Rejected";
 
 
   public static readonly loreumIPSUM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam eget libero nec tellus facilisis blandit at at magna. Donec sed dui finibus, tincidunt ante a, malesuada ligula. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nunc non iaculis erat, a semper dui. Integer porta in nunc sed molestie. Suspendisse aliquet hendrerit justo. Nullam sit amet tortor non nisl viverra venenatis."

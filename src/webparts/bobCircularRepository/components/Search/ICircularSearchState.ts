@@ -5,6 +5,7 @@ export interface ICircularSearchState {
     navLinkGroups?: INavLinkGroup[];
     selectedKey?: string;
     searchText?: string;
+    openSearchFilters?: boolean;
     items?: ICircularListItem[];
     filteredItems?: ICircularListItem[];
     columns?: any[];
@@ -44,7 +45,7 @@ export interface ICircularSearchState {
     filterAccordion?: any;
     openPanelCheckedValues?: ICheckBoxCollection[];
     filterPanelCheckBoxCollection?: Map<string, ICheckBoxCollection[]>;
-   
+
     showHideFilters?: boolean;
     publishedStartDate?: Date;
     publishedEndDate?: Date | null;

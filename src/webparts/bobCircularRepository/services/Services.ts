@@ -36,6 +36,40 @@ export class Services implements IServices {
         this.graph = graphfi().using(graphSPFx(context));
     }
 
+
+    public async getAllUsersInformationFromGroup(groupName: string): Promise<any> {
+
+        let groupUsersInfo = await sp.web.siteGroups.getByName(groupName).users().then(async (val) => {
+            if (val.length > 0) {
+
+                // let allUserDetails = await Promise.all(val.map(async (userInfo) => {
+                //     return await sp.profiles.getPropertiesFor(userInfo.LoginName).then((userDetails) => {
+                //         return userDetails;
+                //     })
+
+                // }));
+
+                let allUserDetails = await Promise.all(val.map(async (userInfo) => {
+                    return await await this.graph.users.filter(`mail eq '${userInfo.Email}'`).
+                        select(`${Constants.adSelectedColumns}`)().then((user) => {
+                            return user[0] ?? []
+                        }).catch((error) => {
+                            console.log(error);
+                            return []
+                        })
+                }))
+
+                return allUserDetails;
+
+            }
+            else {
+                return [];
+            }
+        })
+
+        return Promise.resolve(groupUsersInfo);
+    };
+
     public async getListItemById(serverRelativeUrl: string, listName: string, itemID: number): Promise<any> {
 
         let listItem = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items.getById(itemID)().then((val) => {
@@ -121,9 +155,9 @@ export class Services implements IServices {
 
         for (let i = 0; i < itemIDs.length; i++) {
 
-            await list.items.getById(itemIDs[i]).update(metadata,`*`).then((listItem)=>{
+            await list.items.getById(itemIDs[i]).update(metadata, `*`).then((listItem) => {
                 itemUpdated.push(listItem)
-            }).catch((error)=>{
+            }).catch((error) => {
                 console.log(error)
             })
         }
@@ -628,10 +662,11 @@ export class Services implements IServices {
     };
 
 
-    public async sendEmail(emailAddress: string, subject: string, body: any): Promise<any> {
+    public async sendEmail(emailAddress: string[], ccEmailAddress: string[], subject: string, body: any): Promise<any> {
 
         const emailProperties: IEmailProperties = {
-            To: [emailAddress],
+            To: emailAddress,
+            CC: ccEmailAddress,
             Subject: subject,
             Body: body,
             AdditionalHeaders: {

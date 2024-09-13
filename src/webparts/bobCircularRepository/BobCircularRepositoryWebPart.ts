@@ -31,6 +31,8 @@ export default class BobCircularRepositoryWebPart extends BaseClientSideWebPart<
   private isUserChecker = false;
   private isUserCompliance = false;
   private _userInformation: IADProperties = null;
+  private _checkerUsers = null;
+  private _complianceUsers = null;
 
   public render(): void {
     const element: React.ReactElement<IBobCircularRepositoryProps> = React.createElement(
@@ -48,7 +50,9 @@ export default class BobCircularRepositoryWebPart extends BaseClientSideWebPart<
         isUserMaker: this.isUserMaker,
         isUserCompliance: this.isUserCompliance,
         isUserChecker: this.isUserChecker,
-        userInformation: this._userInformation
+        userInformation: this._userInformation,
+        checkerUsersInfo: this._checkerUsers,
+        complianceUsersInfo: this._complianceUsers
       }
     );
 
@@ -93,10 +97,22 @@ export default class BobCircularRepositoryWebPart extends BaseClientSideWebPart<
         console.log(error)
       })
 
-     // ${this.context.pageContext.user.email}
+      // ${this.context.pageContext.user.email}
 
       await this._services.getCurrentUserInformation(`${this.context.pageContext.user.email}`, Constants.adSelectedColumns).then((userInfo) => {
         this._userInformation = userInfo[0];
+      }).catch((error) => {
+        console.log(error)
+      });
+
+      await this._services.getAllUsersInformationFromGroup(Constants.complianceGroup).then((userInfo) => {
+        this._complianceUsers = userInfo
+      }).catch((error) => {
+        console.log(error)
+      })
+
+      await this._services.getAllUsersInformationFromGroup(Constants.checkerGroup).then((userInfo) => {
+        this._checkerUsers = userInfo
       }).catch((error) => {
         console.log(error)
       })

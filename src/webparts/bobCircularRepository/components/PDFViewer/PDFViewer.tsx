@@ -119,7 +119,7 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
             const page = pdfDoc.getPage(pageNum);
             const { width, height } = page.getSize();
             const textFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-            const fontSize = 75;
+            const fontSize = 65;
 
             const font = pdfDoc.embedStandardFont(StandardFonts.Helvetica);
             const headerHeight = 50;
@@ -134,6 +134,28 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
 
             page.moveTo(startX, startY);
 
+            page.drawText(watermarkText, {
+                x: width / 7.3,
+                y: (1.6 * height) / 2.6,
+                size: fontSize,
+                font: textFont,
+                opacity: 0.4,
+                color: rgb(0.8392156862745098, 0.807843137254902, 0.792156862745098),
+                rotate: degrees(30)
+            });
+
+
+
+            page.drawText(watermarkText, {
+                x: width / 7.3,
+                y: (1.6 * height) / 7.3,
+                size: fontSize,
+                font: textFont,
+                opacity: 0.4,
+                color: rgb(0.8392156862745098, 0.807843137254902, 0.792156862745098),
+                rotate: degrees(30)
+            });
+
             page.drawText(footerText, {
                 x: 5,
                 y: 5,
@@ -143,15 +165,6 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
                 color: footerTextColor ?? rgb(0.02, 0.02, 0.02) //rgb(0.02, 0.02, 0.02)//rgb(0.86, 0.09, 0.26),
             });
 
-            page.drawText(watermarkText, {
-                x: width / 6,
-                y: (1.6 * height) / 6,
-                size: fontSize,
-                font: textFont,
-                opacity: 0.4,
-                color: rgb(0.8392156862745098, 0.807843137254902, 0.792156862745098),
-                rotate: degrees(30)
-            });
         }
 
         let pdfBytes = await pdfDoc.save();
