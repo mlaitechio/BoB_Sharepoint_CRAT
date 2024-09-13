@@ -2466,7 +2466,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       case Constants.colMigratedDepartment: sortFn = (a, b) => ((a[sortingFields] > b[sortingFields]) ? 1 : -1) * isDesc;
         listItems.sort(sortFn);
         break;
-      case Constants.colCircularNumber: sortFn = (a, b) => ((a[sortingFields] > b[sortingFields]) ? 1 : -1) * isDesc;
+      case Constants.colCircularNumber: sortFn = (a, b) => ((a[sortingFields] > b[sortingFields]) ? -1 : 1) * isDesc;
         listItems.sort(sortFn);
         break;
       case Constants.colClassification: sortFn = (a, b) => ((a[sortingFields] > b[sortingFields]) ? 1 : -1) * isDesc;
@@ -2859,6 +2859,8 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       publishedEndDate: null,
       checkBoxCollection: this.initializeCheckBoxFilter(),
       relevanceDepartment: this.initializeRelevanceDept(departmentBox)
+    }, () => {
+      this.searchResults()
     })
 
   }
