@@ -42,11 +42,13 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
         await this.waterMark_ConvertToBase64PDF(currentSelectedFileContent, `${watermarkText}`, footerText, footerTextColor).then((val) => {
             this.setState({ blobFile: val }, () => {
                 this.props.documentLoaded();
+
+               
             })
         }).catch((error) => {
             console.log(error);
             this.props.documentLoaded();
-        })
+        });
     }
 
     handlePrevious = () => {
@@ -83,8 +85,10 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
             pagination = this.renderPagination(this.state.page, this.state.pages);
         }
         return (
-            <div>
-                {/* {blobFile != null && <iframe src={blobFile} width={"100%"} height={"700px"} />} */}
+            <div >
+                {/* {blobFile != null && <iframe id="contentFile" src={blobFile} width={"100%"} height={"700px"} onContextMenu={(e)=>{
+                    console.log(e)
+                }} />} */}
                 {/* {blobFile == null && this.workingOnIt()} */}
                 {blobFile != null && <object data={blobFile} width={"100%"} height={"800px"} style={{ marginTop: -35 }}></object>}
 

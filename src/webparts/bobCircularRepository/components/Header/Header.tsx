@@ -46,13 +46,15 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
         const mode = getResponsiveMode(window);
         let userProfileImg = this.generateUserPhotoLink(context.pageContext.user.email)
 
-        let mobileMode = (mode == 0 || mode == 1);
+        let mobileMode = mode == 0;
+        let mobileModeDesktop = mode == 1;
         let tabletMode = (mode == 2);
         let desktopMode = (mode == 3 || mode == 4 || mode == 5);
 
-        let headerClass = tabletMode ? `${styles.column7}` : `${styles.column3}  ${styles.padding}`;
-        let headerImgClass = tabletMode ? `${styles.column2} ` : `${styles.column1}`;
+        let headerClass = (tabletMode || mobileModeDesktop || mobileMode) ? `${styles.column7}` : `${styles.column3}  ${styles.padding}`;
+        let headerImgClass = (tabletMode) ? `${styles.column2} ` : `${styles.column1}`;
         let headerClassTabletMode = `${styles.column6}`;
+        let userNameClass = (mobileModeDesktop) ? styles.column3 : styles.column2;
         let logoImg = context.pageContext.web.absoluteUrl + "/_api/siteiconmanager/getsitelogo";//require('../../assets/sidbilogo.png')
 
 
@@ -63,7 +65,7 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
             <div className={`${styles.row}  ${styles.minHeight}`}>
 
                 {
-                    tabletMode &&
+                    (tabletMode || mobileModeDesktop || mobileMode) &&
                     <div className={`${styles.column1} ${styles['text-center']}`} style={{
                         display: "flex",
                         verticalAlign: "middle",
@@ -75,10 +77,10 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                 }
 
                 {
-                    tabletMode && this.navigationPanel()
+                    (tabletMode || mobileModeDesktop || mobileMode) && this.navigationPanel()
                 }
 
-                {(desktopMode || tabletMode) && <>
+                {(desktopMode || tabletMode || mobileModeDesktop || mobileMode) && <>
 
                     <div className={`${headerImgClass} ${styles.textColor} `} >
 
@@ -88,14 +90,14 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
 
 
                                 styles={{
-                                    root: { padding: tabletMode ? 0 : 5 },
+                                    root: { padding: (tabletMode || mobileModeDesktop || mobileMode) ? 0 : 5 },
 
                                     image: {
                                         objectFit: "contain",
                                         verticalAlign: "-webkit-baseline-middle",
                                         // minHeight: 40,
-                                        height: tabletMode ? 40 : 32,
-                                        width: tabletMode ? 105 : "100%"
+                                        height: (tabletMode || mobileModeDesktop) ? 40 : 32,
+                                        width: (tabletMode) ? 105 : mobileModeDesktop ? 70 : mobileMode ? 56 : "100%"
                                         //width: responsiveMode == 5 ? 250 : `100%`
                                     }
                                 }}></Image>
@@ -104,12 +106,16 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                 </>
                 }
                 {/* ${styles.textColor}  */}
-                {(desktopMode || tabletMode) &&
+                {(desktopMode || tabletMode || mobileModeDesktop || mobileMode) &&
                     <div className={`${headerClass} 
                     ${styles.headerTextAlignLeft} 
                     ${styles.minHeight} `} style={{
                             fontWeight: "var(--fontWeightSemibold)",
-                            fontSize: tabletMode ? 24 : 18,
+                            fontSize: tabletMode ? 24 : (mobileModeDesktop || mobileMode) ? 14 : 18,
+                            display: mobileMode ? "flex" : "inherit",
+                            verticalAlign: mobileMode ? "middle" : "inherit",
+                            justifyContent: mobileMode ? "center" : "inherit",
+                            textAlign: mobileMode ? "center" : "left"
                             //borderLeft: "1px solid lightgrey",
                             //borderRight: "1px solid lightgrey"
                         }}>
@@ -189,8 +195,8 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                     </div>
                 }
                 {
-                    (desktopMode || tabletMode) && <>
-                        <div className={`${styles.column2} ${styles.user} ${styles.textAlignEnd} `}
+                    (desktopMode || tabletMode || mobileModeDesktop || mobileMode) && <>
+                        <div className={`${userNameClass} ${styles.user} ${styles.textAlignEnd} `}
                             title={`${userDisplayName}`}
                             style={{}}>
                             {`${userDisplayName ?? ``}`}
@@ -223,7 +229,7 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                 {
                     name: 'Add Circular',
                     //url: '#',
-                    onClick:() => { onMenuSubMenuLinkClick(Constants.lblAddCircular) },
+                    onClick: () => { onMenuSubMenuLinkClick(Constants.lblAddCircular) },
                     icon: `Add`,
                     key: 'AddCircular',
                     target: '_blank',
@@ -232,7 +238,7 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                     name: 'Maker Dashboard',
                     icon: `Edit`,
                     //url: '#',
-                    onClick:() => { onMenuSubMenuLinkClick(Constants.lblEditCircular) },
+                    onClick: () => { onMenuSubMenuLinkClick(Constants.lblEditCircular) },
                     key: 'MakerDashboard',
                     target: '_blank',
                 },
@@ -251,7 +257,7 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                 {
                     name: 'Pending Request',
                     //url: '#',
-                    onClick:() => { onMenuSubMenuLinkClick(Constants.lblPendingCompliance) },
+                    onClick: () => { onMenuSubMenuLinkClick(Constants.lblPendingCompliance) },
                     icon: `Clock`,
                     key: 'CmpPendingRequest',
                     target: '_blank',
@@ -270,7 +276,7 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                 {
                     name: 'Pending Request',
                     //url: '#',
-                    onClick:() => { onMenuSubMenuLinkClick(Constants.lblPendingChecker) },
+                    onClick: () => { onMenuSubMenuLinkClick(Constants.lblPendingChecker) },
                     icon: `Clock`,
                     key: 'ChkPendingRequest',
                     target: '_blank',
@@ -316,7 +322,7 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                 type={PanelType.smallFixedNear}
 
                 closeButtonAriaLabel="Close"
-                headerText={``}
+                headerText={`CRAT`}
                 styles={{
                     commands: { background: "white", paddingTop: 0 },
                     headerText: {
@@ -330,7 +336,7 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                     navigation: {
                         borderBottom: "1px solid #ccc",
                         selectors: {
-                            ".ms-Button": { color: "black", marginRight: 0 },
+                            ".ms-Button": { color: "black", marginTop: 10 },
                             ".ms-Button:hover": { color: "black" }
                         }
                     }

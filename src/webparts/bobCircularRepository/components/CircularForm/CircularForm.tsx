@@ -717,19 +717,19 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         const { circularListItem, currentCircularListItemValue } = this.state;
         const { displayMode } = this.props
         let providerValue = this.context;
-        const { context } = providerValue as IBobCircularRepositoryProps;
+        const { context, responsiveMode } = providerValue as IBobCircularRepositoryProps;
         let author = currentCircularListItemValue?.Author;
         let requester = displayMode == Constants.lblNew ? context.pageContext.user.displayName :
             currentCircularListItemValue?.Author?.split('#')[1].replace(',', '');
         let circularCreationDate = displayMode == Constants.lblNew ? this.onFormatDate(new Date()) :
             this.onFormatDate(new Date(currentCircularListItemValue?.Created));
-
+        let isTabletMobileMode = responsiveMode == 0 || responsiveMode == 1 || responsiveMode == 2;
 
         let infoSectionJSX = <>
 
             <div className={`${styles.column12}`}>
                 <div className={`${styles.row} ${styles.formRequestInfo}`}>
-                    <div className={`${styles.column5}`}>
+                    <div className={`${isTabletMobileMode ? styles.column12 : styles.column5}`}>
                         <Label className={`${styles.formLabel}`}
                             title={requester}
                             style={{
@@ -741,7 +741,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                             Requester : {requester}
                         </Label>
                     </div>
-                    <div className={`${styles.column4}`}>
+                    <div className={`${isTabletMobileMode ? styles.column12 : styles.column4}`}>
                         <Label className={`${styles.formLabel}`}
                             title={circularListItem.CircularStatus}
                             style={{
@@ -751,7 +751,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                                 display: "inline-block"
                             }}>Status : {circularListItem.CircularStatus}</Label>
                     </div>
-                    <div className={`${styles.column2}`}>
+                    <div className={`${isTabletMobileMode ? styles.column12 : styles.column2}`}>
                         <Label className={`${styles.formLabel}`}>Creation Date : {circularCreationDate}</Label>
                     </div>
                 </div>
@@ -770,9 +770,11 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             selectedCommentSection,
             classification, configuration, selectedSupportingCirculars, isRequesterMaker } = this.state;
         let providerValue = this.context;
-        const { context, isUserChecker, isUserMaker, isUserCompliance } = providerValue as IBobCircularRepositoryProps;
+        const { context, isUserChecker, isUserMaker, isUserCompliance, responsiveMode } = providerValue as IBobCircularRepositoryProps;
         const { displayMode, currentPage } = this.props
         const { keywordsToolTip, categoryToolTip } = Constants;
+        let isTabletMobileMode = responsiveMode == 0 || responsiveMode == 1 || responsiveMode == 2;
+        let formClass6 = isTabletMobileMode ? `${styles.formColumn6}` : `${styles.column6}`;
 
 
         let circularStatus = circularListItem.CircularStatus;
@@ -829,20 +831,20 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 </div>
                 <Divider appearance="subtle" ></Divider>
                 <div className={`${styles.row}  ${styles.formFieldMarginTop}`}>
-                    <div className={`${styles.column6}`}>
+                    <div className={`${formClass6}`}>
                         {this.textFieldControl(`${Constants.circularNumber}`, true, `${circularListItem.CircularNumber}`, disableCircularNumber, `Field cannot be empty`)}
 
                     </div>
-                    <div className={`${styles.column6}`}>
+                    <div className={`${formClass6}`}>
                         {this.dropDownControl(`${Constants.issuedFor}`, true, `${circularListItem.IssuedFor}`, issuedFor, disableControl, `Field cannot be empty`)}
                     </div>
                 </div>
                 <Divider appearance="subtle" ></Divider>
                 <div className={`${styles.row}  ${styles.formFieldMarginTop}`}>
-                    <div className={`${styles.column6}`}>
+                    <div className={`${formClass6}`}>
                         {this.dropDownControl(`${Constants.category}`, true, `${circularListItem.Category}`, category, disableControl, `Field cannot be empty`, true, categoryToolTip)}
                     </div>
-                    <div className={`${styles.column6}`}>
+                    <div className={`${formClass6}`}>
                         {this.dropDownControl(`${Constants.classification}`, true, `${circularListItem.Classification}`, classification, disableControl, `Field cannot be empty`)}
                     </div>
                 </div>
@@ -850,39 +852,39 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
                 {/* <Divider></Divider> */}
                 <div className={`${styles.row} ${styles.formFieldMarginTop}`}>
-                    <div className={`${styles.column6}`}>
+                    <div className={`${formClass6}`}>
                         {this.textFieldControl(`${Constants.subFileNo}`, false, `${circularListItem.SubFileCode}`, disableControl, ``)}
                     </div>
-                    <div className={`${styles.column6}`}>
+                    <div className={`${formClass6}`}>
                         {this.textFieldControl(`${Constants.keyWords}`, true, `${circularListItem.Keywords}`, disableControl, `Field cannot be empty`, ``, true, [keyWordsToolTipText], keyWordsToolTipLimit)}
                     </div>
                 </div>
                 <Divider appearance="subtle" ></Divider>
 
                 <div className={`${styles.row}  ${styles.formFieldMarginTop}`}>
-                    <div className={`${styles.column6}`}>
+                    <div className={`${formClass6}`}>
                         {this.datePickerControl(`${Constants.expiry}`, expiryDate, !isTypeChecked, (isTypeChecked || disableControl))}
                     </div>
-                    <div className={`${styles.column6}`}>
+                    <div className={`${formClass6}`}>
                         {this.switchControl(`${Constants.type}`, false, `${circularListItem?.CircularType ?? ``}`, "vertical", isTypeChecked, (isTypeDisabled || disableControl))}
                     </div>
                 </div>
                 <Divider appearance="subtle" ></Divider>
                 <div className={`${styles.row} ${styles.formFieldMarginTop}`}>
-                    <div className={`${styles.column6}`}>
+                    <div className={`${formClass6}`}>
                         {this.textFieldControl(`${Constants.department}`, false, `${circularListItem.Department}`, disableControl)}
                     </div>
-                    <div className={`${styles.column6}`}>
+                    <div className={`${formClass6}`}>
                         {this.switchControl(`${Constants.compliance}`, false, `${lblCompliance}`, "vertical", isComplianceChecked, disableControl)}
                     </div>
                 </div>
                 <Divider appearance="subtle" ></Divider>
                 <div className={`${styles.row} ${styles.formFieldMarginTop}`}>
-                    <div className={`${styles.column6}`}>
+                    <div className={`${formClass6}`}>
                         {this.dropDownControl(`${Constants.lblTemplate}`, false, `${selectedTemplate}`, templates, disableControl, `Field cannot be empty`, true, [templateToolTipText], templateToolTipLimit)}
 
                     </div>
-                    <div className={`${styles.column6}`}>
+                    <div className={`${formClass6}`}>
                         <Field label={<Label className={`${styles.formLabel} ${styles.fieldTitle}`}>{`Circular Content`}</Label>}>
                             {attachedFile && this.attachmentLink(attachedFile)}
                         </Field>

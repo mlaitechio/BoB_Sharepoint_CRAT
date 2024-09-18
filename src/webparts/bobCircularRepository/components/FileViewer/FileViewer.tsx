@@ -274,7 +274,7 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
                     isLightDismiss={true}
                     onDismiss={this.onDismissPanel}
                     type={PanelType.custom}
-
+                    
                     closeButtonAriaLabel="Close"
                     headerText={`${this.props.listItem.Subject}`}
                     styles={{
