@@ -99,13 +99,17 @@ input * {
   display: block;
 }
 
+.mobileFontFamily {
+  font-family: Roboto !important //var(--fontFamilyNumeric);
+}
+
 .mobileFont {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
 }
 
 .mobileHeaderFont {
-  font-size: larger;
+  font-size: medium;
   font-weight: 800;
 }
 
@@ -210,8 +214,8 @@ input * {
 
 .column10 {
   @include ms-Grid-col;
-  @include ms-sm12;
-  @include ms-md8;
+  @include ms-sm10;
+  @include ms-md10;
   @include ms-lg10;
   height: "inherit";
 }
@@ -507,10 +511,44 @@ input * {
   margin-left: 5px;
 }
 
+.buttonTextMobile {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 115px;
+  overflow: hidden;
+}
+
+.summaryFAQ {
+  max-height: 100px;
+  text-overflow: ellipsis;
+  white-space: normal;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+.colorLabelMobile {
+  color: var(--colorBrandBackground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+  width: auto;
+  vertical-align: middle;
+}
+
 .colorLabel {
   color: var(--colorBrandBackground);
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 200px;
+  width: 110px;
+  vertical-align: middle;
+}
+
+.colorLabelTablet1 {
+  color: var(--colorBrandBackground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   max-width: 200px;
   width: 110px;
   vertical-align: middle;
@@ -522,7 +560,7 @@ input * {
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 200px;
-  width: 95px;
+  width: 130px;
   vertical-align: middle;
 }
 
@@ -786,7 +824,7 @@ input::placeholder {
 
 .mobileCard {
   background: hsla(0, 0%, 100%, .25);
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, .37) !important;
+  box-shadow: 0 8px 32px 0 rgba(232, 232, 237, 0.37) !important;
 }
 
 .OneUpError {

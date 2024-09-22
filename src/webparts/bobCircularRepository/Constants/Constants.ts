@@ -19,6 +19,7 @@ export class Constants {
   public static readonly makerGroup = "Maker";
   public static readonly checkerGroup = "Checker";
   public static readonly complianceGroup = "Compliance";
+  public static readonly rejectedGroup = "Rejected";
   public static readonly headerCircularUpload = "{0} Circular Upload";
 
   /**
@@ -29,7 +30,7 @@ export class Constants {
   public static readonly editCircularFilterString = "(Department eq '{0}' or Department eq null) and (CircularStatus eq 'Draft' or CircularStatus eq 'Submitted to Compliance' or CircularStatus eq 'Submitted to Checker' or CircularStatus eq 'Comments from Compliance' or CircularStatus eq 'Comments from Checker')"
   public static readonly compliancePendingFilterString = "(Department eq '{0}' or Department eq null) and (CircularStatus eq 'Submitted to Compliance') and (Compliance eq 'Yes')";
   public static readonly checkerPendingFilterString = "(Department eq '{0}' or Department eq null) and (CircularStatus eq 'Approved by Compliance' or CircularStatus eq 'Submitted to Checker')";
-
+  public static readonly rejectedFilterString = "(Department eq '{0}' or Department eq null) and (CircularStatus eq 'Rejected')";
   /**
   |--------------------------------------------------
   | MegaMenu Constants
@@ -42,6 +43,7 @@ export class Constants {
   public static readonly lblViewCircular = "View Circular";
   public static readonly lblPendingCompliance = "Pending Compliance Request";
   public static readonly lblPendingChecker = "Pending Checker Request";
+  public static readonly lblRejectedRequest = "Rejected Request";
 
   /**
   |--------------------------------------------------

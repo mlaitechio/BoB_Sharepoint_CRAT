@@ -612,14 +612,14 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             <>
 
                 <div className={`${styles.row}`}>
-                    <div className={`${styles.column1} ${styles.headerBackgroundColor} `}>
+                    <div className={`${isTabletMode ? styles.mobileColumn1 : styles.column1} ${styles.headerBackgroundColor} `}>
                         <Button icon={<ArrowLeftFilled />}
                             onClick={this.onBtnClick.bind(this, Constants.goBack)}
                             title="Go Back"
                             appearance="transparent"
                             className={`${styles.formHeader}`}></Button>
                     </div>
-                    <div className={`${styles.column11} ${styles.headerBackgroundColor} ${styles['text-center']}`}>
+                    <div className={`${isTabletMode ? styles.mobileColumn11 : styles.column11} ${styles.headerBackgroundColor} ${styles['text-center']}`}>
                         <Label className={`${styles.formHeader}`}>
                             {Text.format(Constants.headerCircularUpload,
                                 `${displayMode == Constants.lblNew ? Constants.lblNew :
@@ -644,7 +644,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
                         </div >
                     </div>
-                    <div className={`${formClass} `} style={{ minHeight: "100vh" }}>
+                    <div className={`${formClass} `} style={{ minHeight: isTabletMode ? "38vh" : "100vh" }}>
                         <div className={`${styles.row}`} style={{ padding: 15 }}>
                             <div className={`${styles.column12}`}>
                                 <Label className={`${styles.formLabel}`} >
@@ -656,8 +656,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                                 {documentPreviewURL != "" && <iframe
                                     src={documentPreviewURL ?? ``}
                                     style={{
-                                        minHeight: 800,
-                                        height: 1080,
+                                        minHeight: isTabletMode ? 300 : 800,
+                                        height: isTabletMode ? 300 : 1080,
                                         width: "100%",
                                         border: 0
                                     }} role="presentation" tabIndex={-1}></iframe>}
@@ -667,9 +667,9 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                             displayMode != Constants.lblNew &&
                             displayMode != Constants.lblEditCircular &&
                             < div className={`${styles.row}`}>
-                                <div className={`${styles.column10}`}></div>
+                                <div className={`${isTabletMode ? styles.mobileColumn12 : styles.column10}`}></div>
 
-                                <div className={`${styles.column2}`}
+                                <div className={`${isTabletMode ? styles.mobileColumn2 : styles.column2}`}
                                     style={{ marginTop: -32, background: "white", minHeight: 21, opacity: 1, marginLeft: -11 }}>
 
                                 </div>
@@ -723,13 +723,13 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             currentCircularListItemValue?.Author?.split('#')[1].replace(',', '');
         let circularCreationDate = displayMode == Constants.lblNew ? this.onFormatDate(new Date()) :
             this.onFormatDate(new Date(currentCircularListItemValue?.Created));
-        let isTabletMobileMode = responsiveMode == 0 || responsiveMode == 1 || responsiveMode == 2;
-
+        let isMobileMode = responsiveMode == 0 || responsiveMode == 1;
+        let isTabletMode = responsiveMode == 2;
         let infoSectionJSX = <>
 
             <div className={`${styles.column12}`}>
                 <div className={`${styles.row} ${styles.formRequestInfo}`}>
-                    <div className={`${isTabletMobileMode ? styles.column12 : styles.column5}`}>
+                    <div className={`${isMobileMode ? styles.column12 : isTabletMode ? styles.column4 : styles.column5}`}>
                         <Label className={`${styles.formLabel}`}
                             title={requester}
                             style={{
@@ -741,7 +741,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                             Requester : {requester}
                         </Label>
                     </div>
-                    <div className={`${isTabletMobileMode ? styles.column12 : styles.column4}`}>
+                    <div className={`${isMobileMode ? styles.column12 : isTabletMode ? styles.column4 : styles.column4}`}>
                         <Label className={`${styles.formLabel}`}
                             title={circularListItem.CircularStatus}
                             style={{
@@ -751,7 +751,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                                 display: "inline-block"
                             }}>Status : {circularListItem.CircularStatus}</Label>
                     </div>
-                    <div className={`${isTabletMobileMode ? styles.column12 : styles.column2}`}>
+                    <div className={`${isMobileMode ? styles.column12 : isTabletMode ? styles.column4 : styles.column2}`}>
                         <Label className={`${styles.formLabel}`}>Creation Date : {circularCreationDate}</Label>
                     </div>
                 </div>
@@ -1225,12 +1225,17 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
     }
 
     private submitDialog = (showDialog, currentStatus): JSX.Element => {
+        let providerValue = this.context;
+        const { responsiveMode } = providerValue as IBobCircularRepositoryProps;
+
+        let isMobileMode = responsiveMode == 0;
+
         let submitDialogJSX = <>
             <>
                 <Dialog modalType="alert" defaultOpen={(showDialog)} >
                     <DialogSurface style={{ maxWidth: 480, padding: 14 }}>
                         <DialogBody style={{ display: "block" }}>
-                            <DialogTitle style={{ fontFamily: "Roboto", marginBottom: 10 }}>{`${`Save Circular` ?? ``}`}</DialogTitle>
+                            <DialogTitle style={{ fontFamily: "Roboto", marginBottom: 10, textAlign: "center" }}>{`${`Save Circular` ?? ``}`}</DialogTitle>
                             <DialogContent styles={{
                                 header: { display: "none" },
                                 inner: { padding: 0 },
@@ -1241,7 +1246,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                             </DialogContent>
                             <DialogActions style={{ justifyContent: "center" }}>
                                 <div className={`${styles.row}`}>
-                                    <div className={`${styles.column6}`}>
+                                    <div className={`${isMobileMode ? `${styles.mobileColumn6} ${styles.textAlignEnd}` : styles.column6}`}>
                                         <Button appearance="primary"
                                             onClick={() => {
                                                 this.setState({ showSubmitDialog: false }, () => {
@@ -1250,7 +1255,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
                                             }}>Yes</Button>
                                     </div>
-                                    <div className={`${styles.column6}`}>
+                                    <div className={`${isMobileMode ? styles.mobileColumn6 : styles.column6}`}>
                                         <Button appearance="secondary"
                                             onClick={() => {
                                                 this.setState({ showSubmitDialog: false })
@@ -2337,9 +2342,9 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
     private alertControl = (showAlert, headerTitle?: string, headerColor?: string, validationMessage?: string, buttonJSX?: any): JSX.Element => {
         let alertJSX = <>
             <Dialog modalType="alert" defaultOpen={(showAlert)} >
-                <DialogSurface style={{ maxWidth: 300 }}>
+                <DialogSurface style={{ maxWidth: 330 }}>
                     <DialogBody style={{ display: "block" }}>
-                        <DialogTitle style={{ fontFamily: "Roboto", marginBottom: 15, color: headerColor ?? "#B10E1C" }}>{`${headerTitle ?? ``}`}</DialogTitle>
+                        <DialogTitle style={{ fontFamily: "Roboto", marginBottom: 15, color: headerColor ?? "#B10E1C", textAlign: "center" }}>{`${headerTitle ?? ``}`}</DialogTitle>
                         <DialogContent styles={{
                             header: { display: "none" },
                             inner: { padding: 0 },
@@ -2362,12 +2367,17 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
     private alertButton = (): JSX.Element => {
 
-        const { isFormInValid, isDeleteCircularFile, isFileSizeAlert, isFileTypeAlert, isDuplicateCircular } = this.state
+        const { isFormInValid, isDeleteCircularFile, isFileSizeAlert, isFileTypeAlert, isDuplicateCircular } = this.state;
+        let providerValue = this.context;
+        const { responsiveMode } = providerValue as IBobCircularRepositoryProps;
+
+        let isMobileMode = responsiveMode == 0;
+
         let alertButtonJSX;
 
         if (isFormInValid || isFileSizeAlert || isFileTypeAlert || isDuplicateCircular) {
             alertButtonJSX = <div className={`${styles.row}`}>
-                <div className={`${styles.column12}`}>
+                <div className={`${isMobileMode ? `${styles.mobileColumn12} ${styles['text-center']}` : styles.column12}`}>
                     <Button appearance="secondary"
                         onClick={() => {
                             this.setState({
@@ -2383,13 +2393,13 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
         } else if (isDeleteCircularFile) {
             alertButtonJSX = <div className={`${styles.row}`}>
-                <div className={`${styles.column6}`}>
+                <div className={`${isMobileMode ? `${styles.mobileColumn6} ${styles.textAlignEnd}` : styles.column6}`}>
                     <Button appearance="primary"
                         onClick={() => {
                             this.deleteAttachment();
                         }}>Delete</Button>
                 </div>
-                <div className={`${styles.column6}`}>
+                <div className={`${isMobileMode ? `${styles.mobileColumn6}` : styles.column6}`}>
                     <Button appearance="secondary"
                         onClick={() => {
                             this.setState({ isFormInValid: false, isDeleteCircularFile: false })
@@ -2425,13 +2435,13 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
         const { isDelete, isBack } = this.state
         let dialogControlJSX = <>
             <Dialog modalType="alert" defaultOpen={(showAlert)}>
-                <DialogSurface>
+                <DialogSurface style={{ maxWidth: 330 }}>
                     <DialogBody style={{ gridTemplateColumns: "1fr 0fr auto" }}>
-                        <DialogTitle style={{ fontFamily: "Roboto" }}>{isDelete ? `Delete Circular` : `Back to Home`}</DialogTitle>
-                        <DialogContent styles={{ header: { display: "none" }, inner: { padding: 0 }, innerContent: { fontFamily: "Roboto" } }}>
+                        <DialogTitle style={{ fontFamily: "Roboto", textAlign: "center" }}>{isDelete ? `Delete Circular` : `Back to Home`}</DialogTitle>
+                        <DialogContent styles={{ header: { display: "none" }, inner: { padding: "0px !important" }, innerContent: { fontFamily: "Roboto" } }}>
                             {isDelete ? `Are you sure you want to delete the circular?` : `Are you sure you want to leave this page?`}
                         </DialogContent>
-                        <DialogActions>
+                        <DialogActions style={{ justifyContent: "center" }}>
                             <DialogTrigger>
                                 <Button appearance="primary" onClick={() => {
                                     this.setState({ isBack: false, isDelete: false }, () => {
@@ -2453,15 +2463,19 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
     }
 
     private workingOnIt = (): JSX.Element => {
-        const { isLoading, isSuccess } = this.state
+        const { isLoading, isSuccess } = this.state;
+        let providerValue = this.context;
+        const { responsiveMode } = providerValue as IBobCircularRepositoryProps;
+        let isMobileMode = responsiveMode == 0 || responsiveMode == 1 || responsiveMode == 2;
+
         let workingJSX = <>
             <Dialog modalType="alert" defaultOpen={true}>
                 <DialogSurface style={{ maxWidth: 300 }}>
                     <DialogBody style={{ display: "block" }}>
-                        <DialogContent styles={{ header: { display: "none" }, inner: { padding: 0 }, innerContent: { fontFamily: "Roboto" } }}>
+                        <DialogContent styles={{ header: { display: "none" }, inner: { padding: 0 }, innerContent: { fontFamily: "Roboto",textAlign:"center" } }}>
                             {isLoading && <Spinner size="large" labelPosition="below" label={"Please Wait..."}></Spinner>}
                             {isSuccess && <>
-                                <Image style={{ width: 160, paddingLeft: 100 }} src={require(`../../assets/success.gif`)} shape="circular" fit="contain"></Image>
+                                <Image style={{ width: isMobileMode ? 70 : 160}} src={require(`../../assets/success.gif`)} shape="circular" fit="contain"></Image>
                                 <Label className={`${styles.formLabel}`} style={{
                                     display: "block",
                                     width: "100%",

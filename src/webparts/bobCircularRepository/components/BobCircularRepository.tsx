@@ -31,6 +31,7 @@ export interface IBobCircularRepositoryState {
   isPendingCompliance: boolean;
   isPendingChecker: boolean;
   isArchived?: boolean;
+  isRejected?: boolean;
   isMasterCircularEdit?: boolean
 }
 
@@ -50,6 +51,7 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
       isPendingChecker: false,
       isPendingCompliance: false,
       isArchived: false,
+      isRejected: false,
       isMasterCircularEdit: false
 
     }
@@ -138,16 +140,16 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
         footerContainer.style.cssText = "display:none";
       }
 
-      if (hasTeamsContext) {
-        const head: any = document.getElementsByTagName("head")[0];
-        const meta: any = document.createElement("meta");
-        meta.setAttribute("name", "viewport");
-        meta.setAttribute(
-          "content",
-          "width=device-width, initial-scale=1, maximum-scale=1"
-        );
-        head.appendChild(meta);
-      }
+      //if (hasTeamsContext) {
+      const head: any = document.getElementsByTagName("head")[0];
+      const meta: any = document.createElement("meta");
+      meta.setAttribute("name", "viewport");
+      meta.setAttribute(
+        "content",
+        "width=device-width, initial-scale=1, maximum-scale=1"
+      );
+      head.appendChild(meta);
+      //}
 
       // console.log(this.navRef?.current)
 
@@ -159,6 +161,8 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
     if (workpagecontent != null) {
       workpagecontent.style.cssText = "max-width:100%";
     }
+    // 
+    localStorage.setItem("loadDashBoard", "false");
   }
 
   public componentDidMount(): void {
@@ -166,11 +170,12 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
   }
 
   public render(): React.ReactElement<IBobCircularRepositoryProps> {
-    const { isCreateCircular, isHome, isEditCircular, isPendingCompliance, isPendingChecker } = this.state;
+    const { isCreateCircular, isHome, isEditCircular, isPendingCompliance, isPendingChecker, isRejected } = this.state;
     const { userInformation } = this.props
     const editCircularFilterString = Text.format(Constants.editCircularFilterString, userInformation.department);
     const complianceFilterString = Text.format(Constants.compliancePendingFilterString, userInformation.department)
     const checkerPendingFilterString = Text.format(Constants.checkerPendingFilterString, userInformation.department);
+    const rejectedFilterString = Text.format(Constants.rejectedFilterString, userInformation.department);
 
     return (
       <>
@@ -237,6 +242,16 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
                         </ContextProvider></>
                     }
 
+                    {
+                      (isRejected) && <>
+                        <ContextProvider value={this.props}>
+                          <EditDashBoard stateKey={new Date().toString()}
+                            filterString={rejectedFilterString}
+                            currentPage={`${Constants.rejectedGroup}`}
+                          />
+                        </ContextProvider></>
+                    }
+
                   </div>
                 </div>
 
@@ -253,27 +268,32 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
     switch (labelName) {
       case Constants.lblHome: this.setState({
         isHome: true, isCreateCircular: false, isEditCircular: false,
-        isPendingCompliance: false, isPendingChecker: false
+        isPendingCompliance: false, isPendingChecker: false, isRejected: false
       });
         break;
       case Constants.lblAddCircular: this.setState({
         isHome: false, isCreateCircular: true, isEditCircular: false,
-        isPendingCompliance: false, isPendingChecker: false
+        isPendingCompliance: false, isPendingChecker: false, isRejected: false
       });
         break;
       case Constants.lblEditCircular: this.setState({
         isHome: false, isCreateCircular: false, isEditCircular: true,
-        isPendingCompliance: false, isPendingChecker: false
+        isPendingCompliance: false, isPendingChecker: false, isRejected: false
       });
         break;
       case Constants.lblPendingCompliance: this.setState({
         isHome: false, isCreateCircular: false, isEditCircular: false,
-        isPendingCompliance: true, isPendingChecker: false
+        isPendingCompliance: true, isPendingChecker: false, isRejected: false
       });
         break;
       case Constants.lblPendingChecker: this.setState({
         isHome: false, isCreateCircular: false, isEditCircular: false,
-        isPendingCompliance: false, isPendingChecker: true
+        isPendingCompliance: false, isPendingChecker: true, isRejected: false
+      });
+        break;
+      case Constants.lblRejectedRequest: this.setState({
+        isHome: false, isCreateCircular: false, isEditCircular: false,
+        isPendingCompliance: false, isPendingChecker: false, isRejected: true
       });
         break;
     }

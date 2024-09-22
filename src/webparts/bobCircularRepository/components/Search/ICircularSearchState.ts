@@ -6,6 +6,8 @@ export interface ICircularSearchState {
     selectedKey?: string;
     searchText?: string;
     openSearchFilters?: boolean;
+    supportingDocItem?: ICircularListItem;
+    openSupportingDoc?: boolean;
     items?: ICircularListItem[];
     filteredItems?: ICircularListItem[];
     columns?: any[];

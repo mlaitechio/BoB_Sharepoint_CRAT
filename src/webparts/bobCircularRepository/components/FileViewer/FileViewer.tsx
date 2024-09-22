@@ -274,7 +274,7 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
                     isLightDismiss={true}
                     onDismiss={this.onDismissPanel}
                     type={PanelType.custom}
-                    
+
                     closeButtonAriaLabel="Close"
                     headerText={`${this.props.listItem.Subject}`}
                     styles={{
@@ -327,7 +327,7 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
                                         {initialPreviewFileUrl != "" &&
                                             <div className={`${styles.row}`}>
                                                 <div className={`${!isMobileMode ? `${styles.column12} ${styles.fontSizeFileName}` : `${styles.column12} ${styles.mobileFontFileName}`}`}
-                                                    style={{ top: 3, background: hidePreviewColor, minHeight: 40, opacity: 1, width: "99.5%" }}>
+                                                    style={{ background: hidePreviewColor, minHeight: 40, opacity: 1, width: "99.5%" }}>
                                                     {`${selectedFile}`}
                                                 </div>
                                             </div>
@@ -342,6 +342,7 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
                                                 watermarkText={`${waterMarkText}`}
                                                 footerText={footerText}
                                                 footerTextColor={footerTextColor}
+                                                mode={isMobileMode}
                                                 documentLoaded={() => { this.props.documentLoaded() }}
                                             />
                                         }

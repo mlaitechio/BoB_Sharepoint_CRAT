@@ -6,6 +6,7 @@ MlaiBob@6789
 
 [Yesterday 11:24 AM] Mayank Makhija (External)
 !@#April@1234567
+
  
 [Yesterday 11:24 AM] Mayank Makhija (External)
 spoint6@bankofbaroda.co.in
@@ -50,7 +51,12 @@ Category Search Query string
 11.New UI Changes with Vertical buttons & Pop over Menu with FAQ, Supporting Documents & Summary binding - 8 hours
 12.Search criteria Changes for Subject & Department with other UI changes- 6 hours 
 13.Configuration List Implemented - 4 hours
-12.Responsive Design 
+12.Responsive Design -52 hours
+
+Functionality to implement subject title search
+Responsive design for Dialog box (Add Circular) , Supporting Documents.
+Circular number check
+Opening circular file mobile broswer
 
 Search Dashboard
 1. Logic to get only published status circular items

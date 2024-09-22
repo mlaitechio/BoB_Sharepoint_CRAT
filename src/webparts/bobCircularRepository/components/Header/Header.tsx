@@ -8,7 +8,7 @@ import { IBobCircularRepositoryProps } from '../IBobCircularRepositoryProps';
 import { Constants } from '../../Constants/Constants';
 import { IconButton } from '@fluentui/react'
 import { Button, Divider, Link, Menu, MenuButton, MenuItem, MenuList, MenuPopover, MenuTrigger, Tree, TreeItem, TreeItemLayout, TreeItemPersonaLayout } from '@fluentui/react-components';
-import { AddCircleRegular, AddRegular, CheckboxPersonRegular, ChevronDoubleDownRegular, ChevronUpRegular, ClockRegular, DeleteRegular, EditRegular, HomeRegular, Navigation20Regular, NavigationFilled, NavigationRegular, PhoneUpdateRegular, ShieldPersonAddRegular, TaskListLtrRegular } from '@fluentui/react-icons';
+import { AddCircleRegular, AddRegular, CheckboxPersonRegular, ChevronDoubleDownRegular, ChevronUpRegular, ClockRegular, DeleteRegular, DismissRegular, EditRegular, HomeRegular, Navigation20Regular, NavigationFilled, NavigationRegular, PhoneUpdateRegular, ShieldPersonAddRegular, TaskListLtrRegular } from '@fluentui/react-icons';
 
 export default class Header extends React.Component<IHeaderProps, IHeaderState> {
 
@@ -150,10 +150,12 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                                         onClick={() => { onMenuSubMenuLinkClick(Constants.lblEditCircular) }}>
                                         Maker Dashboard</MenuItem>
                                     {/* onClick={() => { onMenuSubMenuLinkClick(Constants.lblEditCircular) }} */}
-                                    {/* <MenuItem className={`${styles.fontRoboto}`}
-                                        icon={<PhoneUpdateRegular />}>
-                                        Master Circular Annual Updation
-                                    </MenuItem> */}
+                                    <MenuItem
+                                        onClick={() => { onMenuSubMenuLinkClick(Constants.lblRejectedRequest) }}
+                                        className={`${styles.fontRoboto}`}
+                                        icon={<DismissRegular />}>
+                                        Rejected Circulars
+                                    </MenuItem>
                                 </MenuList>
                             </MenuPopover>
                         </Menu>}
@@ -167,10 +169,12 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                                 <MenuList>
                                     <MenuItem className={`${styles.fontRoboto}`} icon={<ClockRegular />}
                                         onClick={() => { onMenuSubMenuLinkClick(Constants.lblPendingCompliance) }}>Pending Request</MenuItem>
-                                    {/* <MenuItem className={`${styles.fontRoboto}`}
-                                        icon={<PhoneUpdateRegular />}>
-                                        Master Circular Annual Updation
-                                    </MenuItem> */}
+                                    <MenuItem
+                                        onClick={() => { onMenuSubMenuLinkClick(Constants.lblRejectedRequest) }}
+                                        className={`${styles.fontRoboto}`}
+                                        icon={<DismissRegular />}>
+                                        Rejected Circulars
+                                    </MenuItem>
                                 </MenuList>
                             </MenuPopover>
                         </Menu>}
@@ -185,10 +189,12 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                                         onClick={() => { onMenuSubMenuLinkClick(Constants.lblPendingChecker) }}
                                         className={`${styles.fontRoboto}`}
                                         icon={<ClockRegular />}>Pending Request</MenuItem>
-                                    {/* <MenuItem className={`${styles.fontRoboto}`}
-                                        icon={<PhoneUpdateRegular />}>
-                                        Master Circular Annual Updation
-                                    </MenuItem> */}
+                                    <MenuItem
+                                        onClick={() => { onMenuSubMenuLinkClick(Constants.lblRejectedRequest) }}
+                                        className={`${styles.fontRoboto}`}
+                                        icon={<DismissRegular />}>
+                                        Rejected Circulars
+                                    </MenuItem>
                                 </MenuList>
                             </MenuPopover>
                         </Menu>}
@@ -229,7 +235,11 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                 {
                     name: 'Add Circular',
                     //url: '#',
-                    onClick: () => { onMenuSubMenuLinkClick(Constants.lblAddCircular) },
+                    onClick: () => {
+                        this.setState({ openNavigationPanel: false }, () => {
+                            onMenuSubMenuLinkClick(Constants.lblAddCircular);
+                        })
+                    },
                     icon: `Add`,
                     key: 'AddCircular',
                     target: '_blank',
@@ -238,8 +248,25 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                     name: 'Maker Dashboard',
                     icon: `Edit`,
                     //url: '#',
-                    onClick: () => { onMenuSubMenuLinkClick(Constants.lblEditCircular) },
+                    onClick: () => {
+                        this.setState({ openNavigationPanel: false }, () => {
+                            onMenuSubMenuLinkClick(Constants.lblEditCircular)
+                        })
+                    },
                     key: 'MakerDashboard',
+                    target: '_blank',
+                },
+                {
+                    name: 'Rejected Circulars',
+                    icon: `Cancel`,
+                    //url: '#',
+                    onClick: () => {
+                        this.setState({ openNavigationPanel: false }, () => {
+                            //onMenuSubMenuLinkClick(Constants.lblEditCircular)
+                            onMenuSubMenuLinkClick(Constants.lblRejectedRequest)
+                        })
+                    },
+                    key: 'RejectedCirculars',
                     target: '_blank',
                 },
             ],
@@ -257,11 +284,28 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                 {
                     name: 'Pending Request',
                     //url: '#',
-                    onClick: () => { onMenuSubMenuLinkClick(Constants.lblPendingCompliance) },
+                    onClick: () => {
+                        this.setState({ openNavigationPanel: false }, () => {
+                            onMenuSubMenuLinkClick(Constants.lblPendingCompliance)
+                        })
+                    },
                     icon: `Clock`,
                     key: 'CmpPendingRequest',
                     target: '_blank',
                 },
+                {
+                    name: 'Rejected Circulars',
+                    icon: `Cancel`,
+                    //url: '#',
+                    onClick: () => {
+                        this.setState({ openNavigationPanel: false }, () => {
+                            //onMenuSubMenuLinkClick(Constants.lblEditCircular)
+                            onMenuSubMenuLinkClick(Constants.lblRejectedRequest)
+                        })
+                    },
+                    key: 'RejectedCirculars',
+                    target: '_blank',
+                }
             ],
             target: '_blank',
         } : undefined;
@@ -276,11 +320,28 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                 {
                     name: 'Pending Request',
                     //url: '#',
-                    onClick: () => { onMenuSubMenuLinkClick(Constants.lblPendingChecker) },
+                    onClick: () => {
+                        this.setState({ openNavigationPanel: false }, () => {
+                            onMenuSubMenuLinkClick(Constants.lblPendingChecker)
+                        })
+                    },
                     icon: `Clock`,
                     key: 'ChkPendingRequest',
                     target: '_blank',
                 },
+                {
+                    name: 'Rejected Circulars',
+                    icon: `Cancel`,
+                    //url: '#',
+                    onClick: () => {
+                        this.setState({ openNavigationPanel: false }, () => {
+                            //onMenuSubMenuLinkClick(Constants.lblEditCircular)
+                            onMenuSubMenuLinkClick(Constants.lblRejectedRequest)
+                        })
+                    },
+                    key: 'RejectedCirculars',
+                    target: '_blank',
+                }
             ],
             target: '_blank',
         } : undefined;
@@ -302,7 +363,11 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                     {
                         name: 'Home',
                         // url: `#`,
-                        onClick: () => { onMenuSubMenuLinkClick(Constants.lblHome) },
+                        onClick: () => {
+                            this.setState({ openNavigationPanel: false }, () => {
+                                onMenuSubMenuLinkClick(Constants.lblHome)
+                            })
+                        },
                         expandAriaLabel: 'Expand Home section',
                         icon: "Home",
                         isExpanded: true,

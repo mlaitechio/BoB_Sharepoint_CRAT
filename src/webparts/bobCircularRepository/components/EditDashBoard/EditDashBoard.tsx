@@ -3,18 +3,20 @@ import { IEditDashBoardProps } from './IEditDashBoardProps'
 import { IEditDashBoardState } from './IEditDashBoardState'
 import { Constants } from '../../Constants/Constants'
 import {
-    Button, Dialog, DialogActions, DialogBody, DialogContent,
-    DialogSurface, DialogTitle, Divider, Label, Link, Spinner,
+    Button, Card, CardHeader, CardPreview, Dialog, DialogActions, DialogBody, DialogContent,
+    DialogSurface, DialogTitle, Divider, Label, Link, Menu, MenuButton, MenuItem, MenuList, MenuPopover, MenuTrigger, Spinner,
     Table, TableBody, TableCell, TableCellLayout, TableHeader,
     TableHeaderCell, TableRow
 } from '@fluentui/react-components';
+
+import { Label as Label1 } from "@fluentui/react";
 
 
 import styles1 from '../BobCircularRepository.module.scss';
 import styles from '../Search/CircularSearch.module.scss';
 import { ICircularListItem } from '../../Models/IModel';
-import { ArrowUpRegular, ChevronDownRegular, ChevronUpRegular, Delete12Regular, Delete16Regular, DeleteRegular, Edit12Regular, Edit16Regular, EditRegular, EyeRegular, OpenRegular } from '@fluentui/react-icons';
-import { AnimationClassNames, Icon } from '@fluentui/react';
+import { ArrowUpRegular, ChevronDownRegular, ChevronUpRegular, Delete12Regular, Delete16Regular, Delete20Regular, DeleteRegular, Edit12Regular, Edit16Regular, Edit20Regular, EditRegular, Eye20Regular, EyeRegular, MoreHorizontal20Regular, MoreHorizontalRegular, OpenRegular } from '@fluentui/react-icons';
+import { AnimationClassNames, Icon, IconButton } from '@fluentui/react';
 import { IBobCircularRepositoryProps } from '../IBobCircularRepositoryProps';
 import { DataContext } from '../../DataContext/DataContext';
 import { error } from 'pdf-lib';
@@ -37,6 +39,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
             listItems: [], // All List Filter Items
             accordionFields: {
                 isSummarySelected: false,
+                isFaqSelected: false,
                 isTypeSelected: false,
                 isCategorySelected: false,
                 isSupportingDocuments: false
@@ -61,7 +64,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
 
     public componentDidUpdate(prevProps: Readonly<IEditDashBoardProps>, prevState: Readonly<IEditDashBoardState>, snapshot?: any): void {
         if (prevProps.stateKey != this.props.stateKey) {
-            this.onEditDashBoardLoad()
+            // this.onEditDashBoardLoad()
         }
     }
 
@@ -95,6 +98,9 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                         listItems: allListItems.sort((a, b) => parseInt(a.ID) > parseInt(b.ID) ? -1 : 1)
                     }, () => {
                         const { listItems } = this.state;
+
+                        localStorage.setItem("loadDashBoard", "true");
+
                         this.setState({
                             filteredItems: listItems,
                             items: listItems,
@@ -120,8 +126,15 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
             currentSelectedItem,
             loadEditForm, loadViewForm, editFormItem, showDeleteDialog } = this.state;
         let providerValue = this.context;
-        const { context } = providerValue as IBobCircularRepositoryProps;
+        const { context, responsiveMode } = providerValue as IBobCircularRepositoryProps;
         const { currentPage } = this.props;
+
+        console.log(responsiveMode)
+        let isMobileMode = responsiveMode == 0;
+        let isMobileDesktopMode = responsiveMode == 1;
+        let isTabletMode = responsiveMode == 2;
+        let isDesktopMode = responsiveMode == 3 || responsiveMode == 4 || responsiveMode == 5;
+        let isLoadDashboard = localStorage.getItem("loadDashBoard") == "true" ? true : false;
 
         return (
             <>
@@ -129,8 +142,16 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                     isLoading && this.workingOnIt()
                 }
                 {
-                    loadDashBoard && <>
+                    loadDashBoard && (isDesktopMode) && <>
                         {this.circularResults()}
+                        {this.createPagination()}
+                    </>
+                }
+
+                {
+                    loadDashBoard && (isMobileDesktopMode || isMobileMode || isTabletMode) && isLoadDashboard &&
+                    <>
+                        {this.mobileDetailListView()}
                         {this.createPagination()}
                     </>
                 }
@@ -144,7 +165,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                     />
                 }
                 {
-                    loadEditForm &&
+                    loadEditForm && !isLoadDashboard &&
                     <CircularForm
                         editFormItem={editFormItem}
                         displayMode={Constants.lblEditCircular}
@@ -156,7 +177,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                         }} />
                 }
                 {
-                    loadViewForm &&
+                    loadViewForm && !isLoadDashboard &&
                     <CircularForm
                         editFormItem={editFormItem}
                         displayMode={Constants.lblViewCircular}
@@ -168,13 +189,210 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                         }} />
                 }
 
-                {showDeleteDialog && this.deleteDialog(showDeleteDialog, currentSelectedItem)}
+                {showDeleteDialog && this.deleteDialog(showDeleteDialog, currentSelectedItem, (isMobileDesktopMode || isMobileMode))}
 
             </>
         )
     }
 
 
+    private mobileDetailListView = (): JSX.Element => {
+
+        let providerValue = this.context;
+        const { context, isUserMaker } = providerValue as IBobCircularRepositoryProps;
+        let currentUserEmail = context.pageContext.user.email;
+        const { currentPage } = this.props
+        const { accordionFields, currentSelectedItem, currentSelectedItemId, filteredItems } = this.state;
+        let filteredPageItems = this.paginateFn(filteredItems);
+
+
+        let mobileListViewJSX = <>
+
+            <div className={`${styles1.mobileColumn12} ${styles1.headerBackgroundColor} ${styles1.marginBottom}`}
+                style={{ textAlign: "center" }} >
+                {
+                    <Label style={{
+                        fontFamily: "Roboto",
+                        padding: 10,
+                        cursor: "pointer",
+                        fontSize: "var(--fontSizeBase500)",
+                        fontWeight: "var(--fontWeightSemibold)",
+                        lineHeight: "var(--lineHeightBase500)",
+                        color: "white",
+
+                    }}> {`${currentPage} Circular Dashboard`}
+                    </Label>}
+
+            </div>
+
+            {
+                filteredPageItems.length > 0 && filteredPageItems.map((value: ICircularListItem, index) => {
+
+                    let isCurrentItem = currentSelectedItemId == value.ID;
+                    let isFieldSelected = (accordionFields.isSummarySelected || accordionFields.isFaqSelected || accordionFields.isSupportingDocuments);
+                    let createdBy = value.Author
+                    let requesterMail = createdBy[0].email ?? ``; //val?.Author?.split('#')[4].replace(',', '');
+                    let requesterName = value?.Author[0].title ?? `` //val?.Author?.split('#')[1].replace(',', '');
+                    let isEditButtonVisible = (value.CircularStatus == Constants.draft ||
+                        value.CircularStatus == Constants.cmmtChecker
+                        || value.CircularStatus == Constants.cmmtCompliance) && (requesterMail == currentUserEmail);
+                    return <>
+                        <Card className={`${styles1.marginBottom} ${styles1.mobileCard}`} size={`small`} appearance='outline'>
+                            <CardHeader //description={`${value.Subject}`}
+
+                                description={this.createHyper(value)}
+                                className={`${styles1.mobileHeaderFont} ${styles1.borderBottom}`}
+
+                                action={
+                                    <Menu>
+                                        <MenuTrigger disableButtonEnhancement>
+                                            <MenuButton menuIcon={<MoreHorizontal20Regular />} appearance="transparent"></MenuButton>
+                                        </MenuTrigger>
+
+                                        <MenuPopover>
+                                            <MenuList>
+                                                {!isEditButtonVisible &&
+                                                    <MenuItem className={`${styles1.fontRoboto}`} icon={<Eye20Regular />} onClick={() => { this.viewCircular(value) }}>View</MenuItem>
+                                                }
+                                                {isUserMaker && isEditButtonVisible && <>
+                                                    <MenuItem className={`${styles1.fontRoboto}`} icon={<Edit20Regular />} onClick={() => { this.editCircular(value) }}>Edit</MenuItem>
+                                                    {value.CircularStatus == Constants.draft &&
+                                                        <MenuItem className={`${styles1.fontRoboto}`} icon={<Delete20Regular />} onClick={() => {
+                                                            this.setState({ showDeleteDialog: true, currentSelectedItem: value })
+                                                        }}>Delete</MenuItem>
+                                                    }
+                                                </>
+                                                }
+                                            </MenuList>
+                                        </MenuPopover>
+                                    </Menu>
+
+                                    // <IconButton
+                                    //     // iconProps={{ iconName: "More" }}
+                                    //     menuProps={{
+                                    //         items: [{
+                                    //             key: "View",
+                                    //             text: "View",
+                                    //             // onClick: this.readItemsAsStream.bind(this, value),
+                                    //             iconProps: { iconName: "View" }
+                                    //         },
+                                    //         {
+                                    //             key: "Edit",
+                                    //             text: "Edit",
+                                    //             // onClick: this.readItemsAsStream.bind(this, value),
+                                    //             iconProps: { iconName: "Edit" }
+                                    //         },
+                                    //         {
+                                    //             key: "Delete",
+                                    //             text: "Delete",
+                                    //             // onClick: this.readItemsAsStream.bind(this, value),
+                                    //             iconProps: { iconName: "Delete" }
+                                    //         }],
+                                    //     }} />
+                                }
+                            >
+
+                            </CardHeader>
+                            <CardPreview >
+
+                                <div className={`${styles1.row}`}>
+                                    <div className={`${styles1.mobileColumn4} ${styles1.mobileFontFamily} ${styles1.mobileFont} ${styles1.paddingMobileCard}`}>Circular Number</div>
+                                    <div className={`${styles1.mobileColumn8} ${styles1.mobileFontFamily} ${styles1.mobileFont} ${styles1.paddingMobileCard}`}>{value.CircularNumber}</div>
+                                </div>
+                                <div className={`${styles1.row}`}>
+                                    <div className={`${styles1.mobileColumn4} ${styles1.mobileFontFamily} ${styles1.mobileFont} ${styles1.paddingMobileCard}`}>Created Date</div>
+                                    <div className={`${styles1.mobileColumn8} ${styles1.mobileFontFamily} ${styles1.mobileFont} ${styles1.paddingMobileCard}`}>{this.formatDate(value.Created)}</div>
+                                </div>
+                                <div className={`${styles1.row}`}>
+                                    <div className={`${styles1.mobileColumn4} ${styles1.mobileFontFamily} ${styles1.mobileFont} ${styles1.paddingMobileCard}`}>Department</div>
+                                    <div className={`${styles1.mobileColumn8} ${styles1.mobileFontFamily} ${styles1.mobileFont} ${styles1.paddingMobileCard}`}>{value.Department}</div>
+                                </div>
+                                <div className={`${styles1.row}`}>
+                                    <div className={`${styles1.mobileColumn4} ${styles1.mobileFontFamily} ${styles1.mobileFont} ${styles1.paddingMobileCard}`}>Circular Status</div>
+                                    <div className={`${styles1.mobileColumn8} ${styles1.mobileFontFamily} ${styles1.mobileFont} ${styles1.paddingMobileCard}`}>{value.CircularStatus}</div>
+                                </div>
+
+                                <div className={`${styles1.row}`}>
+                                    <div className={`${styles1.mobileColumn4} ${styles1.mobileFontFamily} ${styles1.mobileFont} ${styles1.paddingMobileCard}`}>Requester</div>
+                                    <div className={`${styles1.mobileColumn8} ${styles1.mobileFontFamily} ${styles1.mobileFont} ${styles1.paddingMobileCard}`}>{requesterName}</div>
+                                </div>
+
+                                <div className={`${styles1.row} ${styles1.marginTop}`}>
+                                    <div className={`${styles1.mobileColumn3} ${styles1.paddingLeftZero}`}>
+                                        <Button icon={accordionFields.isSummarySelected && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
+                                            iconPosition="after"
+                                            className={accordionFields.isSummarySelected && isCurrentItem ? styles1.colorLabelMobile : ``}
+                                            appearance={accordionFields.isSummarySelected && isCurrentItem ? "transparent" : "transparent"}
+                                            onClick={this.onDetailItemClick.bind(this, value, Constants.colSummary)}>Summary</Button>
+                                    </div>
+                                    <div className={`${styles1.mobileColumn2} ${styles1.paddingLeftZero}`}>
+                                        <Button icon={accordionFields.isFaqSelected && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
+                                            iconPosition="after"
+                                            className={accordionFields.isFaqSelected && isCurrentItem ? styles1.colorLabelMobile : ``}
+                                            appearance={accordionFields.isFaqSelected && isCurrentItem ? "transparent" : "transparent"}
+                                            onClick={this.onDetailItemClick.bind(this, value, Constants.faqs)}>FAQs</Button>
+                                    </div>
+                                    <div className={`${styles1.mobileColumn7}`} >
+                                        <Button
+                                            icon={accordionFields.isSupportingDocuments && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
+                                            iconPosition="after"
+                                            className={accordionFields.isSupportingDocuments && isCurrentItem ? styles1.colorLabelMobile : ``}
+                                            appearance={accordionFields.isSupportingDocuments && isCurrentItem ? "transparent" : "transparent"}
+                                            onClick={this.onDetailItemClick.bind(this, value, Constants.colSupportingDoc)}>Supporting Documents</Button>
+                                    </div>
+
+                                </div>
+
+                                {isFieldSelected && currentSelectedItemId == value.ID &&
+                                    <div className={`${styles1.row}`}>
+                                        <div className={`${styles1.mobileColumn12} ${AnimationClassNames.slideDownIn20}`} style={{ paddingLeft: 12 }}>
+                                            {accordionFields.isSummarySelected &&
+                                                <>{`${currentSelectedItem?.Gist != "" ? currentSelectedItem?.Gist ?? `No summary available` : `No summary available`}`}</>
+                                            }
+                                            {accordionFields.isFaqSelected &&
+                                                <>{`${currentSelectedItem?.CircularFAQ != "" ? currentSelectedItem?.CircularFAQ ?? `No Faqs available` : `No Faqs available`}`}</>
+                                            }
+
+                                            {accordionFields.isSupportingDocuments && <>
+                                                {currentSelectedItem?.SupportingDocuments && currentSelectedItem?.SupportingDocuments != ""
+                                                    ? this.supportingDocument(currentSelectedItem.SupportingDocuments) : `No Supporting Documents Available`}
+                                            </>}
+
+                                        </div>
+                                    </div>
+                                }
+
+                                {/* <div className={`${styles1.row}`}>
+                  <div className={`${styles1.column5} ${styles1.mobileFont} ${styles1.paddingMobileCard}`}>Status</div>
+                  <div className={`${styles1.column7} ${styles1.mobileFont} ${styles1.paddingMobileCard}`}>{value.DocumentCategory.Title}</div>
+                </div>
+                <div className={`${styles1.row}`}>
+                  <div className={`${styles1.column5} ${styles1.mobileFont} ${styles1.paddingMobileCard}`}>Published By</div>
+                  <div className={`${styles1.column7} ${styles1.mobileFont} ${styles1.paddingMobileCard}`}>{value.PublisherEmailID}</div>
+                </div> */}
+                            </CardPreview>
+                        </Card>
+                    </>
+                })
+            }
+        </>
+        {/* {this.createPagination()} */ }
+
+        return mobileListViewJSX;
+    }
+
+    private createHyper(item: any): JSX.Element {
+        const name = item?.Subject;
+
+        return (
+            <>
+                <div className={`${styles.viewList} ${styles1.mobileFont} ${styles1.mobileFontFamily}`} style={{ color: item.Classification == "Master" ? "#f26522" : "#162B75" }}>
+                    {name}
+
+                </div>
+            </>
+        )
+    }
 
     private circularResults = () => {
 
@@ -255,7 +473,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                             {filteredPageItems && filteredPageItems.length > 0 &&
                                 filteredPageItems.map((val: ICircularListItem, index) => {
 
-                                    let isFieldSelected = (accordionFields.isSummarySelected || accordionFields.isTypeSelected || accordionFields.isCategorySelected || accordionFields.isSupportingDocuments);
+                                    let isFieldSelected = (accordionFields.isSummarySelected || accordionFields.isFaqSelected || accordionFields.isCategorySelected || accordionFields.isSupportingDocuments);
                                     let isCurrentItem = currentSelectedItemId == val.ID;
                                     let tableRowClass = isFieldSelected && isCurrentItem ? `${styles1.tableRow}` : ``;
                                     let createdBy = val.Author
@@ -364,11 +582,11 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                                                             onClick={this.onDetailItemClick.bind(this, val, Constants.colSummary)}>Summary</Button>
                                                     </div>
                                                     <div className={`${styles1.column1}`} style={{ marginRight: 20 }}>
-                                                        <Button icon={accordionFields.isTypeSelected && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
+                                                        <Button icon={accordionFields.isFaqSelected && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
                                                             iconPosition="after"
-                                                            className={accordionFields.isTypeSelected && isCurrentItem ? styles1.colorLabel : ``}
-                                                            appearance={accordionFields.isTypeSelected && isCurrentItem ? "outline" : "transparent"}
-                                                            onClick={this.onDetailItemClick.bind(this, val, Constants.colType)}>Type</Button>
+                                                            className={accordionFields.isFaqSelected && isCurrentItem ? styles1.colorLabel : ``}
+                                                            appearance={accordionFields.isFaqSelected && isCurrentItem ? "outline" : "transparent"}
+                                                            onClick={this.onDetailItemClick.bind(this, val, Constants.faqs)}>FAQ</Button>
                                                     </div>
                                                     <div className={`${styles1.column1}`} style={{ marginRight: 32 }}>
                                                         <Button
@@ -397,16 +615,28 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                                                     <div className={`${styles1.row}`}>
                                                         <div className={`${styles1.column12} ${AnimationClassNames.slideDownIn20}`} style={{ padding: 10 }}>
                                                             {accordionFields.isSummarySelected &&
-                                                                <>{`${currentSelectedItem?.Gist ?? ``}`}</>
+                                                                <>{`${currentSelectedItem?.Gist != "" ? currentSelectedItem?.Gist ?? `No summary available` : `No summary available`}`}</>
                                                             }
-                                                            {accordionFields.isTypeSelected &&
-                                                                <>{currentSelectedItem?.CircularType ?? ``}</>}
                                                             {accordionFields.isCategorySelected &&
-                                                                <>{currentSelectedItem?.Category ?? ``}</>}
+                                                                <>{currentSelectedItem?.Category != "" ? currentSelectedItem?.Category ?? `No category available` : `No category available`}</>}
+                                                            {accordionFields.isFaqSelected &&
+                                                                <>{`${currentSelectedItem?.CircularFAQ != "" ? currentSelectedItem?.CircularFAQ ?? `No Faqs available` : `No Faqs available`}`}</>
+                                                            }
+
                                                             {accordionFields.isSupportingDocuments && <>
                                                                 {currentSelectedItem?.SupportingDocuments && currentSelectedItem?.SupportingDocuments != ""
-                                                                    ? this.supportingDocument(currentSelectedItem.SupportingDocuments) : ``}
+                                                                    ? this.supportingDocument(currentSelectedItem.SupportingDocuments) : `No Supporting Documents Available`}
                                                             </>}
+                                                            {/* {accordionFields.isSummarySelected &&
+                                                                <>{`${currentSelectedItem?.Gist ?? ``}`}</>
+                                                            } */}
+                                                            {/* {accordionFields.isFaqSelected &&
+                                                                <>{currentSelectedItem?.CircularFAQ ?? ``}</>} */}
+
+                                                            {/* {accordionFields.isSupportingDocuments && <>
+                                                                {currentSelectedItem?.SupportingDocuments && currentSelectedItem?.SupportingDocuments != ""
+                                                                    ? this.supportingDocument(currentSelectedItem.SupportingDocuments) : `No Supporting Documents Available`}
+                                                            </>} */}
                                                         </div>
                                                     </div>
                                                 </TableCell>
@@ -441,6 +671,9 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
 
 
     private editCircular = (selectedItem) => {
+
+        localStorage.setItem("loadDashBoard", "false");
+
         this.setState({
             loadDashBoard: false,
             editFormItem: selectedItem, loadEditForm: true, loadViewForm: false
@@ -448,6 +681,9 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
     }
 
     private viewCircular = (selectedItem) => {
+
+        localStorage.setItem("loadDashBoard", "false");
+
         this.setState({
             loadDashBoard: false,
             editFormItem: selectedItem, loadEditForm: false, loadViewForm: true
@@ -497,6 +733,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                     accordionFields: {
                         isSummarySelected: isCurrentItem ? !accordionFields.isSummarySelected : true,
                         isTypeSelected: false,
+                        isFaqSelected: false,
                         isCategorySelected: false,
                         isSupportingDocuments: false
                     },
@@ -508,11 +745,11 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
 
                 break;
 
-            case Constants.colType:
+            case Constants.faqs:
                 this.setState({
                     accordionFields: {
                         isSummarySelected: false,
-                        isTypeSelected: isCurrentItem ? !accordionFields.isTypeSelected : true,
+                        isFaqSelected: isCurrentItem ? !accordionFields.isFaqSelected : true,
                         isCategorySelected: false,
                         isSupportingDocuments: false
                     },
@@ -526,7 +763,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                 this.setState({
                     accordionFields: {
                         isSummarySelected: false,
-                        isTypeSelected: false,
+                        isFaqSelected: false,
                         isCategorySelected: isCurrentItem ? !accordionFields.isCategorySelected : true,
                         isSupportingDocuments: false
                     },
@@ -540,7 +777,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
             case Constants.colSupportingDoc: this.setState({
                 accordionFields: {
                     isSummarySelected: false,
-                    isTypeSelected: false,
+                    isFaqSelected: false,
                     isCategorySelected: false,
                     isSupportingDocuments: isCurrentItem ? !accordionFields.isSupportingDocuments : true
                 },
@@ -611,7 +848,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
         return submitDialogJSX;
     }
 
-    private deleteDialog = (showDialog, selectedItem): JSX.Element => {
+    private deleteDialog = (showDialog, selectedItem, mode?: any): JSX.Element => {
         let submitDialogJSX = <>
             <>
                 <Dialog modalType="alert" defaultOpen={(showDialog)} >
@@ -623,7 +860,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                             </DialogContent>
                             <DialogActions style={{ justifyContent: "center" }}>
                                 <div className={`${styles1.row}`}>
-                                    <div className={`${styles1.column6}`}>
+                                    <div className={`${mode ? `${styles1.mobileColumn6} ${styles1.textAlignEnd}` : styles1.column6}`}>
                                         <Button appearance="primary"
                                             onClick={() => {
                                                 this.setState({ showDeleteDialog: false }, () => {
@@ -632,7 +869,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
 
                                             }}>Yes</Button>
                                     </div>
-                                    <div className={`${styles1.column6}`}>
+                                    <div className={`${mode ? `${styles1.mobileColumn6}` : styles1.column6}`}>
                                         <Button appearance="secondary"
                                             onClick={() => {
                                                 this.setState({ showDeleteDialog: false })
@@ -679,31 +916,32 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
         const totalItems = filteredItems.length;
         const _themeWindow: any = window;
         const _theme = _themeWindow.__themeState__.theme;
-        let isMobileMode = responsiveMode == 0 || responsiveMode == 1 || responsiveMode == 2;
+        let isMobileDesktopMode = responsiveMode == 1;
+        let isMobileMode = responsiveMode == 0;
         let lastItemCount = ((itemsPerPage * (currentPage - 1)) + itemsPerPage) > filteredItems.length ? filteredItems.length : ((itemsPerPage * (currentPage - 1)) + itemsPerPage)
         let pagination: any =
             <>
                 <div className={`${styles.paginationContainer} ${styles1.row} `}>
 
-                    <div className={`${styles1.column4} `} style={{ padding: isMobileMode ? 0 : `inherit` }}>
+                    <div className={`${(isMobileDesktopMode || isMobileMode) ? styles1.mobileColumn5 : styles1.column4} `} style={{ padding: (isMobileMode || isMobileDesktopMode) ? 0 : `inherit` }}>
                         {/* {<Label>{JSON.stringify(theme.palette)}</Label>} */}
                         {/* {<Label>{JSON.stringify(_theme)}</Label>} */}
-                        {<Label style={{
-                            paddingTop: 20,
-                            textAlign: "left",
-                            fontSize: isMobileMode ? 11 : 14,
-                            display: "block",
-                            fontWeight: 700,
-                            paddingLeft: 20,
-                            fontFamily: 'Roboto'
+                        {<Label1 styles={{
+                            root: {
+                                paddingTop: 20,
+                                textAlign: "left",
+                                fontSize: isMobileDesktopMode ? 14 : isMobileMode ? 12 : 14,
+                                paddingLeft: 15,
+                                fontFamily: 'Roboto'
+                            }
                         }}>
                             {filteredItems.length > 0
                                 &&
                                 `Showing ${(itemsPerPage * (currentPage - 1) + 1)} to ${lastItemCount} of ${totalItems} `
                             }
-                        </Label>}
+                        </Label1>}
                     </div>
-                    <div className={`${styles.searchWp__paginationContainer__pagination} ${styles1.column8} `} style={{ padding: isMobileMode ? 0 : `inherit` }}>
+                    <div className={`${styles.searchWp__paginationContainer__pagination} ${(isMobileMode || isMobileDesktopMode) ? styles1.mobileColumn7 : styles1.column8} `} style={{ padding: isMobileMode ? 0 : `inherit` }}>
                         {filteredItems.length > 0 &&
                             <Pagination
                                 activePage={currentPage}

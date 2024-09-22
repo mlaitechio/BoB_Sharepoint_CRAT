@@ -55,14 +55,15 @@ $primaryColor: "[theme: themePrimary, default: #c0392b]";
         color: inherit;
         text-decoration: none;
         cursor: pointer;
-        font-weight: 600;
-        color: rgb(0, 49, 113)
+        font-weight: 500;
+        display: flex;
+        // color: rgb(0, 49, 113)
     }
 
     a:hover {
-        text-decoration: underline;
+        // text-decoration: underline;
         cursor: pointer;
-        font-weight: 600;
+        font-weight: 500;
     }
 }
 

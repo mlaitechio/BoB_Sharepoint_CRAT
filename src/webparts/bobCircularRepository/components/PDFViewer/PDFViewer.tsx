@@ -2,9 +2,12 @@ import React from 'react';
 import PDF from 'react-pdf-watermark';
 import { PDFDocument, StandardFonts, degrees, rgb } from 'pdf-lib';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
-import { Dialog, DialogBody, DialogContent, DialogSurface, Spinner } from '@fluentui/react-components';
+import { Dialog, DialogBody, DialogContent, DialogSurface, FluentProvider, Spinner } from '@fluentui/react-components';
 import { Constants } from '../../Constants/Constants';
-import { Text } from '@microsoft/sp-core-library'
+import * as pdfjsLib from "pdfjs-dist/build/pdf";
+//import PDFImagePreview from './PDFImagePreview';
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https://unpkg.com/pdfjs-dist@2.5.207/build/pdf.worker.min.js";
+
 
 export interface IMyPDFViewerProps {
     pdfFilePath: any;
@@ -14,23 +17,31 @@ export interface IMyPDFViewerProps {
     documentLoaded: () => void;
     footerText?: string;
     footerTextColor?: any;
+    mode?: any;
 }
 
 export interface IMyPDFViewerState {
     pages: any;
     page: any;
     blobFile: any;
+    imgSrc: any;
+    imgList?: any[]
 
 }
 
 export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyPDFViewerState> {
+
+    private base64Data: any;
+
     constructor(props) {
         super(props)
 
         this.state = {
             pages: 1,
             page: 1,
-            blobFile: ``
+            blobFile: ``,
+            imgSrc: ``,
+            imgList: []
         }
     }
 
@@ -40,10 +51,10 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
         console.log(currentSelectedFileContent);
 
         await this.waterMark_ConvertToBase64PDF(currentSelectedFileContent, `${watermarkText}`, footerText, footerTextColor).then((val) => {
-            this.setState({ blobFile: val }, () => {
+            this.setState({ blobFile: val }, async () => {
+
                 this.props.documentLoaded();
 
-               
             })
         }).catch((error) => {
             console.log(error);
@@ -51,50 +62,95 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
         });
     }
 
-    handlePrevious = () => {
-        this.setState({ page: this.state.page - 1 });
-    }
+    // handlePrevious = () => {
+    //     this.setState({ page: this.state.page - 1 });
+    // }
 
-    handleNext = () => {
-        this.setState({ page: this.state.page + 1 });
-    }
+    // handleNext = () => {
+    //     this.setState({ page: this.state.page + 1 });
+    // }
 
-    renderPagination = (page, pages) => {
-        let previousButton = <li className="previous" onClick={this.handlePrevious}><a href="#"><i className="fa fa-arrow-left"></i> Previous</a></li>;
-        if (page === 1) {
-            previousButton = <li className="previous disabled"><a href="#"><i className="fa fa-arrow-left"></i> Previous</a></li>;
-        }
-        let nextButton = <li className="next" onClick={this.handleNext}><a href="#">Next <i className="fa fa-arrow-right"></i></a></li>;
-        if (page === pages) {
-            nextButton = <li className="next disabled"><a href="#">Next <i className="fa fa-arrow-right"></i></a></li>;
-        }
-        return (
-            <nav>
-                <ul className="pager">
-                    {previousButton}
-                    {nextButton}
-                </ul>
-            </nav>
-        );
-    }
+    // renderPagination = (page, pages) => {
+    //     let previousButton = <li className="previous" onClick={this.handlePrevious}><a href="#"><i className="fa fa-arrow-left"></i> Previous</a></li>;
+    //     if (page === 1) {
+    //         previousButton = <li className="previous disabled"><a href="#"><i className="fa fa-arrow-left"></i> Previous</a></li>;
+    //     }
+    //     let nextButton = <li className="next" onClick={this.handleNext}><a href="#">Next <i className="fa fa-arrow-right"></i></a></li>;
+    //     if (page === pages) {
+    //         nextButton = <li className="next disabled"><a href="#">Next <i className="fa fa-arrow-right"></i></a></li>;
+    //     }
+    //     return (
+    //         <nav>
+    //             <ul className="pager">
+    //                 {previousButton}
+    //                 {nextButton}
+    //             </ul>
+    //         </nav>
+    //     );
+    // }
 
     render() {
-        const { blobFile } = this.state
-        let pagination = null;
-        if (this.state.pages) {
-            pagination = this.renderPagination(this.state.page, this.state.pages);
-        }
+        const { blobFile, imgList } = this.state;
+        const { mode } = this.props
+        // let pagination = null;
+        // if (this.state.pages) {
+        //     pagination = this.renderPagination(this.state.page, this.state.pages);
+        // }
+
         return (
-            <div >
-                {/* {blobFile != null && <iframe id="contentFile" src={blobFile} width={"100%"} height={"700px"} onContextMenu={(e)=>{
-                    console.log(e)
-                }} />} */}
+            <div style={{
+                maxHeight: 600, overflow: "scroll",
+                WebkitOverflowScrolling: "touch",
+                touchAction:"auto",
+                msTouchAction:"auto",
+                scrollbarWidth: "thin",
+                border: imgList.length > 0 ? "1px solid #ccc" : "0px",
+                overflowX: "hidden",
+
+            }} onContextMenu={(e) => { e.preventDefault(); return false }}>
+                {/* {blobFile != null  && < iframe id="contentFile" src={blobFile} width={"100%"} height={"700px"} style={{ marginTop: -35 }} />} */}
                 {/* {blobFile == null && this.workingOnIt()} */}
-                {blobFile != null && <object data={blobFile} width={"100%"} height={"800px"} style={{ marginTop: -35 }}></object>}
+                {/* {blobFile != null && <object data={blobFile} width={"100%"} height={"800px"} style={{ marginTop: -35 }}></object>} */}
+                {/* {blobFile != null && <div style={{ overflow: 'scroll', height: 600 }}>
+                    <MobilePDFReader url={blobFile} />
+                </div>} */}
+
+                {
+                    imgList.length == 0 && <div style={{ textAlign: "center" }}>
+                        <FluentProvider>
+                            <Spinner label={`Working on it..`} labelPosition="below"></Spinner>
+                        </FluentProvider>
+                    </div>
+                }
+
+                {imgList && imgList.length > 0 && imgList.map((val) => {
+                    return <div style={{ paddingTop: 10, paddingBottom: 10, textAlign: "center", background: "#cccccc6b" }}>
+                        <img src={val} width={mode ? "90%" : "60%"} />
+                    </div>
+                })}
+
+                {/* {blobFile != "" && <>
+                    <PDFViewer document={{ base64: this.base64Data }}>
+
+                    </PDFViewer>
+                </>} */}
+
+                {/* {blobFile != null && <>
+                    <canvas id="pdfFile"></canvas>
+                </>} */}
 
             </div>
         )
     }
+
+
+    private isMobile = () => {
+
+        const regex = /Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+        return regex.test(navigator.userAgent);
+    }
+
+
 
     private workingOnIt = (): JSX.Element => {
 
@@ -173,9 +229,16 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
 
         let pdfBytes = await pdfDoc.save();
 
-        let base64File = this.bufferToBase64(pdfBytes).then((val) => {
-            const base64WithoutPrefix = val.substring('data:application/octet-stream;base64,'.length);
+        this.renderPage(pdfBytes).then((imgList) => {
+            this.setState({ imgList })
+        }).catch((error) => {
+            console.log(error)
+        })
 
+        let base64File = this.bufferToBase64(pdfBytes).then((val) => {
+            //const base64WithoutPrefix = val.substring('data:application/octet-stream;base64,'.length);
+            const base64WithoutPrefix = val.substring('data:application/octet-stream;base64,'.length);
+            this.base64Data = base64WithoutPrefix;
             const bytes = atob(base64WithoutPrefix);
             let length = pdfBytes.length;
             let out = new Uint8Array(length);
@@ -206,5 +269,35 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
         // remove the `data:...;base64,` part from the start
         return Promise.resolve(base64url);
     }
+
+
+    private renderPage = async (data) => {
+        // setLoading(true);
+        const imagesList = [];
+        const canvas = document.createElement("canvas");
+        canvas.setAttribute("className", "canv");
+        const pdf = await pdfjsLib.getDocument({ data }).promise;
+        //const pdfDoc = await PDFDocument.load(fileContent);
+        for (let i = 1; i <= pdf.numPages; i++) {
+            var page = await pdf.getPage(i);
+            var viewport = page.getViewport({ scale: 1.5 });
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            var render_context = {
+                canvasContext: canvas.getContext("2d"),
+                viewport: viewport,
+            };
+            await page.render(render_context).promise;
+            let img = canvas.toDataURL("image/png");
+            imagesList.push(img);
+
+        }
+
+        return Promise.resolve(imagesList);
+
+        // this.setState({ pdfImgList: imagesList })
+        // setNumOfPages((e) => e + pdf.numPages);
+        // setImageUrls((e) => [...e, ...imagesList]);
+    };
 }
 
