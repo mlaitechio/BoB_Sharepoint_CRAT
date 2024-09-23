@@ -1182,7 +1182,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     let filteredPageItems = this.paginateFn(filteredItems);
     let isTabletMode = responsiveMode == 3 || responsiveMode == 2;
 
-    let colorLabelClass = responsiveMode == 3 ? styles1.colorLabelTablet : responsiveMode == 2 ? styles1.colorLabelTablet1 : styles1.colorLabel;
+    let colorLabelClass = responsiveMode == 4 ? styles1.colorLabelDesktop : responsiveMode == 3 ? styles1.colorLabelTablet : responsiveMode == 2 ? styles1.colorLabelTablet1 : styles1.colorLabel;
     let colSpan = isTabletMode ? 2 : 1;
 
     const columns = [
@@ -1191,8 +1191,8 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       { columnKey: "Date", label: "Date" },
       // { columnKey: "Classification", label: "Classification" },
       { columnKey: "Department", label: "Department" },
-      // { columnKey: "CircularStatus", label: "Status" },
       { columnKey: "Vertical Button", label: "" },
+      { columnKey: "CircularStatus", label: "Status" },
       // { columnKey: "IssuedFor", label: "Issued For" }
     ];
     //: index == 2 ? 2
@@ -1205,7 +1205,9 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
               <TableCell key={column.columnKey} colSpan={index == 1 ? 5 : index == 0 ? colSpan : index == 3 ? 2 : 1}
                 // button={{ style: { paddingLeft: index == 0 ? 2 : 0 } }}
                 className={`${styles1.fontWeightBold}`}>
-                <div style={{ textAlign: column.label == `Status` ? "center" : "left", whiteSpace: "nowrap" }}>{column.label}</div>
+                <div style={{ textAlign: column.columnKey == `CircularStatus` ? "center" : "left", whiteSpace: "nowrap" }}>
+                  {column.columnKey == `CircularStatus` ? `` : column.label}
+                </div>
               </TableCell>
             ))}
           </TableRow>
@@ -1287,124 +1289,142 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                 <TableCell className={`${styles1.tableCellHeight}`}>
                   {/* {className={`${styles1.verticalSpacing}`}} */}
                   <TableCellLayout >
-                    {
-                      <Menu>
-                        <MenuTrigger >
-                          <MenuButton icon={
-                            <MoreVerticalRegular
-                              color={val.Classification == "Master" ? "#f26522" : "#162B75"} />
-                          }
-                            appearance="transparent" onClick={() => {
-                              this.setState({ currentSelectedItem: val, currentSelectedItemId: val.ID }, () => {
-                                this.readItemsAsStream(val);
-                              })
+                    {<>
+                      <div className={`${styles1.row}`}>
+                        <div className={`${styles1.column2}`}>
+                          <Menu>
+                            <MenuTrigger >
+                              <MenuButton icon={
+                                <MoreVerticalRegular
+                                  color={val.Classification == "Master" ? "#f26522" : "#162B75"} />
+                              }
+                                appearance="transparent" onClick={() => {
+                                  this.setState({ currentSelectedItem: val, currentSelectedItemId: val.ID }, () => {
+                                    this.readItemsAsStream(val);
+                                  })
 
-                            }}></MenuButton>
-                        </MenuTrigger>
-                        <MenuPopover>
-                          <MenuList>
-                            <MenuItem style={{ fontFamily: "Roboto" }}>
-                              <Menu>
-                                <MenuTrigger disableButtonEnhancement>
-                                  <MenuItem content={{ style: { textAlign: "center" } }}>Summary</MenuItem>
-                                </MenuTrigger>
-                                {
-                                  < MenuPopover >
-                                    <MenuList>
-                                      <MenuItem>
-                                        <div className={`${styles1.row}`}>
-                                          <div className={`${styles1.column12}`} color='#f26522'>
-                                            Summary
-                                          </div>
-                                          <Divider appearance="subtle" style={{ marginBottom: 10 }}></Divider>
-                                          <div className={`${styles1.column12}`}>
-                                            {summary != "" ? summary : `No Summary Available`}
-                                          </div>
-                                        </div>
-                                      </MenuItem>
-                                    </MenuList>
-                                  </MenuPopover>
-                                }
+                                }}></MenuButton>
+                            </MenuTrigger>
+                            <MenuPopover>
+                              <MenuList>
+                                <MenuItem style={{ fontFamily: "Roboto" }}>
+                                  <Menu>
+                                    <MenuTrigger disableButtonEnhancement>
+                                      <MenuItem content={{ style: { textAlign: "center" } }}>Summary</MenuItem>
+                                    </MenuTrigger>
+                                    {
+                                      < MenuPopover >
+                                        <MenuList>
+                                          <MenuItem>
+                                            <div className={`${styles1.row}`}>
+                                              <div className={`${styles1.column12}`} color='#f26522'>
+                                                Summary
+                                              </div>
+                                              <Divider appearance="subtle" style={{ marginBottom: 10 }}></Divider>
+                                              <div className={`${styles1.column12}`}>
+                                                {summary != "" ? summary : `No Summary Available`}
+                                              </div>
+                                            </div>
+                                          </MenuItem>
+                                        </MenuList>
+                                      </MenuPopover>
+                                    }
 
-                              </Menu>
-                            </MenuItem>
-                            <MenuItem style={{ fontFamily: "Roboto" }}>
-                              <Menu>
-                                <MenuTrigger >
-                                  <MenuItem content={{ style: { textAlign: "center" } }}>{`FAQs`} </MenuItem>
-                                </MenuTrigger>
-                                {
-                                  <MenuPopover>
-                                    <MenuList>
-                                      <MenuItem>
-                                        <div className={`${styles1.row}`}>
-                                          <div className={`${styles1.column12}`} color='#f26522'>
-                                            FAQs
-                                          </div>
-                                          <Divider appearance="subtle" style={{ marginBottom: 10 }}></Divider>
-                                          <div className={`${styles1.column12}`}>
-                                            {faq != "" ? previewItems?.CircularFAQ : `No FAQ Available`}
-                                          </div>
-                                        </div>
-                                      </MenuItem>
-                                    </MenuList>
-                                  </MenuPopover>
-                                }
-                              </Menu>
-                            </MenuItem>
-                            <MenuItem style={{ fontFamily: "Roboto" }}>
-                              <Menu>
-                                <MenuTrigger >
-                                  <MenuItem content={{ style: { textAlign: "center" } }}>Supporting Documents</MenuItem>
-                                </MenuTrigger>
-                                {
-                                  <MenuPopover>
-                                    <MenuList >
-                                      <MenuItem>
-                                        <div className={`${styles1.row}`}>
-                                          <div className={`${styles1.column12}`} color='#f26522'>
-                                            Supporting Documents
-                                          </div>
-                                        </div>
-                                        <Divider appearance="subtle" style={{ marginBottom: 10 }}></Divider>
+                                  </Menu>
+                                </MenuItem>
+                                <MenuItem style={{ fontFamily: "Roboto" }}>
+                                  <Menu>
+                                    <MenuTrigger >
+                                      <MenuItem content={{ style: { textAlign: "center" } }}>{`FAQs`} </MenuItem>
+                                    </MenuTrigger>
+                                    {
+                                      <MenuPopover>
+                                        <MenuList>
+                                          <MenuItem>
+                                            <div className={`${styles1.row}`}>
+                                              <div className={`${styles1.column12}`} color='#f26522'>
+                                                FAQs
+                                              </div>
+                                              <Divider appearance="subtle" style={{ marginBottom: 10 }}></Divider>
+                                              <div className={`${styles1.column12}`}>
+                                                {faq != "" ? previewItems?.CircularFAQ : `No FAQ Available`}
+                                              </div>
+                                            </div>
+                                          </MenuItem>
+                                        </MenuList>
+                                      </MenuPopover>
+                                    }
+                                  </Menu>
+                                </MenuItem>
+                                <MenuItem style={{ fontFamily: "Roboto" }}>
+                                  <Menu>
+                                    <MenuTrigger >
+                                      <MenuItem content={{ style: { textAlign: "center" } }}>Supporting Documents</MenuItem>
+                                    </MenuTrigger>
+                                    {
+                                      <MenuPopover>
+                                        <MenuList >
+                                          <MenuItem>
+                                            <div className={`${styles1.row}`}>
+                                              <div className={`${styles1.column12}`} color='#f26522'>
+                                                Supporting Documents
+                                              </div>
+                                            </div>
+                                            <Divider appearance="subtle" style={{ marginBottom: 10 }}></Divider>
 
-                                        {supportingDocuments != "" && supportingDocuments.length > 0 &&
-                                          supportingDocuments.map((document) => {
-                                            return <>
-                                              <Link
-                                                className={`${styles1.link}`}
+                                            {supportingDocuments != "" && supportingDocuments.length > 0 &&
+                                              supportingDocuments.map((document) => {
+                                                return <>
+                                                  <Link
+                                                    className={`${styles1.link}`}
 
-                                              //</>onClick={() => {
-                                              //this.openSupportingCircularFile(listItem);
-                                              //}}
-                                              >
-                                                {document.CircularNumber ?? ``}
-                                              </Link>
+                                                  //</>onClick={() => {
+                                                  //this.openSupportingCircularFile(listItem);
+                                                  //}}
+                                                  >
+                                                    {document.CircularNumber ?? ``}
+                                                  </Link>
 
-                                            </>
-                                          })}
-                                        {supportingDocuments == "" &&
-                                          <div className={`${styles1.column12}`}>
-                                            No Supporting Documents Available
-                                          </div>
-                                        }
+                                                </>
+                                              })}
+                                            {supportingDocuments == "" &&
+                                              <div className={`${styles1.column12}`}>
+                                                No Supporting Documents Available
+                                              </div>
+                                            }
 
 
-                                      </MenuItem>
-                                    </MenuList>
-                                  </MenuPopover>
-                                }
-                              </Menu>
-                            </MenuItem>
-                          </MenuList>
-                        </MenuPopover>
-                      </Menu>
+                                          </MenuItem>
+                                        </MenuList>
+                                      </MenuPopover>
+                                    }
+                                  </Menu>
+                                </MenuItem>
+                              </MenuList>
+                            </MenuPopover>
+                          </Menu>
+                        </div>
+                        <div className={`${styles1.column2}`} style={{ marginTop: 5, marginLeft: 5 }}>
+                          <Tooltip content={isPublished ? Constants.published : Constants.archived}
+                            withArrow={true}
+                            appearance="normal"
+                            relationship="label"
+                            positioning={'below-end'}>
+                            <div style={{ textAlign: "center" }}>
+                              {isPublished ? <></> : <ArrowSquareDown20Filled color="rgb(242, 101, 34)" style={{ paddingLeft: 5 }} />}
+                            </div>
+                          </Tooltip>
+                        </div>
+                      </div>
+
+
+                    </>
                     }
                   </TableCellLayout>
                 </TableCell>
                 {/* {End of Menu Items} */}
 
-                {/* {<SubtractCircle20Filled/>} */}
+                {/* {<SubtractCircle20Filled/>}
                 <TableCell className={`${styles1.tableCellHeight}`}>
                   <Tooltip content={isPublished ? Constants.published : Constants.archived}
                     withArrow={true}
@@ -1415,7 +1435,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                       {isPublished ? <></> : <ArrowSquareDown20Filled color="rgb(242, 101, 34)" style={{ paddingLeft: 5 }} />}
                     </div>
                   </Tooltip>
-                </TableCell>
+                </TableCell> */}
 
               </TableRow >
               <TableRow>

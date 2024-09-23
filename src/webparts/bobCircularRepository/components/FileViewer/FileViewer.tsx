@@ -342,7 +342,7 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
                                                 watermarkText={`${waterMarkText}`}
                                                 footerText={footerText}
                                                 footerTextColor={footerTextColor}
-                                                mode={isMobileMode}
+                                                mode={responsiveMode}
                                                 documentLoaded={() => { this.props.documentLoaded() }}
                                             />
                                         }

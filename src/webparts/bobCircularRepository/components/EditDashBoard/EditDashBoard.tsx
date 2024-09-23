@@ -63,8 +63,11 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
     }
 
     public componentDidUpdate(prevProps: Readonly<IEditDashBoardProps>, prevState: Readonly<IEditDashBoardState>, snapshot?: any): void {
-        if (prevProps.stateKey != this.props.stateKey) {
-            // this.onEditDashBoardLoad()
+
+        let loadDashBoard = localStorage.getItem("loadDashBoard") == "true";
+
+        if (prevProps.stateKey != this.props.stateKey && loadDashBoard) {
+            this.onEditDashBoardLoad()
         }
     }
 

@@ -146,7 +146,7 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
       meta.setAttribute("name", "viewport");
       meta.setAttribute(
         "content",
-        "width=device-width, initial-scale=1, maximum-scale=1"
+        "width=device-width, initial-scale=1, maximum-scale=1,user-scalable=yes"
       );
       head.appendChild(meta);
       //}
@@ -271,30 +271,40 @@ export default class BobCircularRepository extends React.Component<IBobCircularR
         isPendingCompliance: false, isPendingChecker: false, isRejected: false
       });
         break;
-      case Constants.lblAddCircular: this.setState({
-        isHome: false, isCreateCircular: true, isEditCircular: false,
-        isPendingCompliance: false, isPendingChecker: false, isRejected: false
-      });
+      case Constants.lblAddCircular:
+        localStorage.setItem("loadDashBoard", "false");
+        this.setState({
+          isHome: false, isCreateCircular: true, isEditCircular: false,
+          isPendingCompliance: false, isPendingChecker: false, isRejected: false
+        });
         break;
-      case Constants.lblEditCircular: this.setState({
-        isHome: false, isCreateCircular: false, isEditCircular: true,
-        isPendingCompliance: false, isPendingChecker: false, isRejected: false
-      });
+      case Constants.lblEditCircular:
+        localStorage.setItem("loadDashBoard", "false");
+        this.setState({
+          isHome: false, isCreateCircular: false, isEditCircular: true,
+          isPendingCompliance: false, isPendingChecker: false, isRejected: false
+        });
         break;
-      case Constants.lblPendingCompliance: this.setState({
-        isHome: false, isCreateCircular: false, isEditCircular: false,
-        isPendingCompliance: true, isPendingChecker: false, isRejected: false
-      });
+      case Constants.lblPendingCompliance:
+        localStorage.setItem("loadDashBoard", "true");
+        this.setState({
+          isHome: false, isCreateCircular: false, isEditCircular: false,
+          isPendingCompliance: true, isPendingChecker: false, isRejected: false
+        });
         break;
-      case Constants.lblPendingChecker: this.setState({
-        isHome: false, isCreateCircular: false, isEditCircular: false,
-        isPendingCompliance: false, isPendingChecker: true, isRejected: false
-      });
+      case Constants.lblPendingChecker:
+        localStorage.setItem("loadDashBoard", "true");
+        this.setState({
+          isHome: false, isCreateCircular: false, isEditCircular: false,
+          isPendingCompliance: false, isPendingChecker: true, isRejected: false
+        });
         break;
-      case Constants.lblRejectedRequest: this.setState({
-        isHome: false, isCreateCircular: false, isEditCircular: false,
-        isPendingCompliance: false, isPendingChecker: false, isRejected: true
-      });
+      case Constants.lblRejectedRequest:
+        localStorage.setItem("loadDashBoard", "true");
+        this.setState({
+          isHome: false, isCreateCircular: false, isEditCircular: false,
+          isPendingCompliance: false, isPendingChecker: false, isRejected: true
+        });
         break;
     }
 

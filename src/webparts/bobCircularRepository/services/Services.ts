@@ -155,7 +155,7 @@ export class Services implements IServices {
 
         for (let i = 0; i < itemIDs.length; i++) {
 
-            await list.items.getById(itemIDs[i]).update(metadata, `*`).then((listItem) => {
+            let listUpdate = list.items.getById(itemIDs[i]).update(metadata, `*`).then((listItem) => {
                 itemUpdated.push(listItem)
             }).catch((error) => {
                 console.log(error)
@@ -909,7 +909,7 @@ export class Services implements IServices {
                                                         await sp.web.getFileByServerRelativePath(`${serverRelativeUrl}/${Constants.sharedDocuments}/${fileName}`).
                                                             deleteWithParams({ BypassSharedLock: true }).then(async (val) => {
 
-                                                                console.log(`Docx File Delelted`);
+                                                                console.log(`Docx File Deleted`);
                                                                 capturePDFProcess.push(`Docx File ${fileName} deleted successfully`);
 
                                                                 await sp.web.getFileByServerRelativePath(`${serverRelativeUrl}/${Constants.sharedDocuments}/${pdfFileName}`).deleteWithParams({
@@ -921,19 +921,22 @@ export class Services implements IServices {
                                                                 }).catch((error) => {
                                                                     console.log(`PDF File Not Deleted`);
                                                                     console.log(error);
-                                                                    capturePDFProcess.push(`PDF File:${error}`)
+                                                                    capturePDFProcess.push(`PDF File:${error}`);
+                                                                    return Promise.reject(error)
                                                                 })
                                                             }).catch((error) => {
 
                                                                 console.log(`Docx file not deleted`);
                                                                 console.log(error);
-                                                                capturePDFProcess.push(`Docx File Delete Error:${error}`)
+                                                                capturePDFProcess.push(`Docx File Delete Error:${error}`);
+                                                                return Promise.reject(error)
                                                             })
                                                     }).catch((error) => {
                                                         return Promise.reject(error)
                                                     })
                                             }).catch((error) => {
-                                                console.log(error)
+                                                console.log(error);
+                                                return Promise.reject(error)
                                             })
                                     }
 

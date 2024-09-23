@@ -669,8 +669,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                             < div className={`${styles.row}`}>
                                 <div className={`${isTabletMode ? styles.mobileColumn12 : styles.column10}`}></div>
 
-                                <div className={`${isTabletMode ? styles.mobileColumn2 : styles.column2}`}
-                                    style={{ marginTop: -32, background: "white", minHeight: 21, opacity: 1, marginLeft: -11 }}>
+                                <div className={`${isTabletMode ? styles.mobileColumn12 : styles.column2}`}
+                                    style={{ marginTop: -33, background: "white", minHeight: 21, opacity: 1, marginLeft: -11 }}>
 
                                 </div>
                             </div>
@@ -1044,8 +1044,8 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     <Divider appearance="subtle" ></Divider>
                 </>
                 }
-
-                {isUserChecker && showCheckerCommentBox && !isRequesterMaker && <>
+                {/* !isRequesterMaker &&  */}
+                {isUserChecker && showCheckerCommentBox && !isRequesterMaker &&  <>
                     <div className={`${styles.row} ${styles.formFieldMarginTop}`}>
                         <div className={`${styles.column12}`}>
                             {this.textAreaControl(`${Constants.lblCommentsChecker}`, true, `${circularListItem.CommentsChecker}`)}
@@ -1187,7 +1187,9 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     Submit to Checker
                 </Button>
 
+
             }
+            {/*  */}
             {isUserChecker && showPublishRejectButton && currentPage == Constants.checkerGroup && !isRequesterMaker
                 && <Button appearance="primary"
                     onClick={() => {
@@ -1198,6 +1200,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                     Publish
                 </Button>
             }
+            {/*  */}
             {isUserChecker && showPublishRejectButton && currentPage == Constants.checkerGroup && !isRequesterMaker
                 && <Button appearance="primary"
                     onClick={() => {
@@ -2472,10 +2475,10 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             <Dialog modalType="alert" defaultOpen={true}>
                 <DialogSurface style={{ maxWidth: 300 }}>
                     <DialogBody style={{ display: "block" }}>
-                        <DialogContent styles={{ header: { display: "none" }, inner: { padding: 0 }, innerContent: { fontFamily: "Roboto",textAlign:"center" } }}>
+                        <DialogContent styles={{ header: { display: "none" }, inner: { padding: 0 }, innerContent: { fontFamily: "Roboto", textAlign: "center" } }}>
                             {isLoading && <Spinner size="large" labelPosition="below" label={"Please Wait..."}></Spinner>}
                             {isSuccess && <>
-                                <Image style={{ width: isMobileMode ? 70 : 160}} src={require(`../../assets/success.gif`)} shape="circular" fit="contain"></Image>
+                                <Image style={{ width: isMobileMode ? 70 : 160 }} src={require(`../../assets/success.gif`)} shape="circular" fit="contain"></Image>
                                 <Label className={`${styles.formLabel}`} style={{
                                     display: "block",
                                     width: "100%",

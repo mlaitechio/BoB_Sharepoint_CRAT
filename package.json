@@ -36,8 +36,10 @@
     "pdfjs-dist": "^2.5.207",
     "react": "17.0.1",
     "react-dom": "17.0.1",
+    "react-inner-image-zoom": "^3.0.2",
     "react-js-pagination": "^3.0.3",
     "react-pdf-watermark": "^1.0.6",
+    "react-zoom-pan-pinch": "^3.6.1",
     "tslib": "2.3.1"
   },
   "devDependencies": {

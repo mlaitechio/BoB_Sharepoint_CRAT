@@ -1,12 +1,20 @@
 import React from 'react';
-import PDF from 'react-pdf-watermark';
 import { PDFDocument, StandardFonts, degrees, rgb } from 'pdf-lib';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { Dialog, DialogBody, DialogContent, DialogSurface, FluentProvider, Spinner } from '@fluentui/react-components';
 import { Constants } from '../../Constants/Constants';
+
+import 'react-inner-image-zoom/lib/InnerImageZoom/styles.css';
+
+import InnerImageZoom from 'react-inner-image-zoom';
+
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+
 import * as pdfjsLib from "pdfjs-dist/build/pdf";
+import styles from '../BobCircularRepository.module.scss';
+import { ArrowReset20Regular, ArrowResetRegular, ZoomIn20Regular, ZoomInRegular, ZoomOut20Regular } from '@fluentui/react-icons';
 //import PDFImagePreview from './PDFImagePreview';
-pdfjsLib.GlobalWorkerOptions.workerSrc = "https://unpkg.com/pdfjs-dist@2.5.207/build/pdf.worker.min.js";
+pdfjsLib.GlobalWorkerOptions.workerSrc = "/sites/CRAT/SiteAssets/CRAT/pdf.worker.min.js";
 
 
 export interface IMyPDFViewerProps {
@@ -25,7 +33,8 @@ export interface IMyPDFViewerState {
     page: any;
     blobFile: any;
     imgSrc: any;
-    imgList?: any[]
+    imgList?: any[];
+    currWidth?: any;
 
 }
 
@@ -41,17 +50,23 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
             page: 1,
             blobFile: ``,
             imgSrc: ``,
-            imgList: []
+            imgList: [],
+            currWidth: 60
         }
     }
 
     public async componentDidMount() {
-        const { currentSelectedFileContent, context, watermarkText, footerText, footerTextColor } = this.props;
+        const { currentSelectedFileContent, context, watermarkText, footerText, footerTextColor, mode } = this.props;
+
+
+        let isDesktopMode4 = mode == 4;
+        let isDesktopMode5 = mode == 5;
+        let isMobileTabletMode = mode == 0 || mode == 1 || mode == 2 || mode == 3;
 
         console.log(currentSelectedFileContent);
 
         await this.waterMark_ConvertToBase64PDF(currentSelectedFileContent, `${watermarkText}`, footerText, footerTextColor).then((val) => {
-            this.setState({ blobFile: val }, async () => {
+            this.setState({ blobFile: val, currWidth: isMobileTabletMode ? 90 : 60 }, async () => {
 
                 this.props.documentLoaded();
 
@@ -62,84 +77,78 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
         });
     }
 
-    // handlePrevious = () => {
-    //     this.setState({ page: this.state.page - 1 });
-    // }
 
-    // handleNext = () => {
-    //     this.setState({ page: this.state.page + 1 });
-    // }
-
-    // renderPagination = (page, pages) => {
-    //     let previousButton = <li className="previous" onClick={this.handlePrevious}><a href="#"><i className="fa fa-arrow-left"></i> Previous</a></li>;
-    //     if (page === 1) {
-    //         previousButton = <li className="previous disabled"><a href="#"><i className="fa fa-arrow-left"></i> Previous</a></li>;
-    //     }
-    //     let nextButton = <li className="next" onClick={this.handleNext}><a href="#">Next <i className="fa fa-arrow-right"></i></a></li>;
-    //     if (page === pages) {
-    //         nextButton = <li className="next disabled"><a href="#">Next <i className="fa fa-arrow-right"></i></a></li>;
-    //     }
-    //     return (
-    //         <nav>
-    //             <ul className="pager">
-    //                 {previousButton}
-    //                 {nextButton}
-    //             </ul>
-    //         </nav>
-    //     );
-    // }
 
     render() {
-        const { blobFile, imgList } = this.state;
-        const { mode } = this.props
+        const { blobFile, imgList, currWidth } = this.state;
+        const { mode } = this.props;
+
+        let isDesktopMode4 = mode == 4;
+        let isDesktopMode5 = mode == 5;
+        let isMobileTabletMode = mode == 0 || mode == 1 || mode == 2 || mode == 3;
         // let pagination = null;
         // if (this.state.pages) {
         //     pagination = this.renderPagination(this.state.page, this.state.pages);
         // }
 
         return (
-            <div style={{
-                maxHeight: 600, overflow: "scroll",
-                WebkitOverflowScrolling: "touch",
-                touchAction:"auto",
-                msTouchAction:"auto",
-                scrollbarWidth: "thin",
-                border: imgList.length > 0 ? "1px solid #ccc" : "0px",
-                overflowX: "hidden",
+            <>
+                {
+                    imgList && imgList.length > 0 && this.zoomControls()
+                }
+                <div style={{
+                    height: isDesktopMode4 ? 700 : isDesktopMode5 ? 800 : isMobileTabletMode ? 600 : 700,
+                    overflow: "scroll",
+                    WebkitOverflowScrolling: "touch",
+                    touchAction: "auto",
+                    msTouchAction: "auto",
+                    scrollbarWidth: "thin",
+                    border: imgList.length > 0 ? "1px solid #ccc" : "0px",
+                    background: "#cccccc6b"
 
-            }} onContextMenu={(e) => { e.preventDefault(); return false }}>
-                {/* {blobFile != null  && < iframe id="contentFile" src={blobFile} width={"100%"} height={"700px"} style={{ marginTop: -35 }} />} */}
-                {/* {blobFile == null && this.workingOnIt()} */}
-                {/* {blobFile != null && <object data={blobFile} width={"100%"} height={"800px"} style={{ marginTop: -35 }}></object>} */}
-                {/* {blobFile != null && <div style={{ overflow: 'scroll', height: 600 }}>
+                }} onContextMenu={(e) => { e.preventDefault(); return false }}>
+                    {/* {blobFile != null  && < iframe id="contentFile" src={blobFile} width={"100%"} height={"700px"} style={{ marginTop: -35 }} />} */}
+                    {/* {blobFile == null && this.workingOnIt()} */}
+                    {/* {blobFile != null && <object data={blobFile} width={"100%"} height={"800px"} style={{ marginTop: -35 }}></object>} */}
+                    {/* {blobFile != null && <div style={{ overflow: 'scroll', height: 600 }}>
                     <MobilePDFReader url={blobFile} />
                 </div>} */}
 
-                {
-                    imgList.length == 0 && <div style={{ textAlign: "center" }}>
-                        <FluentProvider>
-                            <Spinner label={`Working on it..`} labelPosition="below"></Spinner>
-                        </FluentProvider>
-                    </div>
-                }
+                    {
+                        imgList.length == 0 && <div style={{ textAlign: "center" }}>
+                            <FluentProvider>
+                                <Spinner label={`Working on it..`} labelPosition="below"></Spinner>
+                            </FluentProvider>
+                        </div>
+                    }
 
-                {imgList && imgList.length > 0 && imgList.map((val) => {
-                    return <div style={{ paddingTop: 10, paddingBottom: 10, textAlign: "center", background: "#cccccc6b" }}>
-                        <img src={val} width={mode ? "90%" : "60%"} />
-                    </div>
-                })}
 
-                {/* {blobFile != "" && <>
+
+                    {imgList && imgList.length > 0 && imgList.map((val, index) => {
+                        return <>
+                            <div style={{ paddingTop: 10, textAlign: "center", }}>
+                                <img src={val} width={`${currWidth}%`} />
+                                {/* <InnerImageZoom src={val} zoomSrc={val} zoomScale={0.3}  fullscreenOnMobile={true} hideCloseButton={true} zoomPreload={true}></InnerImageZoom> */}
+
+                            </div>
+                            <div style={{ paddingBottom: 10, textAlign: "center" }}>
+                                {`Page ${index + 1}`}
+                            </div>
+                        </>
+                    })}
+
+                    {/* {blobFile != "" && <>
                     <PDFViewer document={{ base64: this.base64Data }}>
 
                     </PDFViewer>
                 </>} */}
 
-                {/* {blobFile != null && <>
+                    {/* {blobFile != null && <>
                     <canvas id="pdfFile"></canvas>
                 </>} */}
 
-            </div>
+                </div>
+            </>
         )
     }
 
@@ -168,6 +177,35 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
 
         </>;
         return submitDialogJSX;
+    }
+
+
+    private zoomControls = (): JSX.Element => {
+
+        const { currWidth } = this.state
+        let zoomJSX = <div className={styles.row}>
+            <div className={`${styles.column12} ${styles.textAlignEnd}`}>
+                <ZoomIn20Regular style={{ cursor: 'pointer' }} title='Zoom In' onClick={() => {
+                    if (currWidth < 150) {
+                        this.setState({ currWidth: currWidth + 10 })
+                    }
+                }} />
+                <ZoomOut20Regular style={{ cursor: 'pointer' }} title='Zoom Out' onClick={() => {
+                    if (currWidth > 20) {
+                        this.setState({ currWidth: currWidth - 10 })
+                    }
+                }} />
+                <ArrowReset20Regular style={{ cursor: 'pointer' }} title='Reset' onClick={() => {
+                    const { mode } = this.props;
+
+                    let isMobileTabletMode = mode == 0 || mode == 1 || mode == 2 || mode == 3;
+
+                    this.setState({ currWidth: isMobileTabletMode ? 90 : 60 })
+                }} />
+
+            </div>
+        </div>
+        return zoomJSX;
     }
 
     private waterMark_ConvertToBase64PDF = async (fileContent, watermarkText, footerText, footerTextColor) => {
