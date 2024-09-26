@@ -338,6 +338,7 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
                                             <MyPdfViewer
                                                 context={context}
                                                 pdfFilePath={allFiles[0].FileURL}
+                                                fileName={allFiles[0].FileName}
                                                 currentSelectedFileContent={fileContent}
                                                 watermarkText={`${waterMarkText}`}
                                                 footerText={footerText}

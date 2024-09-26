@@ -96,7 +96,7 @@ export default class SupportingDocument extends React.Component<ISupportingDocum
                     |--------------------------------------------------
                     */
 
-                    if (val.RefinableString102 != null && val.RefinableString102 == unlimited) {
+                    if (val.RefinableString102 != null && (val.RefinableString102 == unlimited || val.RefinableString102 == limited)) {
 
                         listItemData.push({
                             ID: parseInt(val.ListItemID),
@@ -251,7 +251,12 @@ export default class SupportingDocument extends React.Component<ISupportingDocum
                                             <Label weight="regular"
                                                 onClick={() => { this.onCheckBoxLabelClick(index, Constants.searchSupportingCirculars) }}
                                                 //this.onCheckBoxLabelClick.bind(this, labelName, index, !currentCheck)
-                                                style={{ fontFamily: "Roboto", cursor: "pointer", textTransform: "capitalize" }}>
+                                                style={{
+                                                    fontFamily: "Roboto", cursor: "pointer", textTransform: "capitalize", width: "120px",
+                                                    display: "block",
+                                                    textOverflow: "ellipsis",
+                                                    overflow: "hidden"
+                                                }}>
                                                 {circular.value}
                                             </Label>
                                         }

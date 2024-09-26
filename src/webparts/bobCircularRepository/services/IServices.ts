@@ -12,7 +12,7 @@ export interface IServices {
     readFieldValues: (serverRelativeUrl: string, listName: string, fieldName: string) => Promise<any>;
     getListDataAsStream: (serverRelativeUrl: string, listName: string, itemID) => Promise<any>;
     breakItemRoleInheritance: (serverRelativeUrl: string, listName: string, itemID) => Promise<any>;
-    getSearchResults: (queryText: string, selectedProperties: any[], queryTemplate?: string, refinementFilters?: string, sortList?: any[]) => Promise<any>;
+    getSearchResults: (queryText: string, selectedProperties: any[], queryTemplate?: string, refinementFilters?: string, sortList?: any[], startRow?: any) => Promise<any>;
     renderListDataStream: (serverRelativeUrl: string, listName: string, listItemIDs: any[]) => Promise<any>;
     filterLargeListItem: (serverRelativeUrl: string, listName: string, filterString: string) => Promise<any>;
     getListInfo: (serverRelativeUrl: string, listName: string) => Promise<any>;

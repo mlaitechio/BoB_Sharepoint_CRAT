@@ -1,7 +1,7 @@
 import React from 'react';
 import { PDFDocument, StandardFonts, degrees, rgb } from 'pdf-lib';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
-import { Dialog, DialogBody, DialogContent, DialogSurface, FluentProvider, Spinner } from '@fluentui/react-components';
+import { Button, Dialog, DialogBody, DialogContent, DialogSurface, FluentProvider, Spinner } from '@fluentui/react-components';
 import { Constants } from '../../Constants/Constants';
 
 import 'react-inner-image-zoom/lib/InnerImageZoom/styles.css';
@@ -12,7 +12,7 @@ import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 import * as pdfjsLib from "pdfjs-dist/build/pdf";
 import styles from '../BobCircularRepository.module.scss';
-import { ArrowReset20Regular, ArrowResetRegular, ZoomIn20Regular, ZoomInRegular, ZoomOut20Regular } from '@fluentui/react-icons';
+import { ArrowCircleDown20Regular, ArrowReset20Regular, ArrowResetRegular, ZoomIn20Regular, ZoomInRegular, ZoomOut20Regular } from '@fluentui/react-icons';
 //import PDFImagePreview from './PDFImagePreview';
 pdfjsLib.GlobalWorkerOptions.workerSrc = "/sites/CRAT/SiteAssets/CRAT/pdf.worker.min.js";
 
@@ -20,6 +20,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = "/sites/CRAT/SiteAssets/CRAT/pdf.worker
 export interface IMyPDFViewerProps {
     pdfFilePath: any;
     watermarkText: any;
+    fileName: any;
     currentSelectedFileContent?: any;
     context?: WebPartContext;
     documentLoaded: () => void;
@@ -56,7 +57,10 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
     }
 
     public async componentDidMount() {
-        const { currentSelectedFileContent, context, watermarkText, footerText, footerTextColor, mode } = this.props;
+        const { currentSelectedFileContent,
+            pdfFilePath,
+            watermarkText, footerText,
+            footerTextColor, mode } = this.props;
 
 
         let isDesktopMode4 = mode == 4;
@@ -64,11 +68,17 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
         let isMobileTabletMode = mode == 0 || mode == 1 || mode == 2 || mode == 3;
 
         console.log(currentSelectedFileContent);
+        console.log(pdfFilePath);
 
         await this.waterMark_ConvertToBase64PDF(currentSelectedFileContent, `${watermarkText}`, footerText, footerTextColor).then((val) => {
-            this.setState({ blobFile: val, currWidth: isMobileTabletMode ? 90 : 60 }, async () => {
+
+            // blobFile: val,
+
+            this.setState({ currWidth: isMobileTabletMode ? 90 : 60, imgList: val }, async () => {
 
                 this.props.documentLoaded();
+
+
 
             })
         }).catch((error) => {
@@ -98,7 +108,7 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
                 }
                 <div style={{
                     height: isDesktopMode4 ? 700 : isDesktopMode5 ? 800 : isMobileTabletMode ? 600 : 700,
-                    overflow: "scroll",
+                    overflow: "auto",
                     WebkitOverflowScrolling: "touch",
                     touchAction: "auto",
                     msTouchAction: "auto",
@@ -131,7 +141,7 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
                                 {/* <InnerImageZoom src={val} zoomSrc={val} zoomScale={0.3}  fullscreenOnMobile={true} hideCloseButton={true} zoomPreload={true}></InnerImageZoom> */}
 
                             </div>
-                            <div style={{ paddingBottom: 10, textAlign: "center" }}>
+                            <div style={{ paddingBottom: 10, textAlign: "center" }} className={`${styles.fontRoboto}`}>
                                 {`Page ${index + 1}`}
                             </div>
                         </>
@@ -182,30 +192,172 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
 
     private zoomControls = (): JSX.Element => {
 
-        const { currWidth } = this.state
+        const { currWidth } = this.state;
+        const { mode } = this.props;
+
+        let isMobileMode = mode == 0 || mode == 1;
+
         let zoomJSX = <div className={styles.row}>
             <div className={`${styles.column12} ${styles.textAlignEnd}`}>
-                <ZoomIn20Regular style={{ cursor: 'pointer' }} title='Zoom In' onClick={() => {
-                    if (currWidth < 150) {
-                        this.setState({ currWidth: currWidth + 10 })
-                    }
-                }} />
-                <ZoomOut20Regular style={{ cursor: 'pointer' }} title='Zoom Out' onClick={() => {
-                    if (currWidth > 20) {
-                        this.setState({ currWidth: currWidth - 10 })
-                    }
-                }} />
-                <ArrowReset20Regular style={{ cursor: 'pointer' }} title='Reset' onClick={() => {
-                    const { mode } = this.props;
 
-                    let isMobileTabletMode = mode == 0 || mode == 1 || mode == 2 || mode == 3;
+                <Button icon={<ZoomIn20Regular />}
+                    title='Zoom In'
+                    appearance="transparent"
+                    onClick={() => {
+                        if (currWidth < 150) {
+                            this.setState({ currWidth: currWidth + 10 })
+                        }
+                    }}
+                >
 
-                    this.setState({ currWidth: isMobileTabletMode ? 90 : 60 })
-                }} />
+                </Button>
+
+                <Button icon={<ZoomOut20Regular />}
+                    title='Zoom Out'
+                    appearance="transparent"
+                    onClick={() => {
+                        if (currWidth > 20) {
+                            this.setState({ currWidth: currWidth - 10 })
+                        }
+                    }} >
+
+                </Button>
+
+                <Button icon={<ArrowReset20Regular />}
+                    appearance="transparent"
+                    title='Reset'
+                    onClick={() => {
+                        const { mode } = this.props;
+
+                        let isMobileTabletMode = mode == 0 || mode == 1 || mode == 2 || mode == 3;
+
+                        this.setState({ currWidth: isMobileTabletMode ? 90 : 60 })
+                    }} >
+
+                </Button>
+
+                {/* <ZoomIn20Regular style={{ cursor: 'pointer' }} title='Zoom In' />
+                <ZoomOut20Regular style={{ cursor: 'pointer' }} title='Zoom Out' />
+                <ArrowReset20Regular style={{ cursor: 'pointer' }} title='Reset' /> */}
+
+                {!isMobileMode && <Button
+                    title='Download'
+                    icon={<ArrowCircleDown20Regular />}
+                    appearance="transparent"
+                    onClick={async () => {
+
+                        const { currentSelectedFileContent,
+                            watermarkText, fileName, footerText,
+                            footerTextColor, mode } = this.props;
+
+                        await this.blobFileDownload(currentSelectedFileContent, `${watermarkText}`, footerText, footerTextColor).then((blobVal) => {
+                            this.setState({ blobFile: blobVal }, () => {
+                                const { blobFile } = this.state;
+                                let a = document.createElement("a") as any;
+                                document.body.appendChild(a);
+                                a.style = "display:none";
+                                let url = blobFile
+                                a.href = url;
+                                a.download = fileName;
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                            })
+                        }).catch((error) => {
+                            console.log(error)
+                        })
+
+                    }}></Button>
+                }
 
             </div>
         </div>
         return zoomJSX;
+    }
+
+
+    private blobFileDownload = async (fileContent, watermarkText, footerText, footerTextColor) => {
+        const pdfDoc = await PDFDocument.load(fileContent);
+        const totalPages = pdfDoc.getPageCount();
+
+        for (let pageNum = 0; pageNum < totalPages; pageNum++) {
+            const page = pdfDoc.getPage(pageNum);
+            const { width, height } = page.getSize();
+            const textFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+            const fontSize = 65;
+
+            const font = pdfDoc.embedStandardFont(StandardFonts.Helvetica);
+            const headerHeight = 50;
+
+
+            const textWidth = font.widthOfTextAtSize(Constants.infoPDFText, fontSize);
+            const textHeight = font.heightAtSize(fontSize);
+
+            const startX = (width - textWidth) / 2;
+            const startY =
+                height + headerHeight - (headerHeight - textHeight) / 2 - textHeight;
+
+            page.moveTo(startX, startY);
+
+            page.drawText(watermarkText, {
+                x: width / 7.3,
+                y: (1.6 * height) / 2.6,
+                size: fontSize,
+                font: textFont,
+                opacity: 0.4,
+                color: rgb(0.8392156862745098, 0.807843137254902, 0.792156862745098),
+                rotate: degrees(30)
+            });
+
+
+
+            page.drawText(watermarkText, {
+                x: width / 7.3,
+                y: (1.6 * height) / 7.3,
+                size: fontSize,
+                font: textFont,
+                opacity: 0.4,
+                color: rgb(0.8392156862745098, 0.807843137254902, 0.792156862745098),
+                rotate: degrees(30)
+            });
+
+            page.drawText(footerText, {
+                x: 5,
+                y: 5,
+                size: 11,
+                font: font,
+                opacity: 1,
+                color: footerTextColor ?? rgb(0.02, 0.02, 0.02) //rgb(0.02, 0.02, 0.02)//rgb(0.86, 0.09, 0.26),
+            });
+
+        }
+
+        let pdfBytes = await pdfDoc.save();
+
+        // this.renderPage(pdfBytes).then((imgList) => {
+        //     this.setState({ imgList })
+        // }).catch((error) => {
+        //     console.log(error)
+        // })
+
+        let base64File = this.bufferToBase64(pdfBytes).then((val) => {
+            //const base64WithoutPrefix = val.substring('data:application/octet-stream;base64,'.length);
+            const base64WithoutPrefix = val.substring('data:application/octet-stream;base64,'.length);
+            this.base64Data = base64WithoutPrefix;
+            const bytes = atob(base64WithoutPrefix);
+            let length = pdfBytes.length;
+            let out = new Uint8Array(length);
+
+            while (length--) {
+                out[length] = bytes.charCodeAt(length);
+            }
+            let blobFile = new Blob([out], { type: "application/pdf" });
+
+            return Promise.resolve(URL.createObjectURL(blobFile))
+        }).catch((error) => {
+            return Promise.reject(error)
+        });
+
+        return base64File
     }
 
     private waterMark_ConvertToBase64PDF = async (fileContent, watermarkText, footerText, footerTextColor) => {
@@ -267,31 +419,34 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
 
         let pdfBytes = await pdfDoc.save();
 
-        this.renderPage(pdfBytes).then((imgList) => {
-            this.setState({ imgList })
+        return this.renderPage(pdfBytes).then((imgList) => {
+            return Promise.resolve(imgList)
         }).catch((error) => {
+
             console.log(error)
+            return Promise.reject(error)
+
         })
 
-        let base64File = this.bufferToBase64(pdfBytes).then((val) => {
-            //const base64WithoutPrefix = val.substring('data:application/octet-stream;base64,'.length);
-            const base64WithoutPrefix = val.substring('data:application/octet-stream;base64,'.length);
-            this.base64Data = base64WithoutPrefix;
-            const bytes = atob(base64WithoutPrefix);
-            let length = pdfBytes.length;
-            let out = new Uint8Array(length);
+        // let base64File = this.bufferToBase64(pdfBytes).then((val) => {
+        //     //const base64WithoutPrefix = val.substring('data:application/octet-stream;base64,'.length);
+        //     const base64WithoutPrefix = val.substring('data:application/octet-stream;base64,'.length);
+        //     this.base64Data = base64WithoutPrefix;
+        //     const bytes = atob(base64WithoutPrefix);
+        //     let length = pdfBytes.length;
+        //     let out = new Uint8Array(length);
 
-            while (length--) {
-                out[length] = bytes.charCodeAt(length);
-            }
-            let blobFile = new Blob([out], { type: "application/pdf" });
+        //     while (length--) {
+        //         out[length] = bytes.charCodeAt(length);
+        //     }
+        //     let blobFile = new Blob([out], { type: "application/pdf" });
 
-            return Promise.resolve(URL.createObjectURL(blobFile))
-        }).catch((error) => {
-            return Promise.reject(error)
-        });
+        //     return Promise.resolve(URL.createObjectURL(blobFile))
+        // }).catch((error) => {
+        //     return Promise.reject(error)
+        // });
 
-        return base64File
+        // return base64File
 
     }
 

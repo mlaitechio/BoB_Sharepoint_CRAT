@@ -683,7 +683,7 @@ export class Services implements IServices {
         return emailPromise
     }
 
-    public async getSearchResults(queryText: string, selectedProperties: any[], queryTemplate?: string, refinementFilters?: string, sortList?: any[]): Promise<any> {
+    public async getSearchResults(queryText: string, selectedProperties: any[], queryTemplate?: string, refinementFilters?: string, sortList?: any[],startRow?:any): Promise<any> {
 
         // const queryBuilder =  SearchQueryBuilder();
 
@@ -705,6 +705,7 @@ export class Services implements IServices {
                 ClientType: 'ContentSearchRegular',
                 EnableSorting: true,
                 SortList: sortList,
+                StartRow: 0,
                 // BypassResultTypes: true,
                 // ClientType: "sug_SPListInline",
                 // SummaryLength: 100,
@@ -732,7 +733,7 @@ export class Services implements IServices {
 
             let searchResults = await sp.search(_searchQuerySettings);
 
-            searchItems = searchItems.concat(searchResults.PrimarySearchResults);
+            searchItems = searchItems.concat(searchResults);
 
 
 
@@ -742,7 +743,7 @@ export class Services implements IServices {
                 _searchQuerySettings.StartRow = searchItems.length
                 searchResults = await sp.search(_searchQuerySettings);
                 // Add the next batch of items to the array
-                searchItems = searchItems.concat(searchResults.PrimarySearchResults);
+                searchItems = searchItems.concat(searchResults);
             }
 
             return Promise.resolve(searchItems);

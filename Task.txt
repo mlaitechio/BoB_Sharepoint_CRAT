@@ -52,12 +52,13 @@ Category Search Query string
 11.New UI Changes with Vertical buttons & Pop over Menu with FAQ, Supporting Documents & Summary binding - 8 hours
 12.Search criteria Changes for Subject & Department with other UI changes- 6 hours 
 13.Configuration List Implemented - 4 hours
-12.Responsive Design -52 hours
+12.Responsive Design -55 hours
 
-Functionality to implement subject title search
-Responsive design for Dialog box (Add Circular) , Supporting Documents.
-Circular number check
-Opening circular file mobile broswer
+Functionality to implement subject title search- done
+Responsive design for Dialog box (Add Circular) , Supporting Documents. -Remaining
+Circular number check - Yet to be done
+Opening circular file mobile broswer - Done (20 hours)
+Download File - Done
 
 Search Dashboard
 1. Logic to get only published status circular items

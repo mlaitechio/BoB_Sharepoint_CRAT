@@ -4,6 +4,10 @@ import { ICheckBoxCollection, ICircularListItem, IListItem } from "../../Models/
 export interface ICircularSearchState {
     navLinkGroups?: INavLinkGroup[];
     selectedKey?: string;
+    dismissMessage?: boolean;
+    totalRowCount?: any;
+    searchPlaceHolder?: string;
+    isSubjectSearch?: boolean;
     searchText?: string;
     openSearchFilters?: boolean;
     supportingDocItem?: ICircularListItem;
