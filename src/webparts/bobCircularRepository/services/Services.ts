@@ -91,7 +91,7 @@ export class Services implements IServices {
             let items: PagedItemCollection<any[]> = null;
             do {
                 if (!items) items = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items.select(selectColumns).
-                    orderBy(`${orderByColum}`, false).expand(expandColumns).top(4000).getPaged();
+                    orderBy(`${orderByColum}`, false).expand(expandColumns).top(4999).getPaged();
                 else {
                     items = await items.getNext();
                 }
@@ -683,7 +683,7 @@ export class Services implements IServices {
         return emailPromise
     }
 
-    public async getSearchResults(queryText: string, selectedProperties: any[], queryTemplate?: string, refinementFilters?: string, sortList?: any[],startRow?:any): Promise<any> {
+    public async getSearchResults(queryText: string, selectedProperties: any[], queryTemplate?: string, refinementFilters?: string, sortList?: any[], startRow?: any, rowLimit?: any): Promise<any> {
 
         // const queryBuilder =  SearchQueryBuilder();
 
@@ -700,12 +700,12 @@ export class Services implements IServices {
                 Querytext: `${textQuery}`,//`*`,//
                 TrimDuplicates: false,
                 QueryTemplate: queryTemplate,
-                RowLimit: 500,
-                RowsPerPage: 10,
+                StartRow: startRow,
+                RowLimit: rowLimit, // maximum 500 can be row Limit
+                RowsPerPage: rowLimit, // items per page
                 ClientType: 'ContentSearchRegular',
                 EnableSorting: true,
                 SortList: sortList,
-                StartRow: 0,
                 // BypassResultTypes: true,
                 // ClientType: "sug_SPListInline",
                 // SummaryLength: 100,
@@ -731,22 +731,24 @@ export class Services implements IServices {
             console.log(_searchQuerySettings);
 
 
-            let searchResults = await sp.search(_searchQuerySettings);
+            let searchResults = await sp.search(_searchQuerySettings).then((val) => {
+                return val;
+            });
 
-            searchItems = searchItems.concat(searchResults);
+            // searchItems = searchItems.concat(searchResults);
 
 
 
             // Check if there are more items to retrieve
-            // while (searchResults.TotalRowsIncludingDuplicates - 1 > searchItems.length) {
-            while (searchItems.length < searchResults.TotalRowsIncludingDuplicates) {
-                _searchQuerySettings.StartRow = searchItems.length
-                searchResults = await sp.search(_searchQuerySettings);
-                // Add the next batch of items to the array
-                searchItems = searchItems.concat(searchResults);
-            }
+            // while (searchItems.length < searchResults.TotalRowsIncludingDuplicates) {
+            //     _searchQuerySettings.StartRow = searchItems.length
+            //     searchResults = await sp.search(_searchQuerySettings);
+            //     // Add the next batch of items to the array
+            //     searchItems = searchItems.concat(searchResults);
+            // }
 
-            return Promise.resolve(searchItems);
+            return Promise.resolve(searchResults);
+            //return Promise.resolve(searchItems);
         }
         catch {
             return Promise.reject(`Error occured while performing search`)

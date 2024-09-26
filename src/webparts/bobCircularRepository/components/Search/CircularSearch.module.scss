@@ -29,6 +29,7 @@ $primaryColor: "[theme: themePrimary, default: #c0392b]";
                     border-radius: 15px;
                     color: black;
 
+
                     i {
                         font-size: 10px;
                         color: var(--link)
@@ -56,7 +57,12 @@ $primaryColor: "[theme: themePrimary, default: #c0392b]";
         text-decoration: none;
         cursor: pointer;
         font-weight: 500;
-        display: flex;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        max-width: 450px;
+        padding-top: 2px;
         // color: rgb(0, 49, 113)
     }
 

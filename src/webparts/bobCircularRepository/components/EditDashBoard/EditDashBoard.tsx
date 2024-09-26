@@ -400,11 +400,12 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
     private circularResults = () => {
 
         let providerValue = this.context;
-        const { isUserChecker, isUserCompliance, isUserMaker, context } = providerValue as IBobCircularRepositoryProps;
+        const { responsiveMode, isUserMaker, context } = providerValue as IBobCircularRepositoryProps;
         let currentUserEmail = context.pageContext.user.email;
         const { currentPage } = this.props
         const { listItems, accordionFields, currentSelectedItem, currentSelectedItemId, filteredItems } = this.state;
         let filteredPageItems = this.paginateFn(filteredItems);
+        let colorLabelClass = responsiveMode == 4 ? styles1.colorLabelDesktop : responsiveMode == 3 ? styles1.colorLabelTablet : responsiveMode == 2 ? styles1.colorLabelTablet1 : styles1.colorLabel;
         const columns = [
             { columnKey: "CircularNo", label: "Circular No", columnType: "Text" },
             { columnKey: "Subject", label: "Subject", columnType: "Text" },
@@ -492,7 +493,7 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                                         <TableRow className={`${styles1.tableRow}`} >
                                             <TableCell>
                                                 <div
-                                                    className={`${styles1.colorLabel}`}
+                                                    className={`${colorLabelClass}`}
                                                     style={{
                                                         color: val.Classification == "Master" ? "#f26522" : "#162B75"
                                                     }}>{val.CircularNumber}</div>
@@ -580,31 +581,35 @@ export default class EditDashBoard extends React.Component<IEditDashBoardProps, 
                                                     <div className={`${styles1.column1}`} style={{ paddingLeft: "0px", marginRight: 25 }}>
                                                         <Button icon={accordionFields.isSummarySelected && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
                                                             iconPosition="after"
-                                                            className={accordionFields.isSummarySelected && isCurrentItem ? styles1.colorLabel : ``}
-                                                            appearance={accordionFields.isSummarySelected && isCurrentItem ? "outline" : "transparent"}
+                                                            style={{ width: `110px` }}
+                                                            className={accordionFields.isSummarySelected && isCurrentItem ? colorLabelClass : ``}
+                                                            appearance={accordionFields.isSummarySelected && isCurrentItem ? "transparent" : "transparent"}
                                                             onClick={this.onDetailItemClick.bind(this, val, Constants.colSummary)}>Summary</Button>
                                                     </div>
                                                     <div className={`${styles1.column1}`} style={{ marginRight: 20 }}>
                                                         <Button icon={accordionFields.isFaqSelected && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
                                                             iconPosition="after"
-                                                            className={accordionFields.isFaqSelected && isCurrentItem ? styles1.colorLabel : ``}
-                                                            appearance={accordionFields.isFaqSelected && isCurrentItem ? "outline" : "transparent"}
+                                                            style={{ width: `90px` }}
+                                                            className={accordionFields.isFaqSelected && isCurrentItem ? colorLabelClass : ``}
+                                                            appearance={accordionFields.isFaqSelected && isCurrentItem ? "transparent" : "transparent"}
                                                             onClick={this.onDetailItemClick.bind(this, val, Constants.faqs)}>FAQ</Button>
                                                     </div>
                                                     <div className={`${styles1.column1}`} style={{ marginRight: 32 }}>
                                                         <Button
                                                             icon={accordionFields.isCategorySelected && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
                                                             iconPosition="after"
-                                                            className={accordionFields.isCategorySelected && isCurrentItem ? styles1.colorLabel : ``}
-                                                            appearance={accordionFields.isCategorySelected && isCurrentItem ? "outline" : "transparent"}
+                                                            style={{ width: `110px` }}
+                                                            className={accordionFields.isCategorySelected && isCurrentItem ? colorLabelClass : ``}
+                                                            appearance={accordionFields.isCategorySelected && isCurrentItem ? "transparent" : "transparent"}
                                                             onClick={this.onDetailItemClick.bind(this, val, Constants.colCategory)}>Category</Button>
                                                     </div>
                                                     <div className={`${styles1.column4}`} >
                                                         <Button
                                                             icon={accordionFields.isSupportingDocuments && isCurrentItem ? <ChevronUpRegular /> : <ChevronDownRegular />}
                                                             iconPosition="after"
-                                                            className={accordionFields.isSupportingDocuments && isCurrentItem ? styles1.colorLabel : ``}
-                                                            appearance={accordionFields.isSupportingDocuments && isCurrentItem ? "outline" : "transparent"}
+                                                            style={{ width: `210px` }}
+                                                            className={accordionFields.isSupportingDocuments && isCurrentItem ? colorLabelClass : ``}
+                                                            appearance={accordionFields.isSupportingDocuments && isCurrentItem ? "transparent" : "transparent"}
                                                             onClick={this.onDetailItemClick.bind(this, val, Constants.colSupportingDoc)}>Supporting Documents</Button>
                                                     </div>
 

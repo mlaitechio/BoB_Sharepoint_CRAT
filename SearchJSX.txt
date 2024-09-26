@@ -44,6 +44,134 @@ var values = listItemIds.map(i => { return `<Value Type='Counter'>${i}</Value>`;
     // }
 
 
+private circularSearchResultsTable = (): JSX.Element => {
+
+    const { filteredItems } = this.state
+    let filteredPageItems = this.paginateFn(filteredItems);
+    const { columns } = this.state
+    let searchResultsJSX = <>
+      {this.detailListView(filteredPageItems, columns)}
+    </>
+
+    return searchResultsJSX;
+
+  }
+
+
+  private detailListView = (filteredPageItems, columns): JSX.Element => {
+    let detailListViewJSX =
+      <>
+        <DetailsList
+          className={` ${styles1.detailsListBorderRadius} `}
+          styles={{
+            root: {
+              ".ms-DetailsHeader-cell": {
+
+                ".ms-DetailsHeader-cellTitle": {
+                  color: "white",
+                  ".ms-Icon": {
+                    color: "white",
+                    fontWeight: 600,
+                    left: -30
+                  }
+                }
+              },
+              ".ms-DetailsHeader-cell:hover": {
+
+                background: "#f26522",
+                color: "white",
+                cursor: "pointer"
+              }
+            },
+            focusZone: {
+              ".ms-List": {
+                ".ms-List-surface": {
+                  ".ms-List-page": {
+                    ".ms-List-cell": {
+                      ".ms-DetailsRow": {
+
+                        borderBottom: "1px solid #ccc",
+
+                        ".ms-DetailsRow-fields": {
+                          ".ms-DetailsRow-cell": {
+                            fontWeight: 400,
+                            fontSize: "13.5px",
+                            fontFamily: 'Roboto',
+                            color: "black"
+                          }
+                        }
+                      },
+                      ".ms-DetailsRow:hover": {
+                        borderBottom: "1px solid #ccc",
+                        background: "#f265221a"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            headerWrapper: {
+              ".ms-DetailsHeader": {
+                color: "white",//"#003171",
+                paddingTop: 0,
+                backgroundColor: "#f26522"//"#495057" //"rgb(225 234 244)"//"#EEEFF0" //"#5581F6"//"rgb(3, 120, 124)"
+              }
+            }
+          }}
+          items={filteredPageItems}
+          columns={columns}
+          compact={true}
+          selectionMode={SelectionMode.none}
+          getKey={this._getKey}
+          setKey="none"
+          layoutMode={DetailsListLayoutMode.fixedColumns}
+          isHeaderVisible={true}
+          onItemInvoked={this._onItemInvoked}
+          onRenderRow={this._onRenderRow}
+
+        // onRenderDetailsHeader={(props, defaultRender) =>
+        //   defaultRender({ ...props, styles: { root: { width: 200 } } })
+        // }
+        // onRenderDetailsFooter={this.createPagination.bind(this)}
+        />
+        {this.createPagination()}
+
+      </>
+
+    return detailListViewJSX;
+  }
+
+  private handleSorting = (property: string) => (event: React.MouseEvent<unknown>, column: IColumn) => {
+    property = column.key;
+
+    this.setState({ sortingFields: column.key }, () => {
+      let { sortingFields, sortDirection, filteredItems } = this.state;
+      //const isDesc = sortingFields && sortingFields === property && sortDirection === 'desc';
+      const isDesc = property && sortingFields === property && sortDirection === 'desc';
+      let updateColumns = this.state.columns.map(c => {
+        //isSortedDescending: (isAsc ? false : true)
+        //return c.key === property ? {...c, isSorted: true, isSortedDescending: (isDesc ? false : true) } : {...c};
+        if (c.key == Constants.colPublishedDate) {
+          return c.key === property ? { ...c, isSorted: true, isSortedDescending: !isDesc } : { ...c, isSorted: false, isSortedDescending: !c.isSortedDescending };
+        }
+        else {
+          return c.key === property ? { ...c, isSorted: true, isSortedDescending: !c.isSortedDescending } : { ...c, isSorted: false, isSortedDescending: !c.isSortedDescending };
+        }
+
+      });
+
+      this.setState({
+        sortDirection: (isDesc ? 'asc' : 'desc'),
+        sortingFields: property,
+        columns: updateColumns,
+      }, () => {
+        const { sortDirection, sortingFields } = this.state;
+        this.setState({ filteredItems: this.sortListItems(filteredItems, sortingFields, sortDirection) })
+      });
+    })
+
+  }
+
 
 private allListItemAttachments = async () => {
         let providerValue = this.context;

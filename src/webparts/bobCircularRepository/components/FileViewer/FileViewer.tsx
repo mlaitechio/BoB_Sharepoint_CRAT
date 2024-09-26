@@ -282,7 +282,10 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
                         headerText: {
                             fontSize: "1.3em", fontWeight: "600",
                             marginBlockStart: "0.83em", marginBlockEnd: "0.83em",
-                            color: "black", fontFamily: 'Roboto'
+                            color: "black", fontFamily: 'Roboto',
+                            display: "-webkit-box", "-webkit-line-clamp": "3",
+                            "-webkit-box-orient": "vertical", overflow: "hidden",
+                            maxWidth: responsiveMode == 0 || responsiveMode == 1 ? 500 : "none"
                         },
                         main: { background: "white" },
                         content: { paddingBottom: 0 },

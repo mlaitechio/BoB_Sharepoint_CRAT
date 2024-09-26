@@ -125,8 +125,10 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       openSupportingDoc: false,
       supportingDocItem: null,
       currentPage: 1,
-      itemsPerPage: 10,
+      itemsPerPage: 10, // search Row Limit
       totalRowCount: 0,
+      startRow: 0,
+      isSearchFilterApplied: false,
       isLoading: false,
       departments: [],
       selectedDepartment: [],
@@ -212,6 +214,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
           this.setState({
             items: listItems,
             filteredItems: listItems,
+            totalRowCount: listItems.length,
             departments: uniqueDepartment?.filter((option) => {
               return option != undefined
             }),
@@ -803,7 +806,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     const { responsiveMode } = providerValue as IBobCircularRepositoryProps;
 
     const { filteredItems, isLoading, checkBoxCollection, sortingOptions,
-      selectedSortFields, sortDirection, isSubjectSearch, dismissMessage } = this.state
+      selectedSortFields, sortDirection, isSubjectSearch, dismissMessage, totalRowCount } = this.state
     let filteredPageItems = this.paginateFn(filteredItems);
 
     let isDesktopMode = responsiveMode == 4 || responsiveMode == 5;
@@ -828,7 +831,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         isMobileMode ? `${styles1.mobileColumn6} ` :
           styles1.column2;
 
-    let sortingClass = isTabletMode ? `${styles1.column2} ${styles1.paddingLeftZero}` :
+    let sortingClass = isTabletMode ? `${styles1.column3} ${styles1.paddingLeftZero}` :
       (isMobileModeDesktop) ? `${styles1.mobileColumn6} ${styles1['text-center']} ${styles1.paddingLeftZero}` :
         isMobileMode ? `${styles1.mobileColumn6} ${styles1.paddingLeftZero}` : styles1.column2;
 
@@ -847,11 +850,11 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                   fontSize: (isMobileMode || isMobileModeDesktop) ? "var(--fontSizeBase300)" : "var(--fontSizeBase500)",
                   fontWeight: "var(--fontWeightSemibold)",
                   lineHeight: "var(--lineHeightBase500)"
-                }}>Circulars {`(${filteredItems.length})`}</FluentLabel>
+                }}>Circulars {`(${totalRowCount})`}</FluentLabel>
               </div>
 
               {(isTabletMode || isMobileMode || isMobileModeDesktop) &&
-                <div className={`${refineResetClass}`} style={{ textAlign: isTabletMode ? "left" : "right", paddingRight: "30px" }}>
+                <div className={`${refineResetClass}`} style={{ textAlign: isTabletMode ? "center" : "right", paddingRight: "30px" }}>
                   <>
                     <Button
                       appearance="subtle"
@@ -903,25 +906,25 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       <div className={`${styles1.row} `}>
         <div className={`${(isMobileMode || isMobileModeDesktop) ? styles1.column12 : styles1.column12}`}
           style={{ marginTop: 5, paddingLeft: 0 }}>
-          <Checkbox checked={isSubjectSearch} label={<Label className={`${styles1.formLabel}`}>Document Title</Label>}
+          <Checkbox checked={isSubjectSearch} label={
+            <Label className={`${styles1.formLabel}`}
+              style={{ cursor: "pointer" }}
+              onClick={() => { this.onSubjectContentCheckboxChange() }}>Document Title</Label>
+          }
             shape="circular"
             indicator={{ style: { marginTop: 13 } }}
-            onChange={() => {
-              this.setState({
-                isSubjectSearch: !isSubjectSearch,
-                searchPlaceHolder: !isSubjectSearch ? `Type here to search by Document Title` : `Type here to content search`
-              })
-            }} />
+            onChange={this.onSubjectContentCheckboxChange} />
 
-          <Checkbox checked={!isSubjectSearch} label={<Label className={`${styles1.formLabel}`}>Content Search</Label>}
+          <Checkbox checked={!isSubjectSearch}
+            style={{ cursor: "pointer" }}
+            label={
+              <Label className={`${styles1.formLabel}`}
+                style={{ cursor: "pointer" }}
+                onClick={() => { this.onSubjectContentCheckboxChange() }}>Content Search</Label>
+            }
             shape="circular"
             indicator={{ style: { marginTop: 13 } }}
-            onChange={() => {
-              this.setState({
-                isSubjectSearch: !isSubjectSearch,
-                searchPlaceHolder: !isSubjectSearch ? `Type here to search by Document Title` : `Type here to content search`
-              })
-            }} />
+            onChange={this.onSubjectContentCheckboxChange} />
 
           {/* <Tooltip
             content={`use checkbox for Document Title search`}
@@ -987,6 +990,15 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     </>;
 
     return searchFilterResultsJSX;
+  }
+
+  private onSubjectContentCheckboxChange = () => {
+    const { isSubjectSearch } = this.state
+    this.setState({
+      isSubjectSearch: !isSubjectSearch,
+      searchPlaceHolder: !isSubjectSearch ? `Type here to search by Document Title` : `Type here to content search`
+    })
+
   }
 
 
@@ -1341,6 +1353,8 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                         onClick={this.onDetailItemClick.bind(this, val, Constants.colSubject)}>
                         <div style={{
                           textAlign: "left",
+                          maxWidth: 500,
+                          overflowWrap: "anywhere",
                           color: val.Classification == "Master" ? "#f26522" : "#162B75"
                         }}>{val.Subject} <OpenRegular /></div>
                       </Button>
@@ -2181,8 +2195,14 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         selectedSortFields: data.optionValue,
         sortingFields: data.optionValue == "Date" ? Constants.colPublishedDate : Constants.colCircularNumber
       }, () => {
-        const { filteredItems, sortingFields, sortDirection } = this.state;
-        this.setState({ filteredItems: this.sortListItems(filteredItems, sortingFields, sortDirection) })
+        const { filteredItems, sortingFields, sortDirection, isSearchFilterApplied } = this.state;
+        if (isSearchFilterApplied) {
+          this.searchResults()
+        }
+        else {
+          this.setState({ filteredItems: this.sortListItems(filteredItems, sortingFields, sortDirection) })
+        }
+
       });
         break;
     }
@@ -2191,10 +2211,16 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
 
   private onSorting = () => {
-    const { sortDirection } = this.state;
+    const { sortDirection, isSearchFilterApplied } = this.state;
     this.setState({ sortDirection: sortDirection == "asc" ? "desc" : "asc" }, () => {
-      const { filteredItems, sortingFields, sortDirection } = this.state;
-      this.setState({ filteredItems: this.sortListItems(filteredItems, sortingFields, sortDirection) })
+      const { filteredItems, sortingFields, sortDirection, isSearchFilterApplied } = this.state;
+      if (isSearchFilterApplied) {
+        this.searchResults()
+      }
+      else {
+        this.setState({ filteredItems: this.sortListItems(filteredItems, sortingFields, sortDirection) })
+      }
+
     })
   }
 
@@ -2233,7 +2259,12 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     const { responsiveMode } = providerValue as IBobCircularRepositoryProps;
     let isTabletMobileDektopMode = responsiveMode == 0 || responsiveMode == 1 || responsiveMode == 2 || responsiveMode == 3;
     let searchClearJSX = <>
-      <FluentUIBtn appearance="primary" style={{ marginRight: 2, width: isTabletMobileDektopMode ? "97%" : "100%" }} icon={<FilterRegular />} onClick={() => { this.searchResults() }}>
+      <FluentUIBtn appearance="primary" style={{ marginRight: 2, width: isTabletMobileDektopMode ? "97%" : "100%" }}
+        icon={<FilterRegular />} onClick={() => {
+          this.setState({ currentPage: 1, startRow: 0 }, () => {
+            this.searchResults()
+          })
+        }}>
         Search
       </FluentUIBtn>
       {/* <FluentUIBtn appearance="secondary" icon={<DismissRegular />} onClick={() => { this.clearFilters() }}>
@@ -2286,9 +2317,6 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     return searchBoxJSX;
   }
 
-  private onSearchBoxChange = (event?: React.ChangeEvent<HTMLInputElement>, newValue?: string) => {
-    this.setState({ searchText: newValue })
-  }
 
   private onSearchTextChange = (event: SearchBoxChangeEvent, data: InputOnChangeData) => {
     this.setState({ searchText: data.value })
@@ -2302,9 +2330,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   }
 
   private handleSearch = (newValue?: string) => {
-
     this.searchResults(newValue)
-
   }
 
   private onSearchClear = () => {
@@ -2314,7 +2340,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
   private searchResults = (newValue?: string) => {
     let providerValue = this.context;
     const { context, services, serverRelativeUrl, circularListID } = providerValue as IBobCircularRepositoryProps;
-    const { searchText, circularNumber, checkBoxCollection, isSubjectSearch } = this.state
+    const { searchText, circularNumber, checkBoxCollection, isSubjectSearch, startRow, itemsPerPage } = this.state
     let siteID = context.pageContext.site.id;
     let webID = context.pageContext.web.id;
     let siteURL = context.pageContext.site.absoluteUrl;
@@ -2329,10 +2355,22 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       })
     })
 
-    if (searchText != "" || circularNumber != "" || checkedValues.length > 0) {
+    let isSearchFilterApplied = searchText != "" || circularNumber != "" || checkedValues.length > 0;
+
+
+
+
+    /**
+    |--------------------------------------------------
+    | If Search Filters are applied (Text + Filters) then call search api
+    |--------------------------------------------------
+    */
+
+    if (isSearchFilterApplied) {
       this.setState({ isLoading: true }, async () => {
 
         let listItemData: any[] = [];
+        let totalRowCount = 0;
         let searchProperties = Constants.selectedSearchProperties;
         const { searchText, sortingFields, sortDirection } = this.state
         let queryTemplate = `{searchTerms} (siteId:{${siteID}} OR siteId:${siteID}) (webId:{${webID}} OR webId:${webID}) (NormListID:${circularListID}) `;
@@ -2340,9 +2378,10 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
         let refinableFilterQuery = this.refinableQuery();
         let advancedSearchTextAndFilterQuery = this.searchQueryAndFilterQuery();
+
         let sortListProperty = [{
           Property: Constants.managePropPublishedDate,
-          Direction: 1 //0 for asc & 1 for descending
+          Direction: sortDirection == "asc" && sortingFields != "" ? 0 : 1 //0 for asc & 1 for descending
         }]
 
 
@@ -2356,10 +2395,12 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
         | 
         |--------------------------------------------------
         */
-        if (advancedSearchTextAndFilterQuery != "") {
+        if (advancedSearchTextAndFilterQuery != "" && isSubjectSearch) {
 
-          await services.getSearchResults('', searchProperties, queryTemplate, advancedSearchTextAndFilterQuery, sortListProperty).
+          await services.getSearchResults('', searchProperties, queryTemplate, advancedSearchTextAndFilterQuery, sortListProperty, startRow, itemsPerPage).
             then(async (searchResults: SearchResults) => {
+
+              totalRowCount = searchResults.TotalRowsIncludingDuplicates;
 
               (searchResults?.PrimarySearchResults as any).map((val) => {
 
@@ -2399,9 +2440,11 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
         if (!isSubjectSearch) {
           await services.
-            getSearchResults(searchText.trim() == '' ? `` : searchText, searchProperties, queryTemplate, refinableFilterQuery, sortListProperty).
+            getSearchResults(searchText.trim() == '' ? `` : searchText, searchProperties, queryTemplate, refinableFilterQuery, sortListProperty, startRow, itemsPerPage).
             then(async (searchResults: any) => {
               (searchResults?.PrimarySearchResults as any).map((val) => {
+
+                totalRowCount = searchResults.TotalRowsIncludingDuplicates;
 
                 listItemData.push({
                   ID: parseInt(val.ListItemID),
@@ -2436,14 +2479,31 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
         this.setState({
           filteredItems: this.sortListItems(searchFilterItems, sortingFields, sortDirection),
-          searchItems: searchFilterItems, currentPage: 1, isLoading: false, openSearchFilters: false
+          totalRowCount: totalRowCount,
+          isSearchFilterApplied,
+          searchItems: searchFilterItems, isLoading: false, openSearchFilters: false,
+          //currentPage: 1,
         })
 
       });
     }
     else {
-      this.loadCircularRepository()
+      /**
+    |--------------------------------------------------
+    | If Search Filters & Search in Text is not applied call paged list Items
+    |--------------------------------------------------
+    */
+      this.setState({ isSearchFilterApplied }, () => {
+        this.loadCircularRepository();
+      })
+
+
+
     }
+
+
+
+
 
   }
 
@@ -2768,166 +2828,47 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
   private sortListItems(listItems: any[], sortingFields, sortDirection) {
 
-    const isDesc = sortDirection === 'desc' ? 1 : -1;
+    const { isSearchFilterApplied } = this.state
+    const isDesc = sortDirection === 'desc' ? -1 : 1;
     // let sortFieldDetails = this.props.fields.filter(f => f.key === sortingFields)[0];
 
-    switch (sortingFields) {
+    if (!isSearchFilterApplied) {
+      switch (sortingFields) {
+        case Constants.colPublishedDate: let sortFn: (a, b) => number;
+          sortFn = (a, b) => ((new Date(a[sortingFields]).getTime() < new Date(b[sortingFields]).getTime()) ? -1 : 1) * isDesc;
+          listItems.sort(sortFn);
+          break;
+        case Constants.colSubject: sortFn = (a, b) => ((a[sortingFields] > b[sortingFields]) ? -1 : 1) * isDesc;
+          listItems.sort(sortFn);
+          break;
+        case Constants.colMigratedDepartment: sortFn = (a, b) => ((a[sortingFields] > b[sortingFields]) ? -1 : 1) * isDesc;
+          listItems.sort(sortFn);
+          break;
+        case Constants.colCircularNumber: sortFn = (a, b) => ((a[sortingFields] > b[sortingFields]) ? -1 : 1) * isDesc;
+          listItems.sort(sortFn);
+          break;
+        case Constants.colClassification: sortFn = (a, b) => ((a[sortingFields] > b[sortingFields]) ? -1 : 1) * isDesc;
+          listItems.sort(sortFn);
+          break;
 
-      case Constants.colPublishedDate: let sortFn: (a, b) => number;
-        sortFn = (a, b) => ((new Date(a[sortingFields]).getTime() < new Date(b[sortingFields]).getTime()) ? 1 : -1) * isDesc;
-        listItems.sort(sortFn);
-        break;
-      case Constants.colSubject: sortFn = (a, b) => ((a[sortingFields] > b[sortingFields]) ? 1 : -1) * isDesc;
-        listItems.sort(sortFn);
-        break;
-      case Constants.colMigratedDepartment: sortFn = (a, b) => ((a[sortingFields] > b[sortingFields]) ? 1 : -1) * isDesc;
-        listItems.sort(sortFn);
-        break;
-      case Constants.colCircularNumber: sortFn = (a, b) => ((a[sortingFields] > b[sortingFields]) ? -1 : 1) * isDesc;
-        listItems.sort(sortFn);
-        break;
-      case Constants.colClassification: sortFn = (a, b) => ((a[sortingFields] > b[sortingFields]) ? 1 : -1) * isDesc;
-        listItems.sort(sortFn);
-        break;
-
+      }
     }
 
     return listItems;
   }
 
-  private handleSorting = (property: string) => (event: React.MouseEvent<unknown>, column: IColumn) => {
-    property = column.key;
-
-    this.setState({ sortingFields: column.key }, () => {
-      let { sortingFields, sortDirection, filteredItems } = this.state;
-      //const isDesc = sortingFields && sortingFields === property && sortDirection === 'desc';
-      const isDesc = property && sortingFields === property && sortDirection === 'desc';
-      let updateColumns = this.state.columns.map(c => {
-        //isSortedDescending: (isAsc ? false : true)
-        //return c.key === property ? {...c, isSorted: true, isSortedDescending: (isDesc ? false : true) } : {...c};
-        if (c.key == Constants.colPublishedDate) {
-          return c.key === property ? { ...c, isSorted: true, isSortedDescending: !isDesc } : { ...c, isSorted: false, isSortedDescending: !c.isSortedDescending };
-        }
-        else {
-          return c.key === property ? { ...c, isSorted: true, isSortedDescending: !c.isSortedDescending } : { ...c, isSorted: false, isSortedDescending: !c.isSortedDescending };
-        }
-
-      });
-
-      this.setState({
-        sortDirection: (isDesc ? 'asc' : 'desc'),
-        sortingFields: property,
-        columns: updateColumns,
-      }, () => {
-        const { sortDirection, sortingFields } = this.state;
-        this.setState({ filteredItems: this.sortListItems(filteredItems, sortingFields, sortDirection) })
-      });
-    })
-
-  }
 
 
-  private circularSearchResultsTable = (): JSX.Element => {
-
-    const { filteredItems } = this.state
-    let filteredPageItems = this.paginateFn(filteredItems);
-    const { columns } = this.state
-    let searchResultsJSX = <>
-      {this.detailListView(filteredPageItems, columns)}
-    </>
-
-    return searchResultsJSX;
-
-  }
 
 
-  private detailListView = (filteredPageItems, columns): JSX.Element => {
-    let detailListViewJSX =
-      <>
-        <DetailsList
-          className={` ${styles1.detailsListBorderRadius} `}
-          styles={{
-            root: {
-              ".ms-DetailsHeader-cell": {
-
-                ".ms-DetailsHeader-cellTitle": {
-                  color: "white",
-                  ".ms-Icon": {
-                    color: "white",
-                    fontWeight: 600,
-                    left: -30
-                  }
-                }
-              },
-              ".ms-DetailsHeader-cell:hover": {
-
-                background: "#f26522",
-                color: "white",
-                cursor: "pointer"
-              }
-            },
-            focusZone: {
-              ".ms-List": {
-                ".ms-List-surface": {
-                  ".ms-List-page": {
-                    ".ms-List-cell": {
-                      ".ms-DetailsRow": {
-
-                        borderBottom: "1px solid #ccc",
-
-                        ".ms-DetailsRow-fields": {
-                          ".ms-DetailsRow-cell": {
-                            fontWeight: 400,
-                            fontSize: "13.5px",
-                            fontFamily: 'Roboto',
-                            color: "black"
-                          }
-                        }
-                      },
-                      ".ms-DetailsRow:hover": {
-                        borderBottom: "1px solid #ccc",
-                        background: "#f265221a"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            headerWrapper: {
-              ".ms-DetailsHeader": {
-                color: "white",//"#003171",
-                paddingTop: 0,
-                backgroundColor: "#f26522"//"#495057" //"rgb(225 234 244)"//"#EEEFF0" //"#5581F6"//"rgb(3, 120, 124)"
-              }
-            }
-          }}
-          items={filteredPageItems}
-          columns={columns}
-          compact={true}
-          selectionMode={SelectionMode.none}
-          getKey={this._getKey}
-          setKey="none"
-          layoutMode={DetailsListLayoutMode.fixedColumns}
-          isHeaderVisible={true}
-          onItemInvoked={this._onItemInvoked}
-          onRenderRow={this._onRenderRow}
-
-        // onRenderDetailsHeader={(props, defaultRender) =>
-        //   defaultRender({ ...props, styles: { root: { width: 200 } } })
-        // }
-        // onRenderDetailsFooter={this.createPagination.bind(this)}
-        />
-        {this.createPagination()}
-
-      </>
-
-    return detailListViewJSX;
-  }
 
   private paginateFn = (filterItem: any[]) => {
-    let { itemsPerPage, currentPage } = this.state;
+    let { itemsPerPage, currentPage, isSearchFilterApplied } = this.state;
+
+    // return filterItem;
     return (itemsPerPage > 0
-      ? filterItem ? filterItem.slice((currentPage - 1) * itemsPerPage, (currentPage - 1) * itemsPerPage + itemsPerPage) : filterItem
+      ? filterItem && !isSearchFilterApplied ? filterItem.slice((currentPage - 1) * itemsPerPage, (currentPage - 1) * itemsPerPage + itemsPerPage) :
+        filterItem
       : filterItem
     );
   }
@@ -2980,15 +2921,16 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
 
   private createPagination = (): JSX.Element => {
-    const { items, currentPage, itemsPerPage, filteredItems } = this.state;
+    const { items, currentPage, itemsPerPage, filteredItems, totalRowCount } = this.state;
     let providerContext = this.context;
     const { responsiveMode } = providerContext as IBobCircularRepositoryProps;
-    const totalItems = filteredItems.length;
+    const totalItems = totalRowCount //filteredItems.length;
     const _themeWindow: any = window;
     const _theme = _themeWindow.__themeState__.theme;
     let isMobileDesktopMode = responsiveMode == 1;
     let isMobileMode = responsiveMode == 0;
-    let lastItemCount = ((itemsPerPage * (currentPage - 1)) + itemsPerPage) > filteredItems.length ? filteredItems.length : ((itemsPerPage * (currentPage - 1)) + itemsPerPage)
+    //let lastItemCount = ((itemsPerPage * (currentPage - 1)) + itemsPerPage) > filteredItems.length ? filteredItems.length : ((itemsPerPage * (currentPage - 1)) + itemsPerPage)
+    let lastItemCount = ((itemsPerPage * (currentPage - 1)) + itemsPerPage) > totalRowCount ? totalRowCount : ((itemsPerPage * (currentPage - 1)) + itemsPerPage)
     let pagination: any =
       <>
         <div className={`${styles.paginationContainer} ${styles1.row} `}>
@@ -3161,12 +3103,27 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
 
 
   private handlePageChange(pageNo) {
-    this.setState({ currentPage: pageNo });
+    this.setState({ currentPage: pageNo }, () => {
+      const { currentPage, isSearchFilterApplied } = this.state;
+      if (currentPage == 1) {
+        this.setState({ startRow: 0 }, () => {
+          if (isSearchFilterApplied)
+            this.searchResults()
+        })
+      }
+      else {
+        let startRow = (currentPage - 1) * (10);
+        this.setState({ startRow: startRow }, () => {
+          if (isSearchFilterApplied)
+            this.searchResults();
+        })
+      }
+    });
   }
 
   private clearFilters = () => {
 
-    const { checkBoxCollection } = this.state
+    const { checkBoxCollection, isSearchFilterApplied } = this.state
     let departmentBox = checkBoxCollection.get(`${Constants.department}`);
 
     this.setState({
@@ -3176,7 +3133,8 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
       publishedStartDate: null,
       publishedEndDate: null,
       checkBoxCollection: this.initializeCheckBoxFilter(),
-      relevanceDepartment: this.initializeRelevanceDept(departmentBox)
+      relevanceDepartment: this.initializeRelevanceDept(departmentBox),
+      isSearchFilterApplied: false
     }, () => {
       this.searchResults()
     })

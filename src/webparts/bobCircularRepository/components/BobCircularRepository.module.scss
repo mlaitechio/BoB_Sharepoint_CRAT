@@ -591,6 +591,15 @@ input * {
   vertical-align: middle;
 }
 
+
+.subjectLink {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-width: 500;
+}
+
 .paddingLeftZero {
   padding-left: 0px;
 }

@@ -5,19 +5,25 @@ export interface ICircularSearchState {
     navLinkGroups?: INavLinkGroup[];
     selectedKey?: string;
     dismissMessage?: boolean;
+    isSearchFilterApplied?: boolean;
+    /* */
     totalRowCount?: any;
+
+    startRow?: any;
     searchPlaceHolder?: string;
     isSubjectSearch?: boolean;
     searchText?: string;
     openSearchFilters?: boolean;
+    itemsPerPage?: number; // search Row Limit
+    columns?: any[];
+    currentPage?: number;
+
+    /*Search State */
     supportingDocItem?: ICircularListItem;
     openSupportingDoc?: boolean;
     items?: ICircularListItem[];
     filteredItems?: ICircularListItem[];
-    columns?: any[];
-    currentPage?: number;
     sortingOptions?: any[];
-    itemsPerPage?: number;
     renderEmpty?: boolean;
     isLoading?: boolean;
     previewItems?: ICircularListItem;
