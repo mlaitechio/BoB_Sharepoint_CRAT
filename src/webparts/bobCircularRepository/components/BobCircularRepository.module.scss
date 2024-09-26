@@ -592,6 +592,13 @@ input * {
 }
 
 
+.popOver {
+  max-height: 400px;
+  scrollbar-width: thin;
+  overflow: scroll;
+  overflow-x: hidden;
+}
+
 .subjectLink {
   display: -webkit-box;
   -webkit-line-clamp: 3;

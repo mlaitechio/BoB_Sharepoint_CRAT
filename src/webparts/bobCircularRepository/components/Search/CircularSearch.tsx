@@ -1414,7 +1414,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                                                 Summary
                                               </div>
                                               <Divider appearance="subtle" style={{ marginBottom: 10 }}></Divider>
-                                              <div className={`${styles1.column12}`}>
+                                              <div className={`${styles1.column12} ${styles1.popOver}`}>
                                                 {summary != "" ? summary : `No Summary Available`}
                                               </div>
                                             </div>
@@ -1439,7 +1439,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                                                 FAQs
                                               </div>
                                               <Divider appearance="subtle" style={{ marginBottom: 10 }}></Divider>
-                                              <div className={`${styles1.column12}`}>
+                                              <div className={`${styles1.column12} ${styles1.popOver}`}>
                                                 {faq != "" ? previewItems?.CircularFAQ : `No FAQ Available`}
                                               </div>
                                             </div>
@@ -1459,7 +1459,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
                                         <MenuList >
                                           <MenuItem>
                                             <div className={`${styles1.row}`}>
-                                              <div className={`${styles1.column12}`} color='#f26522'>
+                                              <div className={`${styles1.column12} ${styles1.popOver}`} color='#f26522'>
                                                 Supporting Documents
                                               </div>
                                             </div>
