@@ -756,6 +756,77 @@ export class Services implements IServices {
 
     }
 
+    public async getSupportingDocuments(queryText: string, selectedProperties: any[], queryTemplate?: string, refinementFilters?: string, sortList?: any[]): Promise<any> {
+
+        // const queryBuilder =  SearchQueryBuilder();
+
+        // queryBuilder.selectProperties(selectedProperties.join(','))
+        // queryBuilder.rowLimit(500)
+        // queryBuilder.rowsPerPage(10);
+        // queryBuilder.refinementFilters(`RefinableString04:"FY 2019 - 2020"`)
+
+        try {
+            let searchItems: any[] = [];
+            let textQuery = queryText.trim() != "" ? `(${queryText?.trim().split(' ').join(' OR ')}) XRANK(cb=100)` : `*`; //`${queryText?.trim().split(' ').join(' OR ')}` + `*` : `*`
+
+            let _searchQuerySettings: ISearchQuery = {
+                Querytext: `${textQuery}`,//`*`,//
+                TrimDuplicates: false,
+                QueryTemplate: queryTemplate,
+                // StartRow: startRow,
+                RowLimit: 500, // maximum 500 can be row Limit
+                RowsPerPage: 10, // items per page
+                ClientType: 'ContentSearchRegular',
+                EnableSorting: true,
+                SortList: sortList,
+                // BypassResultTypes: true,
+                // ClientType: "sug_SPListInline",
+                // SummaryLength: 100,
+                EnableInterleaving: true,
+                Properties: [{
+                    Name: "EnableDynamicGroups",
+                    Value: {
+                        BoolVal: true,
+                        QueryPropertyValueTypeIndex: QueryPropertyValueType.BooleanType
+                    }
+                }],
+                //Culture:57,
+
+                //[`RefinableString04:("FY 2023 - 2024*")`],RefinableDate00:range(2020-11-01T00:01:01Z,2023-12-31T00:01:01Z)`RefinableString04:equals("FY 2020 - 2021")`
+                SelectProperties: selectedProperties,
+                // SourceId: "264617d4-bb7d-463e-b494-bff7fded0f64" //List ID of Bulletin Board
+            };
+
+            if (refinementFilters.trim() != "") {
+                _searchQuerySettings.RefinementFilters = [refinementFilters]
+            }
+
+            console.log(_searchQuerySettings);
+
+
+            let searchResults = await sp.search(_searchQuerySettings);
+
+            searchItems = searchItems.concat(searchResults.PrimarySearchResults);
+
+
+
+            // Check if there are more items to retrieve
+            while (searchItems.length < searchResults.TotalRowsIncludingDuplicates) {
+                _searchQuerySettings.StartRow = searchItems.length
+                searchResults = await sp.search(_searchQuerySettings);
+                // Add the next batch of items to the array
+                searchItems = searchItems.concat(searchResults.PrimarySearchResults);
+            }
+
+            //return Promise.resolve(searchResults);
+            return Promise.resolve(searchItems);
+        }
+        catch {
+            return Promise.reject(`Error occured while performing search`)
+        }
+
+    }
+
     //queryText: string, batchSize: number, startRow: number
     private async getAllSearchResults(_searchQuerySettings: ISearchQuery, allResults: any[] = []): Promise<any[]> {
         const searchResults = await sp.search(_searchQuerySettings);

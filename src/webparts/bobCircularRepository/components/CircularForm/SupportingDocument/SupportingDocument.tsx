@@ -84,9 +84,9 @@ export default class SupportingDocument extends React.Component<ISupportingDocum
         }]
 
         await services.
-            getSearchResults('', searchProperties, queryTemplate, filterString, sortListProperty).
+            getSupportingDocuments('', searchProperties, queryTemplate, filterString, sortListProperty).
             then(async (searchResults: any[]) => {
-                searchResults.map((val) => {
+                searchResults?.map((val) => {
 
                     /**
                     |--------------------------------------------------

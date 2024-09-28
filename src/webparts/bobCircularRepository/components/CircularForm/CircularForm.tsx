@@ -1045,7 +1045,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 </>
                 }
                 {/* !isRequesterMaker &&  */}
-                {isUserChecker && showCheckerCommentBox && !isRequesterMaker &&  <>
+                {isUserChecker && showCheckerCommentBox && !isRequesterMaker && <>
                     <div className={`${styles.row} ${styles.formFieldMarginTop}`}>
                         <div className={`${styles.column12}`}>
                             {this.textAreaControl(`${Constants.lblCommentsChecker}`, true, `${circularListItem.CommentsChecker}`)}
@@ -2736,6 +2736,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
 
             let circularNumberText = circularListItem.CircularNumber;
             let circularNumberIndexOf = circularListItem.CircularNumber.indexOf(`${this.getCircularNumber()}`);
+            let circularStatus = circularListItem.CircularStatus;
             // if BOB:BR:116: not present then circular Number will be this
             if (circularNumberIndexOf == -1) {
                 circularListItem.CircularNumber = `${this.getCircularNumber()}` + `${circularNumberText}`;
@@ -2795,7 +2796,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                         this.setState({ isLoading: false })
                     });
                 }
-                else {
+                else if (circularStatus != "New") {
 
                     let ID = parseInt(currentCircularListItemValue.ID);
 
@@ -3035,11 +3036,17 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                             this.setState({ isLoading: false })
                         });
                     }
-                    else {
-                        circularListItem.CircularNumber = circularNumberText.replace(`${this.getCircularNumber()}`, ``);
-                        if (circularListItem.CircularStatus == Constants.lblNew) {
-                            this.setState({ isDuplicateCircular: true, isLoading: false, circularListItem })
-                        }
+                    // else {
+                    //     circularListItem.CircularNumber = circularNumberText.replace(`${this.getCircularNumber()}`, ``);
+                    //     if (circularListItem.CircularStatus == Constants.lblNew) {
+                    //         this.setState({ isDuplicateCircular: true, isLoading: false, circularListItem })
+                    //     }
+                    // }
+                }
+                else if (circularStatus == "New") {
+                    circularListItem.CircularNumber = circularNumberText.replace(`${this.getCircularNumber()}`, ``);
+                    if (circularListItem.CircularStatus == Constants.lblNew) {
+                        this.setState({ isDuplicateCircular: true, isLoading: false, circularListItem })
                     }
                 }
 
