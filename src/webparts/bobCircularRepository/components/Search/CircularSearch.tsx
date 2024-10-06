@@ -3052,7 +3052,7 @@ export default class CircularSearch extends React.Component<ICircularSearchProps
     this.setState({ isLoading: true }, async () => {
       if (currentSelectedItem.ID == item.ID) {
         await services.getListDataAsStream(serverRelativeUrl, Constants.circularList, item.Id).then((result) => {
-          console.log(result.ListData);
+          //console.log(result.ListData);
           result.ListData.ID = item.Id;
 
           this.setState({

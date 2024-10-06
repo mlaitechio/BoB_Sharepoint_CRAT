@@ -1,5 +1,8 @@
 {searchTerms} (siteId: {4db5bdf0-f4d9-4524-8c7a-62f986546e63} OR siteId: 4db5bdf0-f4d9-4524-8c7a-62f986546e63) (webId: {153bba80-4381-485d-b08d-3233d8cb24d3} OR webId: 153bba80-4381-485d-b08d-3233d8cb24d3) (NormListID: 67280d85-09b4-4f37-8c2b-0e42ea7a5fa1) (path: "https://mlaitechio.sharepoint.com/sites/BOB_New/Lists/CircularRepository" OR ParentLink: "https://mlaitechio.sharepoint.com/sites/BOB_New/Lists/CircularRepository*") ContentTypeId: 0x0*
 
+
+MigratedDepartment eq null and CircularStatus eq 'Published' and CircularType eq 'Limited'
+
 kumar.v@mlaitech.io
 T!151676077353ul
 MlaiBob@6789
