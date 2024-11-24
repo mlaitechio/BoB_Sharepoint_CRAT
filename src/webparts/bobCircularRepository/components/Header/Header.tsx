@@ -42,7 +42,7 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
         const { onMenuSubMenuLinkClick } = this.props
         let providerContext = this.context;
         this.masterProps = providerContext as IBobCircularRepositoryProps;
-        const { userDisplayName, context, isUserChecker, isUserMaker, isUserCompliance, isUserAdmin } = this.masterProps;
+        const { userDisplayName, context, isUserChecker, isUserMaker, isUserCompliance } = this.masterProps;
         const mode = getResponsiveMode(window);
         let userProfileImg = this.generateUserPhotoLink(context.pageContext.user.email)
 

@@ -67,8 +67,8 @@ export default class MyPdfViewer extends React.Component<IMyPDFViewerProps, IMyP
         let isDesktopMode5 = mode == 5;
         let isMobileTabletMode = mode == 0 || mode == 1 || mode == 2 || mode == 3;
 
-        console.log(currentSelectedFileContent);
-        console.log(pdfFilePath);
+        // console.log(currentSelectedFileContent);
+        // console.log(pdfFilePath);
 
         await this.waterMark_ConvertToBase64PDF(currentSelectedFileContent, `${watermarkText}`, footerText, footerTextColor).then((val) => {
 
