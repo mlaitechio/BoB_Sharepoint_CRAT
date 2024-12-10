@@ -91,7 +91,7 @@ export class Services implements IServices {
             let items: PagedItemCollection<any[]> = null;
             do {
                 if (!items) items = await sp.web.getList(`${serverRelativeUrl}/Lists/${listName}`).items.select(selectColumns).
-                    orderBy(`${orderByColum}`, false).expand(expandColumns).top(4999).getPaged();
+                    orderBy(`${orderByColum}`, asc).expand(expandColumns).top(4999).getPaged();
                 else {
                     items = await items.getNext();
                 }
@@ -662,9 +662,10 @@ export class Services implements IServices {
     };
 
 
-    public async sendEmail(emailAddress: string[], ccEmailAddress: string[], subject: string, body: any): Promise<any> {
+    public async sendEmail(emailAddress: string[], ccEmailAddress: string[], subject: string, body: any, fromEmailAddress?: string): Promise<any> {
 
         const emailProperties: IEmailProperties = {
+            From: fromEmailAddress,
             To: emailAddress,
             CC: ccEmailAddress,
             Subject: subject,

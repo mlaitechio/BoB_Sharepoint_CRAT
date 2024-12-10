@@ -85,7 +85,7 @@ export default class Header extends React.Component<IHeaderProps, IHeaderState> 
                     <div className={`${headerImgClass} ${styles.textColor} `} >
 
                         {/* <img alt="" src={require('../assets/TIAA.png')} /> */}
-                        <Link onClick={() => { window.open(`/sites/New_intranet`, `_blank`) }}>
+                        <Link onClick={() => { window.open(`/sites/pragyan`, `_blank`) }}>
                             <Image src={logoImg}
 
 

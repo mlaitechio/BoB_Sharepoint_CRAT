@@ -218,7 +218,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
             })
 
 
-            await services.getPagedListItems(serverRelativeUrl, Constants.emailList, `*`, ``, ``, `ID`).then((email) => {
+            await services.getPagedListItems(serverRelativeUrl, Constants.emailList, `*`, ``, ``, `ID`, true).then((email) => {
                 this.setState({ emailTemplates: email })
             }).catch((error) => {
                 this.setState({ isLoading: false })
@@ -2725,7 +2725,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
     private saveForm = (status?: string) => {
         const { circularListItem,
             currentCircularListItemValue, sopAttachmentColl,
-            sopUploads, attachedFile, auditListItem, selectedSupportingCirculars, emailTemplates } = this.state;
+            sopUploads, attachedFile, auditListItem, selectedSupportingCirculars } = this.state;
         let isFormValid = this.validateAllRequiredFields();
         const { displayMode } = this.props;
 
@@ -3127,7 +3127,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                 break;
         }
 
-        await services.sendEmail(toEmailAddress, ccEmailAddress, subject, body).then(async (val) => {
+        await services.sendEmail(toEmailAddress, ccEmailAddress, subject, body,`noreply@bankofbaroda.com`).then(async (val) => {
             console.log(`Email Sent Successfully`);
 
             let auditLog = {

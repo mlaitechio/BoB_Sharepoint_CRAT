@@ -30,5 +30,5 @@ export interface IServices {
     convertDocxToPDF: (serverRelativeUrl: string, listName: string, itemID: number, fileName: string) => Promise<any>;
     updateMultipleListItem: (serverRelativeUrl: string, listName: string, itemID: any[], metadata: any) => Promise<any[]>;
     getSupportingDocuments: (queryText: string, selectedProperties: any[], queryTemplate?: string, refinementFilters?: string, sortList?: any[]) => Promise<any>;
-    sendEmail: (emailAddress: string[], ccEmailAddress: string[], subject: string, body: any) => Promise<any>;
+    sendEmail: (emailAddress: string[], ccEmailAddress: string[], subject: string, body: any,from?:string) => Promise<any>;
 }
