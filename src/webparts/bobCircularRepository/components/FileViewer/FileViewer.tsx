@@ -132,11 +132,37 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
             */
 
             let circularFileName = listItem.CircularNumber.replace(/:/g, "_") + `.pdf`;
+            let circularDocxFile = listItem.CircularNumber.replace(/:/g, "_") + `.docx`;
 
             let isMigrated = listItem?.IsMigrated ?? `Yes`;
             if (isMigrated == Constants.lblNo || isMigrated == "") {
                 fileArray = listItem.Attachments.Attachments.filter(val => val.FileName == circularFileName);
                 file = fileArray.filter(val => val.FileName == circularFileName)[0];
+
+                /* Expiry Logic to be written here to convert docx file to pdf & attach it back to the list item */
+
+                if (fileArray.length == 0) {
+                    await services.convertDocxToPDF(serverRelativeUrl, Constants.circularList, parseInt(listItem.ID), circularDocxFile).then(async (val) => {
+
+                        console.log(`File Converted Successfully`);
+
+                        await services.getListDataAsStream(serverRelativeUrl, Constants.circularList, parseInt(listItem.ID)).then((result) => {
+
+                            let listItemData = result.ListData;
+
+                            fileArray = listItemData.Attachments.Attachments.filter(val => val.FileName == circularFileName);
+
+
+                        }).catch((error) => {
+                            console.log(error);
+                        })
+
+                    }).catch((error) => {
+                        console.log(error);
+                        console.log(`Error while converting the file`);
+                    })
+                }
+
             }
 
 
@@ -257,14 +283,14 @@ export default class FileViewer extends React.Component<IFileViewerProps, IFileV
         const limited = listItem.Classification == Constants.limited;
         const expiryDate = listItem.Expiry != null ? (listItem.Expiry as string).split('T')[0] : "";
         const archivalDate = listItem.ArchivalDate != null ? (listItem.ArchivalDate as string).split('T')[0] : ""
-        const currentDate = circularStatus == archived && limited ? new Date(expiryDate) : circularStatus == archived ? new Date(archivalDate) : new Date();
+        const currentDate = circularStatus == published ? new Date() : expiryDate ? new Date(expiryDate) : new Date(archivalDate);
         const month = (currentDate.getMonth() + 1 < 10 ? '0' : '') + (currentDate.getMonth() + 1);
         const day = (currentDate.getDate() < 10 ? '0' : '') + currentDate.getDate();
         const year = currentDate.getFullYear().toString();
         const formatDate = `${day}/${month}/${year}`;
 
         const footerText = circularStatus == published ? Text.format(infoPDFText, formatDate) :
-            circularStatus == archived && limited ? Text.format(warninglimitedPDFText, formatDate) : Text.format(warningUnlimitedPDFText, formatDate);
+            expiryDate ? Text.format(warninglimitedPDFText, formatDate) : Text.format(warningUnlimitedPDFText, formatDate);
         const footerTextColor = circularStatus == published ? rgb(0.02, 0.02, 0.02) : circularStatus == archived ? rgb(0.86, 0.09, 0.26) : rgb(0.86, 0.09, 0.26);
 
         let infoPanelJSX = <>
