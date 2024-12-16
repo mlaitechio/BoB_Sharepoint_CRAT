@@ -3027,7 +3027,7 @@ export default class CircularForm extends React.Component<ICircularFormProps, IC
                                 |--------------------------------------------------
                                 */
                                 if (status != Constants.draft) {
-                                    this.sendEmail(status)
+                                   // this.sendEmail(status)
                                 }
 
                             })
